@@ -22,8 +22,6 @@
 			<button on:click={logout} class="bg-red-500 px-3 py-1 rounded"
 				>로그아웃</button
 			>
-		{:else}
-			<a href="/login">로그인</a>
 		{/if}
 	</div>
 </nav>

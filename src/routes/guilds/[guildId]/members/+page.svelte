@@ -1,96 +1,186 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import { onDestroy } from 'svelte';
-    import { guildStore, type GuildCharacter, type JobClass } from '$lib/stores/guildStore';
+    import { guildStore, type GuildCharacter } from '$lib/stores/guildStore';
     import { userStore } from '$lib/stores/userStore';
+    import { itemStore, type ShopItem } from '$lib/stores/itemStore';
 
+    // --- 기본 데이터 ---
     const guildId = $page.params.guildId;
-    let currentUser = $userStore;
-
-    const unsubscribe = guildStore.init(guildId);
     
-    // Data
+    // 스토어 구독
+    const unsubscribeGuild = guildStore.init(guildId);
+    const unsubscribeItems = itemStore.init(guildId);
+
     $: characters = $guildStore?.characters || [];
+    $: shopItems = $itemStore || [];
+    $: currentUser = $userStore;
 
-    // --- State ---
-    let isCreating = false;
-    let editingChar: GuildCharacter | null = null;
-    let shoppingChar: GuildCharacter | null = null; // 상점 이용 중인 캐릭터
-
-    // Form Data
-    let newChar: Partial<GuildCharacter> = { name: '', jobClass: '검사', description: '' };
-
-    // --- Constants ---
-    const jobIcons: Record<string, string> = {
-        '검사': '⚔️', '마법사': '🔮', '힐러': '🌿', '사냥꾼': '🏹', '도적': '🗡️', '탱커': '🛡️'
-    };
+    // --- State: 캐릭터 관리 ---
+    let isCreating = false; // 캐릭터 생성 폼 열기/닫기
+    let editingChar: GuildCharacter | null = null; // 수정 모달 (null이면 닫힘)
     
-    // [NEW] 판매 상품 목록
-    const shopItems = [
-        { name: '📱 핸드폰 시간 30분', cost: 30, icon: '⏳' },
-        { name: '💵 현금 1만원', cost: 100, icon: '💸' }
-    ];
+    // 캐릭터 입력 폼 데이터
+    let newChar: Partial<GuildCharacter> = {
+        name: '',
+        jobClass: '검사',
+        description: ''
+    };
 
-    // --- Actions ---
+    const jobIcons: Record<string, string> = {
+        '검사': '⚔️', '마법사': '🔮', '힐러': '🌿', 
+        '사냥꾼': '🏹', '도적': '🗡️', '탱커': '🛡️'
+    };
+
+    // --- State: 상점 관리 ---
+    let shoppingChar: GuildCharacter | null = null; // 상점 열린 캐릭터
+    let isShopManaging = false; // 관리 모드 토글
+    let isItemModalOpen = false; // 아이템 생성/수정 모달
+    let editingItem: ShopItem | null = null; // 수정 중인 아이템
+    
+    // 아이템 입력 폼 데이터
+    let newItem: Partial<ShopItem> = { name: '', cost: 100, icon: '🎁', description: '' };
+
+
+    // ==========================================
+    // 🕹️ Actions: 캐릭터 (Character)
+    // ==========================================
 
     // 1. 캐릭터 생성
     async function handleCreate() {
         if (!newChar.name) return alert("이름을 입력해주세요.");
         try {
             await guildStore.createCharacter(guildId, {
-                name: newChar.name,
-                jobClass: newChar.jobClass as JobClass,
-                description: newChar.description || '',
-                createdBy: currentUser?.uid || 'unknown'
-            });
+                ...newChar,
+                currentGold: 0,
+                level: 1,
+                exp: 0
+            } as GuildCharacter);
+            
+            alert(`🎉 [${newChar.name}] 캐릭터 생성 완료!`);
             isCreating = false;
-            newChar = { name: '', jobClass: '검사', description: '' };
-        } catch (e: any) { alert(e.message); }
+            newChar = { name: '', jobClass: '검사', description: '' }; // 초기화
+        } catch (e: any) {
+            alert("생성 실패: " + e.message);
+        }
     }
 
-    // 2. 캐릭터 수정
+    // 2. 캐릭터 수정 저장
     async function handleUpdate() {
-        if (!editingChar) return;
+        if (!editingChar || !editingChar.id) return;
         try {
-            await guildStore.updateCharacter(guildId, editingChar.id!, {
+            await guildStore.updateCharacter(guildId, editingChar.id, {
                 name: editingChar.name,
                 jobClass: editingChar.jobClass,
                 description: editingChar.description
             });
-            editingChar = null;
-        } catch (e: any) { alert(e.message); }
+            alert("수정되었습니다.");
+            editingChar = null; // 모달 닫기
+        } catch (e: any) {
+            alert("수정 실패: " + e.message);
+        }
     }
 
     // 3. 캐릭터 삭제
     async function handleDelete(char: GuildCharacter) {
-        if (confirm(`⚠️ 경고: [${char.name}] 캐릭터를 정말 삭제하시겠습니까?\n보유한 골드(${char.currentGold} G)도 모두 사라집니다.`)) {
+        if (!confirm(`정말 [${char.name}] 캐릭터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
+        try {
             await guildStore.deleteCharacter(guildId, char.id!);
+            alert("삭제되었습니다.");
+        } catch (e: any) {
+            alert("삭제 실패: " + e.message);
         }
     }
 
-    // 4. [NEW] 골드 사용 (구매)
-    async function handlePurchase(item: { name: string, cost: number }) {
+
+    // ==========================================
+    // 🛒 Actions: 상점 (Shop)
+    // ==========================================
+
+    // 1. 아이템 저장 (생성/수정)
+    async function handleSaveItem() {
+        if (!newItem.name) return alert("상품명을 입력해주세요.");
+        // 가격 유효성 체크
+        if (newItem.cost === undefined || newItem.cost < 0) return alert("가격은 0 이상이어야 합니다.");
+
+        try {
+            if (editingItem && editingItem.id) {
+                // 수정
+                await itemStore.updateItem(guildId, editingItem.id, {
+                    name: newItem.name,
+                    cost: newItem.cost,
+                    icon: newItem.icon,
+                    description: newItem.description
+                });
+                alert("상품이 수정되었습니다.");
+            } else {
+                // 생성
+                await itemStore.addItem(guildId, {
+                    name: newItem.name,
+                    cost: newItem.cost,
+                    icon: newItem.icon || '🎁',
+                    description: newItem.description
+                } as ShopItem);
+                alert("새 상품이 등록되었습니다.");
+            }
+            closeItemModal();
+        } catch (e: any) {
+            alert("오류 발생: " + e.message);
+        }
+    }
+
+    // 2. 아이템 삭제
+    async function handleDeleteItem(item: ShopItem) {
+        if (confirm(`🗑️ [${item.name}] 상품을 삭제하시겠습니까?`)) {
+            await itemStore.deleteItem(guildId, item.id!);
+        }
+    }
+
+    // 3. 구매 (골드 사용)
+    async function handlePurchase(item: ShopItem) {
         if (!shoppingChar) return;
-        
         if (shoppingChar.currentGold < item.cost) {
             return alert(`골드가 부족합니다! (현재: ${shoppingChar.currentGold} G)`);
         }
 
         if (confirm(`[${shoppingChar.name}] 캐릭터로\n'${item.name}'을(를) 구매하시겠습니까?\n💰 ${item.cost} 골드가 차감됩니다.`)) {
             try {
+                // 로그 기록 및 골드 차감
                 await guildStore.useGold(guildId, shoppingChar.id!, item.name, item.cost);
                 alert(`구매 완료! ${item.name} 획득.`);
-                shoppingChar = null; // 모달 닫기
+                // shoppingChar = null; // 계속 쇼핑하려면 주석 처리
             } catch (e: any) {
                 alert("구매 실패: " + e.message);
             }
         }
     }
 
-    onDestroy(() => unsubscribe());
+    // --- Helpers (Shop) ---
+    function openItemModal(item?: ShopItem) {
+        if (item) {
+            editingItem = item;
+            newItem = { ...item };
+        } else {
+            editingItem = null;
+            newItem = { name: '', cost: 100, icon: '🎁', description: '' };
+        }
+        isItemModalOpen = true;
+    }
+
+    function closeItemModal() {
+        isItemModalOpen = false;
+        editingItem = null;
+    }
+
+    // --- Cleanup ---
+    onDestroy(() => {
+        if (unsubscribeGuild) unsubscribeGuild();
+        if (unsubscribeItems) unsubscribeItems();
+    });
 </script>
 
-<div class="p-4 max-w-5xl mx-auto">
+<div class="p-4 max-w-5xl mx-auto pb-20">
+    
     <div class="flex flex-col md:flex-row justify-between items-center mb-6 gap-4">
         <div>
             <h1 class="text-2xl font-bold text-gray-800">📜 등장인물 관리 & 상점</h1>
@@ -105,70 +195,85 @@
     </div>
 
     {#if isCreating}
-        <div class="bg-indigo-50 p-6 rounded-xl shadow-inner border border-indigo-100 mb-8 animate-fade-in-down">
-            <h3 class="font-bold text-lg mb-4 text-indigo-900">✨ 새 캐릭터 등록</h3>
-            <div class="grid gap-4 md:grid-cols-2">
+        <div class="bg-white p-6 rounded-xl shadow-lg border border-indigo-100 mb-8 animate-fade-in-down">
+            <h3 class="font-bold text-lg mb-4 text-indigo-900">✨ 새로운 모험가 등록</h3>
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">이름</label>
-                    <input bind:value={newChar.name} placeholder="예: 용사 김철수" class="w-full border rounded px-3 py-2" />
+                    <label class="block text-sm font-bold text-gray-600 mb-1">이름</label>
+                    <input 
+                        type="text" 
+                        bind:value={newChar.name}
+                        placeholder="예: 용감한 쿠키"
+                        class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700 mb-1">직업</label>
-                    <select bind:value={newChar.jobClass} class="w-full border rounded px-3 py-2">
+                    <label class="block text-sm font-bold text-gray-600 mb-1">직업</label>
+                    <select 
+                        bind:value={newChar.jobClass}
+                        class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    >
                         {#each Object.keys(jobIcons) as job}
                             <option value={job}>{jobIcons[job]} {job}</option>
                         {/each}
                     </select>
                 </div>
                 <div class="md:col-span-2">
-                    <label class="block text-sm font-medium text-gray-700 mb-1">설정 / 소개</label>
-                    <textarea bind:value={newChar.description} placeholder="캐릭터의 특징을 적어주세요." class="w-full border rounded px-3 py-2 h-20"></textarea>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">설명 / 특징</label>
+                    <input 
+                        type="text" 
+                        bind:value={newChar.description}
+                        placeholder="예: 잠이 많지만 힘은 셈"
+                        class="w-full border border-gray-300 rounded-lg p-2 focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    />
                 </div>
             </div>
-            <div class="mt-4 flex justify-end">
-                <button on:click={handleCreate} class="bg-indigo-600 text-white px-6 py-2 rounded font-bold hover:bg-indigo-700">
+            <div class="flex justify-end gap-2">
+                <button 
+                    on:click={() => isCreating = false}
+                    class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded-lg font-bold"
+                >취소</button>
+                <button 
+                    on:click={handleCreate}
+                    class="px-6 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 shadow-md transform hover:-translate-y-0.5 transition"
+                >
                     등록하기
                 </button>
             </div>
         </div>
     {/if}
-<div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+
+    <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {#each characters as char (char.id)}
-            <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition group relative flex flex-col">
+             <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition group relative flex flex-col">
+                 
                 <div class="p-4 border-b flex justify-between items-start bg-gray-50">
                     <span class="px-2 py-1 rounded text-xs font-bold bg-white border shadow-sm">
-                        {jobIcons[char.jobClass]} {char.jobClass}
+                        {jobIcons[char.jobClass] || '❓'} {char.jobClass}
                     </span>
                     <div class="text-right">
-                        <div class="text-yellow-600 font-bold text-xl">💰 {char.currentGold.toLocaleString()}</div>
-                        <div class="text-xs text-gray-400">Lv.{char.level}</div>
+                        <div class="text-yellow-600 font-bold text-xl">💰 {char.currentGold?.toLocaleString() || 0}</div>
+                        <div class="text-xs text-gray-400">Lv.{char.level || 1}</div>
                     </div>
                 </div>
 
-                <div class="p-5 flex-1 relative"> <div class="flex justify-between items-start mb-2">
+                <div class="p-5 flex-1 relative"> 
+                    <div class="flex justify-between items-start mb-2">
                         <h3 class="text-xl font-bold text-gray-800">{char.name}</h3>
-                        
                         <div class="flex gap-1 ml-2">
-                            <button 
+                             <button 
                                 on:click={() => editingChar = { ...char }} 
-                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition" 
+                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition"
                                 title="수정"
-                            >
-                                ✏️
-                            </button>
-                            <button 
+                            >✏️</button>
+                             <button 
                                 on:click={() => handleDelete(char)} 
-                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-red-100 hover:text-red-600 transition" 
+                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-red-100 hover:text-red-600 transition"
                                 title="삭제"
-                            >
-                                🗑️
-                            </button>
+                            >🗑️</button>
                         </div>
                     </div>
-                    
-                    <p class="text-gray-600 text-sm line-clamp-3 min-h-[3rem]">
-                        {char.description || '설정이 없습니다.'}
-                    </p>
+                    <p class="text-gray-600 text-sm line-clamp-3 min-h-[3rem]">{char.description || '설정이 없습니다.'}</p>
                 </div>
 
                 <div class="p-4 pt-0">
@@ -181,33 +286,35 @@
                 </div>
             </div>
         {/each}
-        
-        {#if characters.length === 0 && !isCreating}
-            <div class="col-span-full text-center py-20 text-gray-400">
-                <p>등록된 캐릭터가 없습니다. 새로운 영웅을 만들어보세요!</p>
-            </div>
-        {/if}
-
     </div>
 
     {#if editingChar}
         <div class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md">
-                <div class="p-5 border-b">
-                    <h3 class="font-bold text-lg">정보 수정</h3>
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-md p-6 animate-pop-in">
+                <h3 class="font-bold text-xl mb-4 text-gray-800">캐릭터 수정</h3>
+                
+                <div class="space-y-4 mb-6">
+                    <div>
+                        <label class="block text-sm font-bold text-gray-600 mb-1">이름</label>
+                        <input bind:value={editingChar.name} class="w-full border rounded p-2" />
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-600 mb-1">직업</label>
+                        <select bind:value={editingChar.jobClass} class="w-full border rounded p-2 bg-white">
+                            {#each Object.keys(jobIcons) as job}
+                                <option value={job}>{jobIcons[job]} {job}</option>
+                            {/each}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-600 mb-1">설명</label>
+                        <textarea bind:value={editingChar.description} class="w-full border rounded p-2" rows="3"></textarea>
+                    </div>
                 </div>
-                <div class="p-5 grid gap-4">
-                    <input bind:value={editingChar.name} class="w-full border rounded p-2" />
-                    <select bind:value={editingChar.jobClass} class="w-full border rounded p-2">
-                        {#each Object.keys(jobIcons) as job}
-                            <option value={job}>{jobIcons[job]} {job}</option>
-                        {/each}
-                    </select>
-                    <textarea bind:value={editingChar.description} class="w-full border rounded p-2 h-24"></textarea>
-                </div>
-                <div class="p-5 border-t flex gap-2">
-                    <button on:click={() => editingChar = null} class="flex-1 py-2 bg-gray-100 rounded">취소</button>
-                    <button on:click={handleUpdate} class="flex-1 py-2 bg-blue-600 text-white rounded font-bold">수정</button>
+
+                <div class="flex justify-end gap-2">
+                    <button on:click={() => editingChar = null} class="px-4 py-2 bg-gray-100 rounded hover:bg-gray-200 font-bold">취소</button>
+                    <button on:click={handleUpdate} class="px-4 py-2 bg-blue-600 text-white rounded font-bold hover:bg-blue-700">저장</button>
                 </div>
             </div>
         </div>
@@ -215,46 +322,160 @@
 
     {#if shoppingChar}
         <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden transform scale-100 transition-all">
-                <div class="bg-gradient-to-r from-yellow-100 to-orange-100 p-6 border-b border-yellow-200">
-                    <h3 class="font-bold text-xl text-yellow-900">🏰 골드 상점</h3>
-                    <p class="text-sm text-yellow-700 mt-1">
-                        손님: <strong>{shoppingChar.name}</strong> 
-                        <span class="bg-white bg-opacity-50 px-2 rounded-full ml-1 text-xs">💰 {shoppingChar.currentGold} G</span>
-                    </p>
+            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm overflow-hidden flex flex-col max-h-[90vh]">
+                
+                <div class="bg-gradient-to-r from-yellow-100 to-orange-100 p-6 border-b border-yellow-200 shrink-0">
+                    <div class="flex justify-between items-start">
+                        <div>
+                            <h3 class="font-bold text-xl text-yellow-900">🏰 골드 상점</h3>
+                            <p class="text-sm text-yellow-700 mt-1">
+                                손님: <strong>{shoppingChar.name}</strong> 
+                                <span class="bg-white bg-opacity-50 px-2 rounded-full ml-1 text-xs">💰 {shoppingChar.currentGold?.toLocaleString()} G</span>
+                            </p>
+                        </div>
+                        <button 
+                            on:click={() => isShopManaging = !isShopManaging}
+                            class="text-xs text-yellow-800 underline opacity-60 hover:opacity-100"
+                        >
+                            {isShopManaging ? '관리 종료' : '상품 관리'}
+                        </button>
+                    </div>
                 </div>
 
-                <div class="p-4 space-y-3">
-                    {#each shopItems as item}
-                        {@const canAfford = shoppingChar.currentGold >= item.cost}
+                <div class="p-4 space-y-3 overflow-y-auto custom-scrollbar flex-1">
+                    {#if isShopManaging}
                         <button 
-                            on:click={() => handlePurchase(item)}
-                            disabled={!canAfford}
-                            class="w-full flex items-center justify-between p-4 rounded-xl border-2 transition relative overflow-hidden group
-                            {canAfford 
-                                ? 'border-gray-100 hover:border-yellow-400 hover:bg-yellow-50 bg-white' 
-                                : 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'}"
+                            on:click={() => openItemModal()}
+                            class="w-full py-3 border-2 border-dashed border-gray-300 rounded-xl text-gray-500 font-bold hover:border-indigo-400 hover:text-indigo-500 hover:bg-indigo-50 transition mb-2"
                         >
-                            <div class="flex items-center gap-3 z-10">
-                                <span class="text-2xl">{item.icon}</span>
-                                <div class="text-left">
-                                    <div class="font-bold text-gray-800">{item.name}</div>
-                                    <div class="text-xs text-gray-500">즉시 사용</div>
-                                </div>
-                            </div>
-                            <div class="z-10 font-bold {canAfford ? 'text-yellow-600' : 'text-red-400'}">
-                                {item.cost} G
-                            </div>
+                            + 새 상품 등록
                         </button>
+                    {/if}
+
+                    {#if shopItems.length === 0}
+                        <div class="text-center py-8 text-gray-400 text-sm">
+                            등록된 상품이 없습니다.<br>관리 버튼을 눌러 추가해보세요!
+                        </div>
+                    {/if}
+
+                    {#each shopItems as item (item.id)}
+                        {@const canAfford = (shoppingChar.currentGold || 0) >= item.cost}
+                        <div class="relative group">
+                            <button 
+                                on:click={() => handlePurchase(item)}
+                                disabled={!canAfford || isShopManaging}
+                                class="w-full flex items-center justify-between p-4 rounded-xl border-2 transition relative overflow-hidden text-left
+                                {canAfford 
+                                    ? 'border-gray-100 hover:border-yellow-400 hover:bg-yellow-50 bg-white' 
+                                    : 'border-gray-100 bg-gray-50 opacity-60 cursor-not-allowed'}
+                                {isShopManaging ? 'opacity-50 pointer-events-none' : ''}"
+                            >
+                                <div class="flex items-center gap-3 z-10">
+                                    <span class="text-2xl">{item.icon}</span>
+                                    <div>
+                                        <div class="font-bold text-gray-800">{item.name}</div>
+                                        {#if item.description}
+                                            <div class="text-xs text-gray-500">{item.description}</div>
+                                        {/if}
+                                    </div>
+                                </div>
+                                <div class="z-10 font-bold {canAfford ? 'text-yellow-600' : 'text-red-400'}">
+                                    {item.cost} G
+                                </div>
+                            </button>
+
+                            {#if isShopManaging}
+                                <div class="absolute inset-0 bg-white/80 backdrop-blur-[1px] flex items-center justify-center gap-2 rounded-xl border-2 border-indigo-100 z-20 animate-fade-in">
+                                    <button 
+                                        on:click|stopPropagation={() => openItemModal(item)}
+                                        class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded text-sm font-bold hover:bg-indigo-200"
+                                    >수정</button>
+                                    <button 
+                                        on:click|stopPropagation={() => handleDeleteItem(item)}
+                                        class="px-3 py-1 bg-red-100 text-red-700 rounded text-sm font-bold hover:bg-red-200"
+                                    >삭제</button>
+                                </div>
+                            {/if}
+                        </div>
                     {/each}
                 </div>
 
-                <div class="p-4 border-t bg-gray-50">
+                <div class="p-4 border-t bg-gray-50 shrink-0">
                     <button on:click={() => shoppingChar = null} class="w-full py-3 text-gray-600 hover:bg-gray-200 rounded-lg font-bold">
-                        나가기
+                        상점 나가기
                     </button>
                 </div>
             </div>
         </div>
     {/if}
+
+    {#if isItemModalOpen}
+        <div class="fixed inset-0 bg-black bg-opacity-70 flex items-center justify-center z-[60] p-4">
+            <div class="bg-white rounded-xl shadow-2xl w-full max-w-sm p-6 animate-pop-in">
+                <h3 class="font-bold text-lg mb-4 text-gray-800">
+                    {editingItem ? '상품 수정' : '새 상품 등록'}
+                </h3>
+                
+                <div class="space-y-3 mb-6">
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">상품명</label>
+                        <input bind:value={newItem.name} class="w-full border rounded p-2" placeholder="예: 휴식 1시간" />
+                    </div>
+                    <div class="flex gap-3">
+                        <div class="flex-1">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">가격 (G)</label>
+                            <input type="number" bind:value={newItem.cost} class="w-full border rounded p-2" min="0" />
+                        </div>
+                        <div class="w-1/3">
+                            <label class="block text-xs font-bold text-gray-500 mb-1">아이콘</label>
+                            <input bind:value={newItem.icon} class="w-full border rounded p-2 text-center" placeholder="🎁" />
+                        </div>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-bold text-gray-500 mb-1">설명 (선택)</label>
+                        <input bind:value={newItem.description} class="w-full border rounded p-2" placeholder="예: 주말에만 사용 가능" />
+                    </div>
+                </div>
+
+                <div class="flex gap-2">
+                    <button on:click={closeItemModal} class="flex-1 py-2 bg-gray-100 rounded hover:bg-gray-200 font-bold">취소</button>
+                    <button on:click={handleSaveItem} class="flex-1 py-2 bg-indigo-600 text-white rounded font-bold hover:bg-indigo-700">
+                        {editingItem ? '수정' : '등록'}
+                    </button>
+                </div>
+            </div>
+        </div>
+    {/if}
+
 </div>
+
+<style>
+    /* 팝업 애니메이션 */
+    @keyframes pop-in {
+        0% { transform: scale(0.95); opacity: 0; }
+        100% { transform: scale(1); opacity: 1; }
+    }
+    .animate-pop-in {
+        animation: pop-in 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+    
+    @keyframes fade-in-down {
+        0% { transform: translateY(-10px); opacity: 0; }
+        100% { transform: translateY(0); opacity: 1; }
+    }
+    .animate-fade-in-down {
+        animation: fade-in-down 0.3s ease-out;
+    }
+
+    /* 커스텀 스크롤바 */
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: transparent;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background-color: rgba(0,0,0,0.1);
+        border-radius: 20px;
+    }
+</style>
