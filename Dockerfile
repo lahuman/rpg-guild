@@ -32,6 +32,7 @@ WORKDIR /app
 
 # 프로덕션 환경 변수 설정
 ENV NODE_ENV=production
+ENV HOST=0.0.0.0
 
 # 빌드 단계에서 생성된 결과물과 필요한 의존성만 복사
 COPY --from=builder /app/build build/
