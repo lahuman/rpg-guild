@@ -4,6 +4,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 // ⚠️ signInWithPopup으로 변경!
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'; 
 import { getFirestore } from 'firebase/firestore';
+import { goto } from '$app/navigation'; // [추가] 네비게이션 모듈
 
 
 const firebaseConfig = {
@@ -38,5 +39,6 @@ export const login = async () => {
 
 export const logout = async () => {
   await signOut(auth);
+  goto('/'); // [핵심] 메인 페이지로 강제 이동
   if (typeof window !== 'undefined') window.location.reload();
 };
