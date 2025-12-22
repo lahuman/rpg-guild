@@ -3,7 +3,7 @@ import { writable, get, derived } from 'svelte/store'; // derived 추가
 import { db } from '$lib/firebase';
 import { 
     collection, addDoc, query, where, onSnapshot, getDocs,
-    doc, runTransaction, serverTimestamp 
+    doc, runTransaction, serverTimestamp, updateDoc
 } from 'firebase/firestore';
 import { userStore } from './userStore';
 
@@ -139,6 +139,23 @@ function createMissionStore() {
                     });
                 });
              } catch(e) { throw e; }
+        },// [NEW] 미션 수정
+        updateMission: async (guildId: string, missionId: string, updates: Partial<Mission>) => {
+            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
+            await updateDoc(ref, {
+                ...updates,
+                updatedAt: serverTimestamp() // 수정 시간 기록 (선택 사항)
+            });
+        },
+
+        // [NEW] 미션 삭제 (Soft Delete)
+        deleteMission: async (guildId: string, missionId: string) => {
+            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
+            // 실제로 지우지 않고 status를 inactive로 변경하여 목록에서 숨김
+            await updateDoc(ref, {
+                status: 'inactive',
+                deletedAt: serverTimestamp()
+            });
         }
     };
 }

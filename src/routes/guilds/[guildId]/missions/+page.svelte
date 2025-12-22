@@ -11,6 +11,9 @@
     const unsubStatus = missionStore.initTodayStatus(guildId);
     const unsubGuild = guildStore.init(guildId);
 
+    // [NEW] 수정 모드 상태 관리
+    let editingMissionId: string | null = null; // 현재 수정 중인 미션 ID (null이면 생성 모드)
+
     // 2. 데이터 바인딩
     $: missions = $missionStore;
     $: characters = $guildStore?.characters || [];
@@ -121,24 +124,71 @@
         }
     }
 
+    // [NEW] 초기화 함수 (생성 모드로 복귀)
+    function resetForm() {
+        newMission = { title: '', description: '', cost: 100, type: 'solo', minParticipants: 1, maxParticipants: 1 };
+        editingMissionId = null;
+        isCreating = false; // 폼 닫기 (선택 사항)
+    }
+
+    // [MODIFIED] 생성 및 수정 핸들러 통합
+    async function handleSave() {
+        if(!newMission.title) return alert("퀘스트명을 입력해주세요.");
+
+        try {
+            if (editingMissionId) {
+                // 수정 로직
+                await missionStore.updateMission(guildId, editingMissionId, newMission);
+                alert("퀘스트가 수정되었습니다.");
+            } else {
+                // 생성 로직
+                await missionStore.addMission(guildId, newMission);
+                alert("새 퀘스트가 등록되었습니다.");
+            }
+            resetForm();
+        } catch (e: any) { alert(e.message); }
+    }
+
+    // [NEW] 수정 버튼 클릭 시 폼 채우기
+    function startEdit(mission: Mission) {
+        newMission = { ...mission }; // 기존 데이터 복사
+        editingMissionId = mission.id!;
+        isCreating = true; // 폼 열기
+        window.scrollTo({ top: 0, behavior: 'smooth' }); // 상단으로 이동
+    }
+
+    // [NEW] 삭제 핸들러
+    async function handleDelete(mission: Mission) {
+        if (confirm(`🗑️ 정말 삭제하시겠습니까?\n[${mission.title}] 퀘스트가 목록에서 사라집니다.`)) {
+            try {
+                await missionStore.deleteMission(guildId, mission.id!);
+            } catch (e: any) { alert(e.message); }
+        }
+    }
     onDestroy(() => {
         unsubMissions();
         unsubStatus();
         unsubGuild();
     });
 </script>
-
 <div class="p-4 max-w-5xl mx-auto">
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">🛡️ 퀘스트 게시판</h1>
-        <button on:click={() => isCreating = !isCreating} class="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700">
+        <button on:click={() => { isCreating = !isCreating; if(!isCreating) resetForm(); }} 
+                class="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700 transition">
             {isCreating ? '닫기' : '+ 새 퀘스트'}
         </button>
     </div>
 
     {#if isCreating}
-        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8 animate-fade-in-down">
-             <div class="grid gap-4 md:grid-cols-2">
+        <div class="bg-indigo-50 p-6 rounded-xl border border-indigo-100 mb-8 animate-fade-in-down relative">
+            {#if editingMissionId}
+                <div class="absolute top-4 right-4 text-xs font-bold text-indigo-500 bg-white px-2 py-1 rounded border border-indigo-200">
+                    ✏️ 수정 모드
+                </div>
+            {/if}
+
+            <div class="grid gap-4 md:grid-cols-2">
                 <div class="col-span-2">
                     <label class="block text-sm font-medium text-gray-700">퀘스트명</label>
                     <input bind:value={newMission.title} class="w-full border rounded p-2" placeholder="예: 아침 회의 참석"/>
@@ -150,17 +200,21 @@
                 <div>
                      <span class="block text-sm font-medium text-gray-700 mb-2">유형</span>
                     <div class="flex gap-4">
-                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="solo" class="text-indigo-600"><span>개인</span></label>
+                         <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="solo" class="text-indigo-600"><span>개인</span></label>
                         <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="party" class="text-green-600"><span>파티</span></label>
                     </div>
                 </div>
-                 {#if newMission.type === 'party'}
+               
+                  {#if newMission.type === 'party'}
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700">최대 참여 인원</label>
                         <input bind:value={newMission.maxParticipants} type="number" min="2" class="w-full border rounded p-2" />
                     </div>
                 {/if}
-                <button on:click={handleCreate} class="col-span-2 bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700">등록하기</button>
+                
+                <button on:click={handleSave} class="col-span-2 bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700 transition">
+                    {editingMissionId ? '수정 완료' : '등록하기'}
+                </button>
             </div>
         </div>
     {/if}
@@ -172,8 +226,8 @@
             <div class="rounded-xl shadow-sm border transition flex flex-col relative overflow-hidden group
                 {isSoldOut 
                     ? 'bg-gray-100 border-gray-200 opacity-70 grayscale order-last' 
-                    : 'bg-white hover:border-indigo-300 order-first'}"
-            >
+                    : 'bg-white hover:border-indigo-300 order-first'}">
+                
                 <div class="h-2 w-full absolute top-0 left-0
                     {isSoldOut ? 'bg-gray-400' : (mission.type === 'party' ? 'bg-green-500' : 'bg-indigo-500')}">
                 </div>
@@ -182,13 +236,27 @@
                     <div class="flex justify-between items-start mb-3">
                         {#if isSoldOut}
                             <span class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-600">완료됨 (Sold Out)</span>
-                        {:else}
+                         {:else}
                             <span class="text-xs font-bold px-2 py-1 rounded {mission.type === 'party' ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'}">
                                 {mission.type === 'party' ? 'PARTY' : 'SOLO'}
                             </span>
                         {/if}
-                        <span class="{isSoldOut ? 'text-gray-500' : 'text-yellow-600'} font-bold">💰 {mission.cost}</span>
+                        
+                        <div class="flex gap-1">
+                             {#if !isSoldOut}
+                                <button on:click|stopPropagation={() => startEdit(mission)} 
+                                        class="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-blue-50 transition" title="수정">
+                                    ✏️
+                                </button>
+                                <button on:click|stopPropagation={() => handleDelete(mission)} 
+                                        class="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition" title="삭제">
+                                    🗑️
+                                </button>
+                            {/if}
+                        </div>
                     </div>
+
+                    <div class="mb-2 {isSoldOut ? 'text-gray-500' : 'text-yellow-600'} font-bold">💰 {mission.cost}</div>
                     
                     <h3 class="font-bold text-lg text-gray-800 mb-2 {isSoldOut ? 'line-through decoration-gray-400' : ''}">{mission.title}</h3>
                     <p class="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">{mission.description || ''}</p>
@@ -207,70 +275,5 @@
             </div>
         {/each}
     </div>
-
-    {#if selectedMission}
-        <div class="fixed inset-0 bg-black bg-opacity-60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-            <div class="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden">
-                <div class="p-6 border-b bg-gray-50">
-                    <h3 class="font-bold text-xl">수행자 선택</h3>
-                    <p class="text-sm text-gray-500 mt-1">{selectedMission.title}</p>
-                </div>
-                
-                <div class="p-4 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                    {#if isLoadingLogs}
-                         <div class="text-center py-8 text-gray-400">
-                            <div class="animate-spin inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full mb-2"></div>
-                            <p>기록 확인 중...</p>
-                        </div>
-                    {:else if characters.length === 0}
-                        <div class="text-center py-8 text-gray-400">등록된 캐릭터가 없습니다.</div>
-                    {:else}
-                        <div class="space-y-2">
-                            {#each characters as char}
-                                {@const isDone = completedCharIds.includes(char.id || '')}
-                                {@const isSelected = selectedCharIds.includes(char.id || '')}
-                                
-                                <div 
-                                    class="flex items-center justify-between p-3 rounded-lg border transition select-none
-                                    {isDone 
-                                        ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' 
-                                        : 'cursor-pointer hover:bg-gray-50'}
-                                    {isSelected ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : ''}"
-                                    on:click={() => toggleCharacter(char.id!)}
-                                >
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-                                            {jobIcons[char.jobClass] || '😐'}
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-gray-800">{char.name}</div>
-                                            {#if isDone}
-                                                <div class="text-xs text-green-600 font-bold">✓ 오늘 완료함</div>
-                                            {:else}
-                                                <div class="text-xs text-gray-500">{char.jobClass}</div>
-                                            {/if}
-                                        </div>
-                                    </div>
-                                    {#if isSelected}
-                                        <span class="text-indigo-600 font-bold text-xl">✓</span>
-                                    {/if}
-                                </div>
-                            {/each}
-                        </div>
-                    {/if}
-                </div>
-
-                <div class="p-5 border-t bg-gray-50 flex gap-3">
-                    <button on:click={() => selectedMission = null} class="flex-1 py-3 text-gray-600 hover:bg-gray-200 rounded-lg font-medium">취소</button>
-                    <button 
-                        on:click={handleComplete} 
-                        disabled={selectedCharIds.length === 0}
-                        class="flex-1 py-3 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-200"
-                    >
-                        완료 처리
-                    </button>
-                </div>
-            </div>
-        </div>
-    {/if}
-</div>
+    
+    </div>
