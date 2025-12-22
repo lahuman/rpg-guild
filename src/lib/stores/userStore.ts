@@ -1,7 +1,7 @@
 import { writable } from 'svelte/store';
 import { auth, db } from '$lib/firebase'; // firebase 초기화 파일
 import { onAuthStateChanged } from 'firebase/auth';
-import { doc, onSnapshot, setDoc, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 
 // 유저 데이터 타입 정의 (확장성을 위해 미리 정의)
 export interface UserData {
@@ -68,7 +68,15 @@ function createUserStore() {
   }
 
   return {
-    subscribe
+    subscribe,
+    // 👇 [NEW] 길드 탈퇴 함수 추가
+    leaveGuild: async (uid: string) => {
+        const userRef = doc(db, 'users', uid);
+        // guildId를 null로 밀어서 소속을 없앱니다.
+        await updateDoc(userRef, { 
+            guildId: null 
+        });
+    }
   };
 }
 
