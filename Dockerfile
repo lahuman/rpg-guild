@@ -1,7 +1,8 @@
 # Dockerfile
 
 # [Stage 1] 빌드 단계 (Builder)
-FROM node:18-alpine AS builder
+# Vite 최신 버전 요구사항(22.12+)을 충족하는 Node.js 22-alpine 사용
+FROM node:24-alpine AS builder
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -23,7 +24,8 @@ RUN npm prune --production
 
 
 # [Stage 2] 실행 단계 (Runner)
-FROM node:18-alpine AS runner
+# 실행 환경도 동일하게 Node.js 22 버전 사용
+FROM node:22-alpine AS runner
 
 # 작업 디렉토리 설정
 WORKDIR /app
@@ -39,5 +41,5 @@ COPY package.json .
 # SvelteKit adapter-node의 기본 포트 3000 노출
 EXPOSE 3000
 
-# 서버 실행 (adapter-node는 기본적으로 build/index.js로 실행됨)
+# 서버 실행
 CMD [ "node", "build" ]
