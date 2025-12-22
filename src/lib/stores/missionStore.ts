@@ -1,9 +1,9 @@
 // src/lib/stores/missionStore.ts
-import { writable, get, derived } from 'svelte/store'; // derived 추가
+import { writable, get, derived } from 'svelte/store';
 import { db } from '$lib/firebase';
 import { 
     collection, addDoc, query, where, onSnapshot, getDocs,
-    doc, runTransaction, serverTimestamp, updateDoc
+    doc, runTransaction, serverTimestamp, updateDoc // [NEW] updateDoc 추가
 } from 'firebase/firestore';
 import { userStore } from './userStore';
 
@@ -19,12 +19,10 @@ export interface Mission {
     status: 'active' | 'inactive';
 }
 
-// ... MissionLog 인터페이스 등 기존 코드 유지 ...
-
 function createMissionStore() {
     const { subscribe, set } = writable<Mission[]>([]);
     
-    // [NEW] 오늘 완료된 미션 ID들을 저장하는 별도 스토어
+    // 오늘 완료된 미션 ID들을 저장하는 별도 스토어
     const completedMissionIds = writable<Set<string>>(new Set());
 
     const getTodayDateString = () => {
@@ -37,10 +35,9 @@ function createMissionStore() {
 
     return {
         subscribe,
-        // 완료된 미션 ID 목록을 구독할 수 있게 노출
         completedMissionIds: { subscribe: completedMissionIds.subscribe },
 
-        // 1. 미션 목록 리스너 (기존 동일)
+        // 1. 미션 목록 리스너
         init: (guildId: string) => {
             const q = query(
                 collection(db, `guilds/${guildId}/missions`),
@@ -52,7 +49,7 @@ function createMissionStore() {
             });
         },
 
-        // 2. [NEW] 오늘 수행된 로그 리스너 (실시간 '완료됨' 마킹용)
+        // 2. 오늘 수행된 로그 리스너
         initTodayStatus: (guildId: string) => {
             const today = getTodayDateString();
             const q = query(
@@ -70,8 +67,7 @@ function createMissionStore() {
             });
         },
 
-        // ... addMission, completeMission 등 기존 함수들은 그대로 유지 ...
-        addMission: async (guildId: string, mission: any) => { /* ... 기존 코드 ... */
+        addMission: async (guildId: string, mission: any) => {
             const currentUser = get(userStore);
             if (!currentUser) throw new Error("로그인이 필요합니다.");
             await addDoc(collection(db, `guilds/${guildId}/missions`), {
@@ -82,7 +78,26 @@ function createMissionStore() {
             });
         },
 
-        fetchMissionLogsByDate: async (guildId: string, missionId: string) => { /* ... 기존 코드 ... */
+        // [NEW] 미션 수정
+        updateMission: async (guildId: string, missionId: string, updates: Partial<Mission>) => {
+            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
+            await updateDoc(ref, {
+                ...updates,
+                updatedAt: serverTimestamp()
+            });
+        },
+
+        // [NEW] 미션 삭제 (Soft Delete)
+        deleteMission: async (guildId: string, missionId: string) => {
+            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
+            // 실제로 지우지 않고 status를 inactive로 변경하여 목록에서 숨김
+            await updateDoc(ref, {
+                status: 'inactive',
+                deletedAt: serverTimestamp()
+            });
+        },
+
+        fetchMissionLogsByDate: async (guildId: string, missionId: string) => {
              const today = getTodayDateString();
              const q = query(
                 collection(db, `guilds/${guildId}/mission_logs`),
@@ -94,12 +109,9 @@ function createMissionStore() {
         },
 
         completeMission: async (guildId: string, mission: Mission, characters: any[]) => { 
-            /* ... 기존 completeMission 코드 복사 (수정 없음) ... */
              const currentUser = get(userStore);
-             /* (이전 답변의 트랜잭션 로직 그대로 사용) */
              const today = getTodayDateString();
 
-             // 중복 체크 로직도 그대로 유지
              const q = query(
                 collection(db, `guilds/${guildId}/mission_logs`),
                 where('missionId', '==', mission.id),
@@ -107,15 +119,12 @@ function createMissionStore() {
             );
             const snapshot = await getDocs(q);
             if (!snapshot.empty) {
-                 // 사실 UI에서 막겠지만, 백엔드 이중 방어
                  throw new Error("🚫 이미 금일 완료된 미션입니다.");
             }
             
-            /* ... 트랜잭션 로직 ... */
              const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`));
              try {
                 await runTransaction(db, async (t) => {
-                     /* ... (이전 답변의 Phase 1 읽기 -> Phase 2 쓰기 로직) ... */
                      const charRefs = characters.map(char => doc(db, `guilds/${guildId}/characters`, char.id));
                      const charDocs = await Promise.all(charRefs.map(ref => t.get(ref)));
                      
@@ -139,23 +148,6 @@ function createMissionStore() {
                     });
                 });
              } catch(e) { throw e; }
-        },// [NEW] 미션 수정
-        updateMission: async (guildId: string, missionId: string, updates: Partial<Mission>) => {
-            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
-            await updateDoc(ref, {
-                ...updates,
-                updatedAt: serverTimestamp() // 수정 시간 기록 (선택 사항)
-            });
-        },
-
-        // [NEW] 미션 삭제 (Soft Delete)
-        deleteMission: async (guildId: string, missionId: string) => {
-            const ref = doc(db, `guilds/${guildId}/missions`, missionId);
-            // 실제로 지우지 않고 status를 inactive로 변경하여 목록에서 숨김
-            await updateDoc(ref, {
-                status: 'inactive',
-                deletedAt: serverTimestamp()
-            });
         }
     };
 }
