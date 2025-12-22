@@ -1,61 +1,115 @@
 // src/lib/stores/guildStore.ts
 import { writable } from 'svelte/store';
-import { db, auth } from '$lib/firebase';
+import { db } from '$lib/firebase';
 import { 
   doc, 
-  getDoc, 
-  setDoc, 
-  updateDoc, 
-  increment, 
+  collection,
   writeBatch,
-  arrayUnion 
+  increment,
+  addDoc,
+  serverTimestamp, 
+  query, 
+  where, 
+  getDocs 
 } from 'firebase/firestore';
 
-// ... (기존 createGuild 코드는 유지) ...
-
 function createGuildStore() {
-  const { subscribe, set, update } = writable([]);
+  const { subscribe } = writable([]);
+
+  // 초대 코드 생성 (랜덤 6자리)
+  const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
 
   return {
     subscribe,
 
-    // [New] 길드 가입 함수
-    joinGuild: async (guildId: string, user: any) => {
+    // [Step 4] 길드 생성 기능 (추가됨)
+    createGuild: async (guildName: string, user: any) => {
       if (!user) throw new Error("로그인이 필요합니다.");
-      
-      // 이미 다른 길드에 가입했는지 확인하는 로직이 있으면 좋음 (생략 가능하지만 권장)
-      const userRef = doc(db, "users", user.uid);
-      const userSnap = await getDoc(userRef);
-      if (userSnap.exists() && userSnap.data().guildId) {
-        throw new Error("이미 가입된 길드가 있습니다. 탈퇴 후 시도해주세요.");
-      }
+      if (!guildName) throw new Error("길드 이름을 입력해주세요.");
 
       const batch = writeBatch(db);
+      
+      // 1. 길드 문서 생성
+      // (Batch 내에서 ID를 미리 받기 위해 doc()을 사용합니다)
+      const guildRef = doc(collection(db, "guilds"));
+      const guildId = guildRef.id;
 
-      // 1. 길드의 members 서브 컬렉션에 유저 추가
-      // (나중에 6단계에서 이곳에 '골드', '기여도' 등을 저장하게 됨)
+      batch.set(guildRef, {
+        name: guildName,
+        code: generateCode(),
+        leaderId: user.uid,
+        memberCount: 1,
+        description: `${user.displayName || '리더'}님이 이끄는 길드입니다.`,
+        createdAt: serverTimestamp()
+      });
+
+      // 2. 길드 멤버(리더) 추가
       const memberRef = doc(db, "guilds", guildId, "members", user.uid);
       batch.set(memberRef, {
         uid: user.uid,
         email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'leader',
         joinedAt: new Date().toISOString(),
-        role: 'member', // 누구나 관리 가능하므로 role은 단순 참고용
-        currentGold: 0  // 6단계를 위한 초기화
+        currentGold: 0
       });
 
-      // 2. 유저 정보에 '소속 길드 ID' 업데이트
+      // 3. 유저 정보 업데이트 (소속 길드 표시)
+      const userRef = doc(db, "users", user.uid);
       batch.update(userRef, {
         guildId: guildId
       });
 
-      // 3. 길드 메타데이터의 'memberCount' 증가 (옵션: 보여주기용)
+      await batch.commit();
+      console.log('Guild created:', guildId);
+      return guildId; // 생성된 ID 반환
+    },
+
+    // [Step 4] 길드 가입 기능
+    joinGuild: async (inviteCode: string, user: any) => {
+      if (!user) throw new Error("로그인이 필요합니다.");
+
+      // 1. 코드로 길드 찾기
+      const q = query(collection(db, "guilds"), where("code", "==", inviteCode));
+      const querySnapshot = await getDocs(q);
+
+      if (querySnapshot.empty) {
+        throw new Error("존재하지 않는 초대 코드입니다.");
+      }
+
+      const targetGuild = querySnapshot.docs[0];
+      const guildId = targetGuild.id;
+
+      // 2. 배치 처리
+      const batch = writeBatch(db);
+
+      // 멤버 추가
+      const memberRef = doc(db, "guilds", guildId, "members", user.uid);
+      batch.set(memberRef, {
+        uid: user.uid,
+        email: user.email,
+        displayName: user.displayName,
+        photoURL: user.photoURL,
+        role: 'member',
+        joinedAt: new Date().toISOString(),
+        currentGold: 0
+      });
+
+      // 유저 정보 업데이트
+      const userRef = doc(db, "users", user.uid);
+      batch.update(userRef, {
+        guildId: guildId
+      });
+
+      // 멤버 수 증가
       const guildRef = doc(db, "guilds", guildId);
       batch.update(guildRef, {
         memberCount: increment(1)
       });
 
       await batch.commit();
-      console.log(`Joined guild ${guildId} successfully!`);
+      return guildId;
     }
   };
 }
