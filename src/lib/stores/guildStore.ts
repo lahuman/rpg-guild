@@ -2,8 +2,8 @@
 import { writable, get } from 'svelte/store';
 import { db } from '$lib/firebase';
 import { 
-    collection, doc, updateDoc, deleteDoc, addDoc,
-    query, onSnapshot, serverTimestamp, orderBy, runTransaction 
+    collection, doc, updateDoc, deleteDoc, addDoc, getDocs,
+    query, where, onSnapshot, serverTimestamp, orderBy, runTransaction 
 } from 'firebase/firestore';
 import { userStore } from './userStore';
 
@@ -20,7 +20,6 @@ export interface GuildCharacter {
     createdAt: any;
 }
 
-// [NEW] 골드 사용 내역 모델
 export interface UsageLog {
     characterId: string;
     characterName: string;
@@ -42,9 +41,20 @@ export interface Guild {
 function createGuildStore() {
     const { subscribe, set, update } = writable<Guild | null>(null);
 
+    // 초대 코드 생성 헬퍼 (6자리)
+    const generateCode = () => {
+        const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+        let code = '';
+        for (let i = 0; i < 6; i++) {
+            code += chars.charAt(Math.floor(Math.random() * chars.length));
+        }
+        return code;
+    };
+
     return {
         subscribe,
 
+        // 1. 초기화 (리스너 연결)
         init: (guildId: string) => {
             const unsubGuild = onSnapshot(doc(db, 'guilds', guildId), (docSnap) => {
                 if (docSnap.exists()) {
@@ -68,7 +78,51 @@ function createGuildStore() {
             };
         },
 
-        // --- 멤버 관리 (CRUD) ---
+        // 2. [복구됨] 길드 생성
+        createGuild: async (name: string, user: any) => {
+            if (!user) throw new Error("로그인이 필요합니다.");
+            
+            const code = generateCode();
+            const guildRef = await addDoc(collection(db, 'guilds'), {
+                name,
+                code,
+                leaderId: user.uid,
+                description: '',
+                createdAt: serverTimestamp()
+            });
+
+            // 생성자(리더)를 해당 길드 소속으로 업데이트
+            await updateDoc(doc(db, 'users', user.uid), {
+                guildId: guildRef.id
+            });
+
+            return guildRef.id;
+        },
+
+        // 3. [복구됨] 길드 가입
+        joinGuild: async (code: string, user: any) => {
+            if (!user) throw new Error("로그인이 필요합니다.");
+
+            // 코드에 맞는 길드 찾기
+            const q = query(collection(db, 'guilds'), where('code', '==', code));
+            const snapshot = await getDocs(q);
+
+            if (snapshot.empty) {
+                throw new Error("잘못된 초대 코드입니다.");
+            }
+
+            const guildDoc = snapshot.docs[0];
+            const guildId = guildDoc.id;
+
+            // 유저 소속 업데이트
+            await updateDoc(doc(db, 'users', user.uid), {
+                guildId: guildId
+            });
+
+            return guildId;
+        },
+
+        // --- 캐릭터 관리 (CRUD) ---
 
         createCharacter: async (guildId: string, charData: Omit<GuildCharacter, 'id' | 'createdAt' | 'level' | 'currentGold'>) => {
             await addDoc(collection(db, `guilds/${guildId}/characters`), {
@@ -89,7 +143,7 @@ function createGuildStore() {
             await deleteDoc(ref);
         },
 
-        // --- [NEW] 골드 사용 (Shop) ---
+        // --- 골드 사용 (Shop) ---
         
         useGold: async (guildId: string, charId: string, itemName: string, cost: number) => {
             const currentUser = get(userStore);
@@ -100,20 +154,16 @@ function createGuildStore() {
 
             try {
                 await runTransaction(db, async (t) => {
-                    // 1. 읽기 (Read)
                     const charDoc = await t.get(charRef);
                     if (!charDoc.exists()) throw new Error("캐릭터가 존재하지 않습니다.");
 
                     const currentGold = charDoc.data().currentGold || 0;
                     const charName = charDoc.data().name;
 
-                    // 2. 잔액 검사
                     if (currentGold < cost) {
                         throw new Error(`골드가 부족합니다! (보유: ${currentGold} G / 필요: ${cost} G)`);
                     }
 
-                    // 3. 쓰기 (Write)
-                    // A. 로그 기록
                     t.set(logRef, {
                         characterId: charId,
                         characterName: charName,
@@ -123,7 +173,6 @@ function createGuildStore() {
                         usedByUserId: currentUser.uid
                     });
 
-                    // B. 골드 차감
                     t.update(charRef, {
                         currentGold: currentGold - cost
                     });

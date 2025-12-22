@@ -1,0 +1,43 @@
+# Dockerfile
+
+# [Stage 1] 빌드 단계 (Builder)
+FROM node:18-alpine AS builder
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 의존성 설치를 위해 package.json 복사
+COPY package*.json ./
+
+# 모든 의존성 설치 (CI는 clean install로 더 빠르고 안정적)
+RUN npm ci
+
+# 소스 코드 전체 복사
+COPY . .
+
+# SvelteKit 빌드 (build 폴더 생성)
+RUN npm run build
+
+# 프로덕션 의존성만 남기고 제거 (이미지 크기 줄이기 위함)
+RUN npm prune --production
+
+
+# [Stage 2] 실행 단계 (Runner)
+FROM node:18-alpine AS runner
+
+# 작업 디렉토리 설정
+WORKDIR /app
+
+# 프로덕션 환경 변수 설정
+ENV NODE_ENV=production
+
+# 빌드 단계에서 생성된 결과물과 필요한 의존성만 복사
+COPY --from=builder /app/build build/
+COPY --from=builder /app/node_modules node_modules/
+COPY package.json .
+
+# SvelteKit adapter-node의 기본 포트 3000 노출
+EXPOSE 3000
+
+# 서버 실행 (adapter-node는 기본적으로 build/index.js로 실행됨)
+CMD [ "node", "build" ]
