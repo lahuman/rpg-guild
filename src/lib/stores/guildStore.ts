@@ -2,116 +2,87 @@
 import { writable } from 'svelte/store';
 import { db } from '$lib/firebase';
 import { 
-  doc, 
-  collection,
-  writeBatch,
-  increment,
-  addDoc,
-  serverTimestamp, 
-  query, 
-  where, 
-  getDocs 
+    collection, doc, updateDoc, deleteDoc, addDoc,
+    query, onSnapshot, serverTimestamp, orderBy
 } from 'firebase/firestore';
 
+// 직업군 정의
+export type JobClass = '검사' | '마법사' | '힐러' | '사냥꾼' | '도적' | '탱커';
+
+export interface GuildCharacter {
+    id?: string;
+    name: string;        // 캐릭터 이름 (예: 아라곤)
+    jobClass: JobClass;  // 직업
+    description: string; // 캐릭터 설정/소설 내용
+    currentGold: number; // 이 캐릭터가 번 골드
+    level: number;       // 성장 요소 (추후 확장용)
+    createdBy: string;   // 이 캐릭터를 만든 실제 유저 UID (작가)
+    createdAt: any;
+}
+
+export interface Guild {
+    id?: string;
+    name: string;
+    code: string;
+    leaderId: string;
+    description: string;
+    characters?: GuildCharacter[]; // 가상 인물 리스트
+}
+
 function createGuildStore() {
-  const { subscribe } = writable([]);
+    const { subscribe, set, update } = writable<Guild | null>(null);
 
-  // 초대 코드 생성 (랜덤 6자리)
-  const generateCode = () => Math.random().toString(36).substring(2, 8).toUpperCase();
+    return {
+        subscribe,
 
-  return {
-    subscribe,
+        // 1. 길드 및 캐릭터 실시간 동기화
+        init: (guildId: string) => {
+            // 길드 정보
+            const unsubGuild = onSnapshot(doc(db, 'guilds', guildId), (docSnap) => {
+                if (docSnap.exists()) {
+                    update(g => ({ ...g, id: docSnap.id, ...docSnap.data() } as Guild));
+                }
+            });
 
-    // [Step 4] 길드 생성 기능 (추가됨)
-    createGuild: async (guildName: string, user: any) => {
-      if (!user) throw new Error("로그인이 필요합니다.");
-      if (!guildName) throw new Error("길드 이름을 입력해주세요.");
+            // 캐릭터(가상 길드원) 리스트
+            const q = query(
+                collection(db, `guilds/${guildId}/characters`), 
+                orderBy('createdAt', 'desc')
+            );
+            
+            const unsubChars = onSnapshot(q, (snapshot) => {
+                const characters = snapshot.docs.map(d => ({ id: d.id, ...d.data() } as GuildCharacter));
+                update(g => g ? { ...g, characters } : null);
+            });
 
-      const batch = writeBatch(db);
-      
-      // 1. 길드 문서 생성
-      // (Batch 내에서 ID를 미리 받기 위해 doc()을 사용합니다)
-      const guildRef = doc(collection(db, "guilds"));
-      const guildId = guildRef.id;
+            return () => {
+                unsubGuild();
+                unsubChars();
+            };
+        },
 
-      batch.set(guildRef, {
-        name: guildName,
-        code: generateCode(),
-        leaderId: user.uid,
-        memberCount: 1,
-        description: `${user.displayName || '리더'}님이 이끄는 길드입니다.`,
-        createdAt: serverTimestamp()
-      });
+        // 2. 캐릭터 생성 (가상 인물 추가)
+        createCharacter: async (guildId: string, charData: Omit<GuildCharacter, 'id' | 'createdAt' | 'level' | 'currentGold'>) => {
+            await addDoc(collection(db, `guilds/${guildId}/characters`), {
+                ...charData,
+                level: 1,
+                currentGold: 0,
+                createdAt: serverTimestamp()
+            });
+        },
 
-      // 2. 길드 멤버(리더) 추가
-      const memberRef = doc(db, "guilds", guildId, "members", user.uid);
-      batch.set(memberRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'leader',
-        joinedAt: new Date().toISOString(),
-        currentGold: 0
-      });
+        // 3. 캐릭터 정보 수정
+        updateCharacter: async (guildId: string, charId: string, updates: Partial<GuildCharacter>) => {
+            const ref = doc(db, `guilds/${guildId}/characters`, charId);
+            await updateDoc(ref, updates);
+        },
 
-      // 3. 유저 정보 업데이트 (소속 길드 표시)
-      const userRef = doc(db, "users", user.uid);
-      batch.update(userRef, {
-        guildId: guildId
-      });
-
-      await batch.commit();
-      console.log('Guild created:', guildId);
-      return guildId; // 생성된 ID 반환
-    },
-
-    // [Step 4] 길드 가입 기능
-    joinGuild: async (inviteCode: string, user: any) => {
-      if (!user) throw new Error("로그인이 필요합니다.");
-
-      // 1. 코드로 길드 찾기
-      const q = query(collection(db, "guilds"), where("code", "==", inviteCode));
-      const querySnapshot = await getDocs(q);
-
-      if (querySnapshot.empty) {
-        throw new Error("존재하지 않는 초대 코드입니다.");
-      }
-
-      const targetGuild = querySnapshot.docs[0];
-      const guildId = targetGuild.id;
-
-      // 2. 배치 처리
-      const batch = writeBatch(db);
-
-      // 멤버 추가
-      const memberRef = doc(db, "guilds", guildId, "members", user.uid);
-      batch.set(memberRef, {
-        uid: user.uid,
-        email: user.email,
-        displayName: user.displayName,
-        photoURL: user.photoURL,
-        role: 'member',
-        joinedAt: new Date().toISOString(),
-        currentGold: 0
-      });
-
-      // 유저 정보 업데이트
-      const userRef = doc(db, "users", user.uid);
-      batch.update(userRef, {
-        guildId: guildId
-      });
-
-      // 멤버 수 증가
-      const guildRef = doc(db, "guilds", guildId);
-      batch.update(guildRef, {
-        memberCount: increment(1)
-      });
-
-      await batch.commit();
-      return guildId;
-    }
-  };
+        // 4. 캐릭터 삭제
+        deleteCharacter: async (guildId: string, charId: string) => {
+            const ref = doc(db, `guilds/${guildId}/characters`, charId);
+            await deleteDoc(ref);
+        }
+    };
 }
 
 export const guildStore = createGuildStore();
