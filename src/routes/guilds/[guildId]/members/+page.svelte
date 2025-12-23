@@ -92,6 +92,50 @@
         }
     }
 
+   // 🎨 레벨별 스타일(랭크) 계산 헬퍼
+    function getRankStyle(level: number = 1) {
+        if (level >= 30) {
+            // 전설 (Legendary): 붉은색 텍스트로 강력함 강조
+            return {
+                border: 'border-yellow-400 border-2',
+                shadow: 'shadow-[0_0_15px_rgba(250,204,21,0.6)]',
+                bg: 'bg-gradient-to-br from-yellow-50 to-white',
+                badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
+                effect: 'animate-pulse-slow',
+                levelText: 'text-red-600 font-black text-sm drop-shadow-sm' // [추가됨]
+            };
+        } else if (level >= 20) {
+            // 에픽 (Epic): 보라색 텍스트
+            return {
+                border: 'border-purple-400 border-2',
+                shadow: 'shadow-lg shadow-purple-100',
+                bg: 'bg-gradient-to-br from-purple-50 to-white',
+                badge: 'bg-purple-100 text-purple-800 border-purple-200',
+                effect: '',
+                levelText: 'text-purple-600 font-bold' // [추가됨]
+            };
+        } else if (level >= 10) {
+            // 레어 (Rare): 파란색 텍스트
+            return {
+                border: 'border-blue-400 border-2',
+                shadow: 'shadow-md shadow-blue-100',
+                bg: 'bg-blue-50/30',
+                badge: 'bg-blue-100 text-blue-800 border-blue-200',
+                effect: '',
+                levelText: 'text-blue-600 font-bold' // [추가됨]
+            };
+        } else {
+            // 일반 (Common): 회색 텍스트
+            return {
+                border: 'border-gray-100',
+                shadow: 'shadow-md hover:shadow-xl',
+                bg: 'bg-white',
+                badge: 'bg-white border text-gray-600',
+                effect: '',
+                levelText: 'text-gray-400 font-medium' // [추가됨]
+            };
+        }
+    }
 
     // ==========================================
     // 🛒 Actions: 상점 (Shop)
@@ -245,32 +289,35 @@
 
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {#each characters as char (char.id)}
-             <div class="bg-white rounded-xl shadow-md overflow-hidden border border-gray-100 hover:shadow-xl transition group relative flex flex-col">
+            {@const style = getRankStyle(char.level)} <div class="{style.bg} {style.border} {style.shadow} {style.effect} 
+                        rounded-xl overflow-hidden transition-all duration-300 group relative flex flex-col transform hover:-translate-y-1">
                  
-                <div class="p-4 border-b flex justify-between items-start bg-gray-50">
-                    <span class="px-2 py-1 rounded text-xs font-bold bg-white border shadow-sm">
+                <div class="p-4 border-b border-black/5 flex justify-between items-start">
+                    <span class="px-2 py-1 rounded text-xs font-bold shadow-sm {style.badge}">
                         {jobIcons[char.jobClass] || '❓'} {char.jobClass}
                     </span>
                     <div class="text-right">
-                        <div class="text-yellow-600 font-bold text-xl">💰 {char.currentGold?.toLocaleString() || 0}</div>
-                        <div class="text-xs text-gray-400">Lv.{char.level || 1}</div>
+                        <div class="font-bold text-xl {char.level >= 30 ? 'text-yellow-600 drop-shadow-sm' : 'text-yellow-600'}">
+                            💰 {char.currentGold?.toLocaleString() || 0}
+                        </div>
+                        
+                        <div class="text-xs font-mono mt-1 {style.levelText}">
+                            Lv.{char.level || 1}
+                        </div>
                     </div>
                 </div>
 
                 <div class="p-5 flex-1 relative"> 
                     <div class="flex justify-between items-start mb-2">
-                        <h3 class="text-xl font-bold text-gray-800">{char.name}</h3>
-                        <div class="flex gap-1 ml-2">
-                             <button 
-                                on:click={() => editingChar = { ...char }} 
-                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-blue-100 hover:text-blue-600 transition"
-                                title="수정"
-                            >✏️</button>
-                             <button 
-                                on:click={() => handleDelete(char)} 
-                                class="w-8 h-8 flex items-center justify-center bg-gray-100 text-gray-500 rounded-full hover:bg-red-100 hover:text-red-600 transition"
-                                title="삭제"
-                            >🗑️</button>
+                        <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                            {char.name}
+                            {#if char.level >= 30}
+                                <span title="전설적인 영웅">👑</span>
+                            {/if}
+                        </h3>
+                        <div class="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
+                             <button on:click={() => editingChar = { ...char }} class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-blue-100 text-gray-400 hover:text-blue-600 rounded-full transition">✏️</button>
+                             <button on:click={() => handleDelete(char)} class="w-8 h-8 flex items-center justify-center bg-white/80 hover:bg-red-100 text-gray-400 hover:text-red-600 rounded-full transition">🗑️</button>
                         </div>
                     </div>
                     <p class="text-gray-600 text-sm line-clamp-3 min-h-[3rem]">{char.description || '설정이 없습니다.'}</p>
@@ -279,9 +326,9 @@
                 <div class="p-4 pt-0">
                     <button 
                         on:click={() => shoppingChar = char}
-                        class="w-full py-2 bg-yellow-100 text-yellow-800 font-bold rounded-lg hover:bg-yellow-200 transition flex items-center justify-center gap-2"
+                        class="w-full py-2 bg-yellow-100/80 hover:bg-yellow-200 text-yellow-900 font-bold rounded-lg transition flex items-center justify-center gap-2"
                     >
-                        <span>🛒 골드 사용 (상점)</span>
+                        <span>🛒 상점 이용</span>
                     </button>
                 </div>
             </div>
@@ -477,5 +524,14 @@
     .custom-scrollbar::-webkit-scrollbar-thumb {
         background-color: rgba(0,0,0,0.1);
         border-radius: 20px;
+    }
+    /* 기존 스타일 아래에 추가 */
+    .animate-pulse-slow {
+        animation: pulse-glow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    }
+
+    @keyframes pulse-glow {
+        0%, 100% { box-shadow: 0 0 15px rgba(250, 204, 21, 0.4); }
+        50% { box-shadow: 0 0 25px rgba(250, 204, 21, 0.8); }
     }
 </style>

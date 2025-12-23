@@ -16,6 +16,7 @@ export interface GuildCharacter {
     description: string;
     currentGold: number;
     level: number;
+    exp?: number; // [추가] 누적 획득 골드 (레벨업 기준)
     createdBy: string;
     createdAt: any;
 }
