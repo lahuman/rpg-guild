@@ -15,6 +15,38 @@
     $: characters = $guildStore?.characters || []; // 멤버 목록 배열
     $: currentUser = $userStore;
 
+    // [NEW] 수정 모드 상태 관리
+    let isEditingName = false;
+    let newName = '';
+    let isSavingName = false;
+    // 수정 모드 진입
+    function startEditing() {
+        newName = guild?.name || '';
+        isEditingName = true;
+    }
+
+    // 수정 취소
+    function cancelEditing() {
+        isEditingName = false;
+    }
+
+    // [NEW] 길드명 저장 핸들러
+    async function saveGuildName() {
+        if (!newName.trim()) return alert("길드 이름을 입력해주세요.");
+        
+        try {
+            isSavingName = true;
+            await guildStore.updateGuildName(guildId, newName);
+            isEditingName = false;
+            // alert("길드 이름이 변경되었습니다."); // UX상 자연스러운 흐름을 위해 생략 가능
+        } catch (e: any) {
+            console.error(e);
+            alert("변경 실패: " + e.message);
+        } finally {
+            isSavingName = false;
+        }
+    }
+
     // [NEW] 초대 코드 복사 기능
     async function copyInviteCode() {
         try {
@@ -56,7 +88,48 @@
     
     <div class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
         <div class="relative z-10">
-            <h1 class="text-3xl font-bold mb-2">🏰 {guild?.name || '로딩 중...'}</h1>
+            <div class="flex items-center gap-3 mb-2 min-h-[3rem]">
+                {#if isEditingName}
+                    <div class="flex items-center gap-2 w-full max-w-md bg-white/10 p-1 rounded">
+                        <input 
+                            type="text" 
+                            bind:value={newName}
+                            class="bg-transparent border-b border-white/50 text-white text-2xl font-bold w-full px-2 focus:outline-none focus:border-white placeholder-white/50"
+                            placeholder="길드 이름 입력"
+                            disabled={isSavingName}
+                            on:keydown={(e) => e.key === 'Enter' && saveGuildName()}
+                        />
+                        <button 
+                            on:click={saveGuildName} 
+                            disabled={isSavingName}
+                            class="text-sm bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-white disabled:opacity-50 whitespace-nowrap transition"
+                        >
+                            {isSavingName ? '저장 중...' : '확인'}
+                        </button>
+                        <button 
+                            on:click={cancelEditing} 
+                            disabled={isSavingName}
+                            class="text-sm bg-gray-500 hover:bg-gray-600 px-3 py-1 rounded text-white disabled:opacity-50 whitespace-nowrap transition"
+                        >
+                            취소
+                        </button>
+                    </div>
+                {:else}
+                    <h1 class="text-3xl font-bold">🏰 {guild?.name || '로딩 중...'}</h1>
+                    
+                    {#if guild && currentUser && guild.leaderId === currentUser.uid}
+                        <button 
+                            on:click={startEditing}
+                            class="text-white/50 hover:text-white transition p-1"
+                            title="길드 이름 수정"
+                        >
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                            </svg>
+                        </button>
+                    {/if}
+                {/if}
+            </div>
             <p class="text-indigo-100 opacity-90 mb-4">{guild?.description || '함께 성장하는 우리만의 길드'}</p>
             
             <div class="flex flex-wrap gap-3 text-sm font-bold opacity-80 items-center">

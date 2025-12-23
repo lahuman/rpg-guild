@@ -123,6 +123,28 @@ function createGuildStore() {
             return guildId;
         },
 
+        // [NEW] 길드 이름 변경 기능 추가
+        updateGuildName: async (guildId: string, newName: string) => {
+            const currentUser = get(userStore);
+            if (!currentUser) throw new Error("로그인이 필요합니다.");
+            
+            // 공백 검사
+            if (!newName || newName.trim().length === 0) {
+                throw new Error("길드 이름을 입력해주세요.");
+            }
+
+            // 권한 검사 (클라이언트 사이드 1차 방어)
+            const currentGuild = get(guildStore);
+            if (currentGuild && currentGuild.leaderId !== currentUser.uid) {
+                throw new Error("길드장만 이름을 변경할 수 있습니다.");
+            }
+
+            const guildRef = doc(db, 'guilds', guildId);
+            await updateDoc(guildRef, {
+                name: newName.trim()
+            });
+        },
+
         // --- 캐릭터 관리 (CRUD) ---
 
         createCharacter: async (guildId: string, charData: Omit<GuildCharacter, 'id' | 'createdAt' | 'level' | 'currentGold'>) => {
