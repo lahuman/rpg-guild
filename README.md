@@ -11,8 +11,9 @@ RPG Guild Manager는 단순한 할 일 관리(Todo)를 넘어, 우리가 작성�
 ## ✨ Key Features (주요 기능)
 
 ### 1. 🏰 길드 시스템 (Guilds)
-- **간편한 생성 & 초대:** 길드 이름만으로 생성하고, 6자리 초대 코드로 동료(다른 작가/관리자)를 쉽게 초대할 수 있습니다.
-- **대시보드:** 초대 코드를 메인에서 바로 확인하고, 주요 메뉴로 이동할 수 있습니다.
+- **간편한 생성 & 초대:** 길드 이름만으로 생성하고, 대시보드에서 **초대 코드(ID)를 복사**하여 동료를 쉽게 초대할 수 있습니다.
+- **자유로운 이동:** 언제든 길드를 **탈퇴**하고, 새로운 길드를 생성하거나 다른 길드로 가입할 수 있습니다.
+- **실시간 대시보드:** 현재 멤버 수와 주요 메뉴(멤버, 퀘스트, 로그)로 빠르게 이동합니다.
 
 ### 2. 🧙‍♂️ 캐릭터 도감 (Characters)
 - **가상 인물 관리:** 실제 유저가 아닌, '검사', '마법사', '힐러' 등 RPG 직업을 가진 캐릭터를 생성합니다.
@@ -25,8 +26,9 @@ RPG Guild Manager는 단순한 할 일 관리(Todo)를 넘어, 우리가 작성�
 - **수행 완료 처리:** 미션 완료 시 수행한 캐릭터들을 선택하면, 즉시 골드가 지급됩니다. (하루 한 번 제한, 중복 방지)
 
 ### 4. 💰 경제 및 상점 (Economy & Shop)
-- **골드 소비:** 캐릭터가 모은 골드로 '핸드폰 사용 시간', '현금 교환' 등 현실의 보상을 구매할 수 있습니다.
-- **안전한 거래:** Firebase Transaction을 사용하여 골드 차감과 로그 기록이 안전하게 처리됩니다.
+- **자율 상점 관리:** 길드원 누구나 상점에 **자신들이 원하는 보상(아이템)을 등록, 수정, 삭제**할 수 있습니다.
+- **골드 소비:** 캐릭터가 모은 골드로 '휴식 1시간', '커피 쿠폰' 등 등록된 보상을 구매합니다.
+- **투명한 거래:** 구매 즉시 로그가 기록되며, 골드가 차감됩니다.
 
 ### 5. 📜 활동 로그 (Activity Logs)
 - **타임라인:** 미션 수행(수입)과 상점 이용(지출) 내역을 날짜별로 한눈에 확인할 수 있습니다.
@@ -66,12 +68,12 @@ npm install
 
 ```env
 # .env
-VITE_API_KEY=your_api_key
-VITE_AUTH_DOMAIN=your_project_id.firebaseapp.com
-VITE_PROJECT_ID=your_project_id
-VITE_STORAGE_BUCKET=your_project_id.appspot.com
-VITE_MESSAGING_SENDER_ID=your_sender_id
-VITE_APP_ID=your_app_id
+VITE_FIREBASE_API_KEY=your_api_key
+VITE_FIREBASE_AUTH_DOMAIN=your_project_id.firebaseapp.com
+VITE_FIREBASE_PROJECT_ID=your_project_id
+VITE_FIREBASE_STORAGE_BUCKET=your_project_id.appspot.com
+VITE_FIREBASE_MESSAGING_SENDER_ID=your_sender_id
+VITE_FIREBASE_APP_ID=your_app_id
 ```
 
 ### 4. Run Development Server
@@ -107,18 +109,19 @@ docker run -d -p 3000:3000 --env-file .env --name rpg-guild-container rpg-guild-
 ```
 src/
 ├── lib/
-│   ├── firebase.ts       # Firebase 초기화
+│   ├── firebase.ts       # Firebase 초기화 및 Auth
 │   └── stores/           # 비즈니스 로직 (State Management)
-│       ├── userStore.ts    # 로그인 유저 관리
-│       ├── guildStore.ts   # 길드, 캐릭터, 상점 로직
+│       ├── userStore.ts    # 유저 정보 & 길드 탈퇴 로직
+│       ├── guildStore.ts   # 길드, 캐릭터 로직
 │       ├── missionStore.ts # 미션 생성, 수행, 트랜잭션
+│       ├── itemStore.ts    # [NEW] 상점 아이템 관리
 │       └── logStore.ts     # 통합 활동 로그 조회
 ├── routes/
 │   ├── +page.svelte      # 랜딩 및 로그인/가입
 │   └── guilds/
 │       └── [guildId]/
-│           ├── +page.svelte       # 길드 대시보드
-│           ├── members/           # 캐릭터 관리 & 상점
+│           ├── +page.svelte       # 길드 대시보드 (탈퇴, 초대코드)
+│           ├── members/           # 캐릭터 관리 & 상점(구매/관리)
 │           ├── missions/          # 퀘스트 보드
 │           └── logs/              # 활동 내역 타임라인
 ```
