@@ -133,15 +133,22 @@ function createGuildStore() {
                 throw new Error("길드 이름을 입력해주세요.");
             }
 
-            // 권한 검사 (클라이언트 사이드 1차 방어)
-            const currentGuild = get(guildStore);
-            if (currentGuild && currentGuild.leaderId !== currentUser.uid) {
-                throw new Error("길드장만 이름을 변경할 수 있습니다.");
-            }
 
             const guildRef = doc(db, 'guilds', guildId);
             await updateDoc(guildRef, {
                 name: newName.trim()
+            });
+        },
+        // [NEW] 길드 설명 변경 (권한 체크 없음: 누구나 가능)
+        updateGuildDescription: async (guildId: string, newDesc: string) => {
+            const currentUser = get(userStore);
+            if (!currentUser) throw new Error("로그인이 필요합니다.");
+            
+            // *주의: 리더 권한 체크 로직 없음 (사용자 요청 사항)*
+            
+            const guildRef = doc(db, 'guilds', guildId);
+            await updateDoc(guildRef, {
+                description: newDesc.trim() // 앞뒤 공백 제거 후 저장
             });
         },
 
