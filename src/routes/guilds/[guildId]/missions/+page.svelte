@@ -2,10 +2,14 @@
     import { page } from '$app/stores';
     import { onDestroy } from 'svelte';
     import { missionStore, type Mission } from '$lib/stores/missionStore';
-    import { guildStore, type GuildCharacter } from '$lib/stores/guildStore';
+    import { guildStore } from '$lib/stores/guildStore';
+    
+    // [NEW] 애니메이션 효과를 위한 모듈 추가
+    import { fade, scale } from 'svelte/transition';
+    import { quintOut } from 'svelte/easing';
     
     const guildId = $page.params.guildId;
-    
+
     // 1. 구독 시작
     const unsubMissions = missionStore.init(guildId);
     const unsubStatus = missionStore.initTodayStatus(guildId);
@@ -14,7 +18,7 @@
     // 2. 데이터 바인딩
     $: missions = $missionStore;
     $: characters = $guildStore?.characters || [];
-    
+
     // 완료 목록 스토어
     const completedIds = missionStore.completedMissionIds;
 
@@ -22,16 +26,12 @@
     $: sortedMissions = [...missions].sort((a, b) => {
         const isDoneA = $completedIds.has(a.id || '');
         const isDoneB = $completedIds.has(b.id || '');
-
-        // 둘 다 완료했거나, 둘 다 안 했으면 -> 순서 유지
         if (isDoneA === isDoneB) return 0;
-        
-        // A가 완료(true)면 뒤로(1), B가 완료면 A가 앞으로(-1)
         return isDoneA ? 1 : -1;
     });
 
     let isCreating = false;
-    let editingMissionId: string | null = null; // [NEW] 수정 중인 미션 ID
+    let editingMissionId: string | null = null;
 
     let newMission = { 
         title: '', description: '', cost: 100, 
@@ -44,39 +44,36 @@
     let completedCharIds: string[] = [];
     let isLoadingLogs = false;
 
+    // [NEW] 상자 이펙트 관련 상태값
+    let showChestModal = false;
+    let chestOpened = false;
+    let chestBonus = 0;
+
     const jobIcons: Record<string, string> = { 
         '검사': '⚔️', '마법사': '🔮', '힐러': '🌿', 
         '사냥꾼': '🏹', '도적': '🗡️', '탱커': '🛡️' 
     };
 
-    // [NEW] 폼 초기화 함수
     function resetForm() {
         newMission = { title: '', description: '', cost: 100, type: 'solo', minParticipants: 1, maxParticipants: 1 };
         editingMissionId = null;
-        // isCreating은 상황에 따라 닫지 않고 유지할 수도 있음 (연속 등록 편의성)
     }
 
-    // [MODIFIED] 저장(생성 및 수정) 핸들러 통합
     async function handleSave() {
         if(!newMission.title) return alert("퀘스트명을 입력해주세요.");
-
         try {
             if (editingMissionId) {
-                // 수정
                 await missionStore.updateMission(guildId, editingMissionId, newMission);
                 alert("퀘스트가 수정되었습니다.");
                 resetForm();
-                isCreating = false; // 수정 후엔 폼 닫기
+                isCreating = false;
             } else {
-                // 생성
                 await missionStore.addMission(guildId, newMission);
-                // 생성 후엔 초기화만 하고 폼은 열어둠 (연속 등록 유도)
-                resetForm(); 
+                resetForm();
             }
         } catch (e: any) { alert(e.message); }
     }
 
-    // [NEW] 수정 시작
     function startEdit(mission: Mission) {
         newMission = { ...mission };
         editingMissionId = mission.id!;
@@ -84,7 +81,6 @@
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
-    // [NEW] 삭제 핸들러
     async function handleDelete(mission: Mission) {
         if (confirm(`🗑️ 정말 삭제하시겠습니까?\n[${mission.title}] 퀘스트가 목록에서 사라집니다.`)) {
             try {
@@ -93,7 +89,6 @@
         }
     }
 
-    // 완료 처리 모달 열기
     async function openCompleteModal(mission: Mission) {
         selectedMission = mission;
         selectedCharIds = [];
@@ -129,12 +124,14 @@
         }
     }
 
+    // [MODIFIED] 완료 처리 핸들러 (상자 이펙트 로직 추가)
     async function handleComplete() {
         if(!selectedMission || selectedCharIds.length === 0) return;
+        
         const targets = characters
             .filter(c => selectedCharIds.includes(c.id!))
             .map(c => ({ id: c.id!, name: c.name }));
-            
+
         if (selectedMission.type === 'solo' && targets.length > 1) {
              return alert("🚫 개인(Solo) 미션은 한 번에 한 명만 수행할 수 있습니다.");
         }
@@ -145,14 +142,40 @@
         const confirmMsg = selectedMission.type === 'solo'
             ? `[${targets[0].name}] 캐릭터에게 ${selectedMission.cost}골드를 지급하시겠습니까?`
             : `${targets.length}명에게 각각 ${selectedMission.cost}골드를 지급하시겠습니까?`;
-            
+
         if(confirm(confirmMsg)) {
             try {
-                await missionStore.completeMission(guildId, selectedMission, targets);
+                // missionStore.completeMission이 { isChestFound, bonusGold }를 반환한다고 가정
+                const result = await missionStore.completeMission(guildId, selectedMission, targets);
+                
                 selectedMission = null;
                 selectedCharIds = [];
-            } catch(e: any) { alert(e.message); }
+
+                // [NEW] 상자 발견 시 이펙트 실행 로직
+                // result가 존재하고 isChestFound가 true일 때
+                if (result && result.isChestFound) {
+                    chestBonus = result.bonusGold;
+                    showChestModal = true;
+                    chestOpened = false;
+
+                    // 1.5초 뒤에 자동으로 상자가 열리는 연출
+                    setTimeout(() => {
+                        chestOpened = true;
+                    }, 1500);
+                } else {
+                    // 상자가 없으면 일반 완료 메시지
+                    alert("✅ 미션 완료! 보상이 지급되었습니다.");
+                }
+
+            } catch(e: any) { 
+                alert(e.message); 
+            }
         }
+    }
+
+    // [NEW] 상자 모달 닫기
+    function closeChestModal() {
+        showChestModal = false;
     }
 
     onDestroy(() => {
@@ -166,7 +189,7 @@
     <div class="flex justify-between items-center mb-6">
         <h1 class="text-2xl font-bold text-gray-800">🛡️ 퀘스트 게시판</h1>
         <button on:click={() => { 
-                isCreating = !isCreating; 
+                isCreating = !isCreating;
                 if(!isCreating) resetForm(); 
             }} 
             class="bg-indigo-600 text-white px-4 py-2 rounded font-bold hover:bg-indigo-700 transition">
@@ -194,12 +217,12 @@
                 <div>
                      <span class="block text-sm font-medium text-gray-700 mb-2">유형</span>
                     <div class="flex gap-4">
-                         <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="solo" class="text-indigo-600"><span>개인</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="solo" class="text-indigo-600"><span>개인</span></label>
                         <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="party" class="text-green-600"><span>파티</span></label>
                     </div>
                 </div>
                
-                  {#if newMission.type === 'party'}
+                {#if newMission.type === 'party'}
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700">최대 참여 인원</label>
                         <input bind:value={newMission.maxParticipants} type="number" min="2" class="w-full border rounded p-2" />
@@ -239,11 +262,11 @@
 
                         <div class="flex gap-1 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity">
                             <button on:click|stopPropagation={() => startEdit(mission)} 
-                                    class="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-blue-50 transition" title="수정">
+                                class="text-gray-400 hover:text-blue-600 p-1 rounded hover:bg-blue-50 transition" title="수정">
                                 ✏️
                             </button>
                             <button on:click|stopPropagation={() => handleDelete(mission)} 
-                                    class="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition" title="삭제">
+                                class="text-gray-400 hover:text-red-600 p-1 rounded hover:bg-red-50 transition" title="삭제">
                                 🗑️
                             </button>
                         </div>
@@ -283,7 +306,7 @@
                     {#if isLoadingLogs}
                          <div class="text-center py-8 text-gray-400">
                              <div class="animate-spin inline-block w-6 h-6 border-2 border-indigo-500 border-t-transparent rounded-full mb-2"></div>
-                            <p>기록 확인 중...</p>
+                             <p>기록 확인 중...</p>
                         </div>
                     {:else if characters.length === 0}
                          <div class="text-center py-8 text-gray-400">등록된 캐릭터가 없습니다.</div>
@@ -308,14 +331,14 @@
                                         <div>
                                             <div class="font-bold text-gray-800">{char.name}</div>
                                             {#if isDone}
-                                                 <div class="text-xs text-green-600 font-bold">✓ 오늘 완료함</div>
+                                                <div class="text-xs text-green-600 font-bold">✓ 오늘 완료함</div>
                                             {:else}
-                                                 <div class="text-xs text-gray-500">{char.jobClass}</div>
+                                                <div class="text-xs text-gray-500">{char.jobClass}</div>
                                             {/if}
                                         </div>
                                     </div>
                                     {#if isSelected}
-                                         <span class="text-indigo-600 font-bold text-xl">✓</span>
+                                        <span class="text-indigo-600 font-bold text-xl">✓</span>
                                     {/if}
                                 </div>
                             {/each}
@@ -336,4 +359,93 @@
             </div>
         </div>
     {/if}
+
+    {#if showChestModal}
+        <div class="fixed inset-0 bg-black/80 z-[60] flex items-center justify-center p-4 overflow-hidden" 
+            transition:fade={{duration: 300}}>
+            
+            <div class="text-center relative w-full max-w-sm">
+                
+                <div class="relative h-64 flex items-center justify-center">
+                    {#if !chestOpened}
+                        <div class="text-[8rem] shake-animation cursor-pointer select-none"
+                            on:click={() => chestOpened = true}
+                            in:scale={{duration: 500, start: 0, easing: quintOut}}>
+                            🎁
+                        </div>
+                        <p class="text-white/80 mt-4 animate-pulse font-medium">상자를 발견했습니다!</p>
+                    {:else}
+                        <div class="flex flex-col items-center" in:scale={{duration: 300, start: 0.8, easing: quintOut}}>
+                            <div class="text-[8rem] mb-2 animate-bounce-short">
+                                💰
+                            </div>
+                            <h2 class="text-3xl font-bold text-yellow-400 mb-2 drop-shadow-md pop-in-text">
+                                BONUS!
+                            </h2>
+                            <div class="text-5xl font-black text-white drop-shadow-lg mb-8 pop-in-text-delayed">
+                                +{chestBonus} <span class="text-2xl text-yellow-300">G</span>
+                            </div>
+                            
+                            <button class="bg-yellow-500 hover:bg-yellow-400 text-yellow-900 font-bold py-3 px-10 rounded-full shadow-lg transform transition hover:scale-105 active:scale-95 text-lg"
+                                    on:click={closeChestModal}>
+                                확인
+                            </button>
+                        </div>
+                    {/if}
+                </div>
+
+                {#if chestOpened}
+                    <div class="absolute inset-0 -z-10 pointer-events-none">
+                        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-yellow-500/20 rounded-full blur-3xl animate-pulse"></div>
+                    </div>
+                {/if}
+            </div>
+        </div>
+    {/if}
 </div>
+
+<style>
+    /* 상자 흔들림 애니메이션 */
+    @keyframes shake {
+        0% { transform: translate(1px, 1px) rotate(0deg); }
+        10% { transform: translate(-1px, -2px) rotate(-1deg); }
+        20% { transform: translate(-3px, 0px) rotate(1deg); }
+        30% { transform: translate(3px, 2px) rotate(0deg); }
+        40% { transform: translate(1px, -1px) rotate(1deg); }
+        50% { transform: translate(-1px, 2px) rotate(-1deg); }
+        60% { transform: translate(-3px, 1px) rotate(0deg); }
+        70% { transform: translate(3px, 1px) rotate(-1deg); }
+        80% { transform: translate(-1px, -1px) rotate(1deg); }
+        90% { transform: translate(1px, 2px) rotate(0deg); }
+        100% { transform: translate(1px, -2px) rotate(-1deg); }
+    }
+
+    .shake-animation {
+        animation: shake 0.5s;
+        animation-iteration-count: infinite;
+        display: inline-block;
+    }
+
+    /* 짧은 바운스 */
+    @keyframes bounce-short {
+        0%, 100% { transform: translateY(0); }
+        50% { transform: translateY(-20px); }
+    }
+    .animate-bounce-short {
+        animation: bounce-short 0.5s ease-out 1;
+    }
+
+    /* 텍스트 팝인 */
+    @keyframes pop-in {
+        0% { opacity: 0; transform: scale(0.5); }
+        70% { transform: scale(1.2); }
+        100% { opacity: 1; transform: scale(1); }
+    }
+    .pop-in-text {
+        animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+    }
+    .pop-in-text-delayed {
+        opacity: 0;
+        animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.2s forwards;
+    }
+</style>
