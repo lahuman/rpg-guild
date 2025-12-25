@@ -3,8 +3,8 @@
   import { guildStore } from '$lib/stores/guildStore';
   import { login } from '$lib/firebase';
   import { goto } from '$app/navigation';
-  import { Shield, Sword } from 'lucide-svelte';
-
+  import { Shield, Sword, Scroll, Users, History, Gem } from 'lucide-svelte'; // 아이콘 추가
+  
   let mode = 'join'; // 'join' | 'create'
   let inputCode = '';
   let inputName = '';
@@ -46,8 +46,9 @@
 </script>
 
 {#if !$userStore}
-  <div class="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden bg-slate-900">
-    <div class="max-w-md w-full bg-slate-800/80 backdrop-blur-md border border-slate-700 p-8 rounded-2xl shadow-2xl text-center">
+  <div class="min-h-screen flex flex-col items-center justify-start p-4 relative overflow-y-auto bg-slate-900">
+    
+    <div class="mt-20 max-w-md w-full bg-slate-800/80 backdrop-blur-md border border-slate-700 p-8 rounded-2xl shadow-2xl text-center z-10">
       <div class="flex justify-center mb-6 space-x-2 text-yellow-500">
         <Sword size={40} /><Shield size={40} />
       </div>
@@ -57,6 +58,56 @@
       <button on:click={login} class="w-full bg-white hover:bg-gray-100 text-slate-900 font-bold py-4 rounded-xl shadow-lg flex items-center justify-center gap-3 transition">
         <img src="https://www.google.com/favicon.ico" alt="G" class="w-5 h-5" /> 구글 계정으로 시작
       </button>
+    </div>
+
+    <div class="mt-16 max-w-4xl w-full text-slate-300 pb-20">
+      <h2 class="text-2xl font-bold text-center text-white mb-10">주요 기능 소개</h2>
+      
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 hover:border-indigo-500/50 transition">
+          <div class="flex items-center gap-3 mb-3 text-indigo-400">
+            <Scroll size={28} />
+            <h3 class="text-xl font-bold text-white">길드 미션 관리</h3>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            길드원들과 함께 수행할 퀘스트를 등록하고 진행 상황을 공유하세요. 
+            경험치를 쌓고 길드를 성장시킬 수 있습니다.
+          </p>
+        </div>
+
+        <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 hover:border-green-500/50 transition">
+          <div class="flex items-center gap-3 mb-3 text-green-400">
+            <Users size={28} />
+            <h3 class="text-xl font-bold text-white">멤버 관리</h3>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            함께하는 동료들의 역할과 기여도를 한눈에 파악하세요. 
+            새로운 모험가를 초대하여 더 강력한 길드를 만들 수 있습니다.
+          </p>
+        </div>
+
+        <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 hover:border-yellow-500/50 transition">
+          <div class="flex items-center gap-3 mb-3 text-yellow-400">
+            <History size={28} />
+            <h3 class="text-xl font-bold text-white">활동 로그</h3>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            길드 내에서 일어나는 모든 중요한 사건들이 기록됩니다. 
+            지난 모험의 발자취를 언제든지 확인할 수 있습니다.
+          </p>
+        </div>
+
+        <div class="bg-slate-800/50 p-6 rounded-xl border border-slate-700/50 hover:border-purple-500/50 transition">
+          <div class="flex items-center gap-3 mb-3 text-purple-400">
+            <Gem size={28} />
+            <h3 class="text-xl font-bold text-white">전리품 & 아이템</h3>
+          </div>
+          <p class="text-slate-400 leading-relaxed">
+            모험을 통해 획득한 보상을 관리하고 분배하세요. 
+            길드 운영에 필요한 자원을 체계적으로 정리할 수 있습니다.
+          </p>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -79,7 +130,7 @@
           {#if mode === 'join'}
               <p class="text-center text-slate-200 font-bold mb-4">초대 코드 입력</p>
               <input bind:value={inputCode} placeholder="예: X7Z9A1" 
-                     class="w-full bg-slate-900 text-center text-2xl font-black tracking-widest text-white border border-slate-600 rounded-xl p-4 mb-6 uppercase focus:outline-none focus:border-indigo-500 transition"/>
+                      class="w-full bg-slate-900 text-center text-2xl font-black tracking-widest text-white border border-slate-600 rounded-xl p-4 mb-6 uppercase focus:outline-none focus:border-indigo-500 transition"/>
               <button on:click={handleJoin} disabled={isProcessing}
                       class="w-full bg-slate-600 hover:bg-slate-500 text-white font-bold py-4 rounded-xl transition disabled:opacity-50">
                 {isProcessing ? '처리 중...' : '🚀 입장하기'}
