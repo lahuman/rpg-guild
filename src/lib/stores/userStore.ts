@@ -15,7 +15,8 @@ export interface UserData {
 }
 
 function createUserStore() {
-  const { subscribe, set } = writable<UserData | null>(null);
+  // [변경] 초기값을 undefined로 설정하여 '로딩 중' 상태를 표현합니다.
+  const { subscribe, set } = writable<UserData | null | undefined>(undefined);
 
   // 브라우저 환경에서만 실행 (SSR 이슈 방지)
   if (typeof window !== 'undefined') {
@@ -61,7 +62,7 @@ function createUserStore() {
         });
 
       } else {
-        // B. 로그아웃 상태: Store 비우기
+        // B. 로그아웃 상태: Store를 명확히 null로 설정
         set(null);
       }
     });

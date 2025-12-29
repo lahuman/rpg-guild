@@ -127,9 +127,9 @@ function createMissionStore() {
             let bonusGold = 0;
             let isChestFound = false;
             
-            if (Math.random() < 0.4) {
+            if (Math.random() < 0.3) {
                 isChestFound = true;
-                bonusGold = Math.floor(Math.random() * 51); // 0 ~ 50
+                bonusGold = Math.floor(Math.random() * 36); // 0 ~ 36
             }
 
             const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`));
