@@ -123,11 +123,11 @@ function createMissionStore() {
                 throw new Error("🚫 이미 금일 완료된 미션입니다.");
             }
 
-            // 확률 로직 (30%)
+            // 확률 로직 (20%)
             let bonusGold = 0;
             let isChestFound = false;
             
-            if (Math.random() < 0.3) {
+            if (Math.random() < 0.2) {
                 isChestFound = true;
                 bonusGold = Math.floor(Math.random() * 36); // 0 ~ 36
             }
