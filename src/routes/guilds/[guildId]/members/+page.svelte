@@ -192,6 +192,11 @@
                 // 로그 기록 및 골드 차감
                 await guildStore.useGold(guildId, shoppingChar.id!, item.name, item.cost);
                 alert(`구매 완료! ${item.name} 획득.`);
+
+                // [일회성 아이템 처리]
+                if (item.isOneTime) {
+                    await itemStore.deleteItem(guildId, item.id);
+                }
                 // shoppingChar = null; // 계속 쇼핑하려면 주석 처리
             } catch (e: any) {
                 alert("구매 실패: " + e.message);
@@ -380,12 +385,12 @@
                                 <span class="bg-white bg-opacity-50 px-2 rounded-full ml-1 text-xs">💰 {shoppingChar.currentGold?.toLocaleString()} G</span>
                             </p>
                         </div>
-                        <button 
+                        <!-- <button 
                             on:click={() => isShopManaging = !isShopManaging}
                             class="text-xs text-yellow-800 underline opacity-60 hover:opacity-100"
                         >
                             {isShopManaging ? '관리 종료' : '상품 관리'}
-                        </button>
+                        </button> -->
                     </div>
                 </div>
 

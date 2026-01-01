@@ -12,6 +12,7 @@ export interface ShopItem {
     cost: number;
     icon: string;
     description?: string;
+    isOneTime?: boolean; // [추가] 일회성 아이템 여부
     createdAt?: any;
 }
 

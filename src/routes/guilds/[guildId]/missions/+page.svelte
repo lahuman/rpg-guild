@@ -36,7 +36,8 @@
     let newMission = { 
         title: '', description: '', cost: 100, 
         type: 'solo' as 'solo' | 'party', 
-        minParticipants: 1, maxParticipants: 1 
+        minParticipants: 1, maxParticipants: 1 ,
+        isOneTime: false // [NEW] 초기값
     };
 
     let selectedMission: Mission | null = null;
@@ -55,7 +56,7 @@
     };
 
     function resetForm() {
-        newMission = { title: '', description: '', cost: 100, type: 'solo', minParticipants: 1, maxParticipants: 1 };
+        newMission = { title: '', description: '', cost: 100, type: 'solo', minParticipants: 1, maxParticipants: 1,isOneTime: false };
         editingMissionId = null;
     }
 
@@ -75,7 +76,7 @@
     }
 
     function startEdit(mission: Mission) {
-        newMission = { ...mission };
+        newMission = { ...mission, isOneTime: mission.isOneTime ?? false };
         editingMissionId = mission.id!;
         isCreating = true;
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -222,6 +223,16 @@
                     </div>
                 </div>
                
+                <div class="col-span-2 bg-white p-3 rounded border border-indigo-100">
+                    <label class="flex items-center gap-2 cursor-pointer">
+                        <input type="checkbox" bind:checked={newMission.isOneTime} class="w-4 h-4 text-indigo-600 rounded focus:ring-indigo-500">
+                        <div>
+                            <span class="font-bold text-gray-700">🔥 일회성 퀘스트</span>
+                            <p class="text-xs text-gray-500">완료 시 목록에서 자동으로 사라집니다. (이벤트성)</p>
+                        </div>
+                    </label>
+                </div>
+
                 {#if newMission.type === 'party'}
                     <div class="col-span-2">
                         <label class="block text-sm font-medium text-gray-700">최대 참여 인원</label>
@@ -251,6 +262,12 @@
                 <div class="p-5 flex-1 flex flex-col">
                     <div class="flex justify-between items-start mb-3">
                         <div class="flex gap-2">
+                            {#if mission.isOneTime}
+                                <span class="text-xs font-bold px-2 py-1 rounded bg-orange-100 text-orange-800 border border-orange-200">
+                                    🔥 1회 한정
+                                </span>
+                            {/if}
+                    
                             {#if isSoldOut}
                                 <span class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-600">완료됨</span>
                             {:else}

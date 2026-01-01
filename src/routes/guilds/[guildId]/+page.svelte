@@ -4,6 +4,7 @@
     import { goto } from "$app/navigation";
     import { guildStore } from "$lib/stores/guildStore";
     import { userStore } from "$lib/stores/userStore";
+    import ShopManager from '$lib/components/ShopManager.svelte';
 
     const guildId = $page.params.guildId;
 
@@ -19,6 +20,8 @@
     let isEditingName = false;
     let newName = "";
     let isSavingName = false;
+    let showShopManager = false;
+
     // 수정 모드 진입
     function startEditing() {
         newName = guild?.name || "";
@@ -116,10 +119,23 @@
     });
 </script>
 
+
+
 <div class="p-4 max-w-4xl mx-auto pb-20">
+    <div class="flex flex-wrap gap-2 mb-6 justify-end">
+    {#if currentUser}
+        <button 
+            on:click={() => showShopManager = true}
+            class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-indigo-600 px-4 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2 transition"
+        >
+            🏪 상점 관리
+        </button>
+    {/if}
+</div>
     <div
         class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl mb-8 relative overflow-hidden"
     >
+    
         <div class="relative z-10">
             <div class="flex items-center gap-3 mb-2 min-h-[3rem]">
                 {#if isEditingName}
@@ -324,4 +340,18 @@
             </button>
         </div>
     </div>
+    {#if showShopManager}
+    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
+        <div class="w-full max-w-md relative animate-fade-in-up">
+            <button 
+                on:click={() => showShopManager = false} 
+                class="absolute -top-10 right-0 text-white hover:text-gray-200 font-bold"
+            >
+                닫기 ✕
+            </button>
+            
+            <ShopManager guildId={guildId} />
+        </div>
+    </div>
+{/if}
 </div>

@@ -17,6 +17,7 @@ export interface Mission {
     maxParticipants: number;
     creatorId: string;
     status: 'active' | 'inactive';
+    isOneTime?: boolean; // [추가] 일회성 미션 여부
 }
 
 function createMissionStore() {
@@ -134,6 +135,8 @@ function createMissionStore() {
 
             const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`));
             
+            // [추가] 미션 문서 참조 생성
+            const missionRef = doc(db, `guilds/${guildId}/missions`, mission.id!);
             // 트랜잭션 실행 및 결과 반환
             await runTransaction(db, async (t) => {
                 const charRefs = characters.map(char => doc(db, `guilds/${guildId}/characters`, char.id));
@@ -172,6 +175,14 @@ function createMissionStore() {
                         level: newLevel
                     });
                 });
+
+                // [추가] 일회성 미션일 경우 상태를 inactive로 변경 (목록에서 사라짐)
+                if (mission.isOneTime) {
+                    t.update(missionRef, {
+                        status: 'inactive',
+                        completedAt: serverTimestamp() // 완료 시점 기록 (선택 사항)
+                    });
+                }
             });
 
             // [중요] UI에서 이펙트를 보여주기 위해 결과 반환
