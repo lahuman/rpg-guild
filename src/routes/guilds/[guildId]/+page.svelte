@@ -278,7 +278,7 @@
                     class="bg-white/20 px-3 py-1 rounded-full hover:bg-white/40 transition flex items-center gap-1 cursor-pointer border border-transparent hover:border-white/50"
                     title="클릭하여 초대 코드 복사"
                 >
-                    🎟️ 초대 코드 복사
+                    🎟️ 초대 코드 복사 : {guild?.code}
                 </button>
             </div>
         </div>

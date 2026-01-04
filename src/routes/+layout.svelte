@@ -9,15 +9,12 @@
 </script>
 
 <nav class="p-4 bg-gray-800 text-white flex justify-between">
-	<a href="/" class="font-bold">My Guild App</a>
+	<a href="/" class="font-bold">Guild</a>
 
 	<div>
 		{#if $userStore}
 			<span class="mr-4">
 				👋 {$userStore.email}
-				{#if $userStore.guildId}
-					(길드원)
-				{/if}
 			</span>
 			<button on:click={logout} class="bg-red-500 px-3 py-1 rounded"
 				>로그아웃</button

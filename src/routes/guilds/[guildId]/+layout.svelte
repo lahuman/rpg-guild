@@ -2,7 +2,6 @@
     import { onMount } from 'svelte';
     import { userStore } from '$lib/stores/userStore';
     import { goto } from '$app/navigation';
-    import { page } from '$app/stores';
 
     // 페이지가 뜰 때 로그인 체크
     onMount(() => {
