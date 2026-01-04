@@ -23,11 +23,26 @@
     const completedIds = missionStore.completedMissionIds;
 
     // 3. 정렬 로직 (반응형)
+    // [수정됨] 정렬 로직 변경
     $: sortedMissions = [...missions].sort((a, b) => {
+        // 1. 완료된 미션은 항상 맨 아래로 보냄
         const isDoneA = $completedIds.has(a.id || '');
         const isDoneB = $completedIds.has(b.id || '');
-        if (isDoneA === isDoneB) return 0;
-        return isDoneA ? 1 : -1;
+        if (isDoneA !== isDoneB) return isDoneA ? 1 : -1;
+
+        // 2. 1회성 미션 여부 (일반 미션 > 1회성 미션)
+        // 1회성 미션(isOneTime: true)을 목록 뒤로 보냄
+        const oneTimeA = !!a.isOneTime;
+        const oneTimeB = !!b.isOneTime;
+        if (oneTimeA !== oneTimeB) return oneTimeA ? 1 : -1;
+
+        // 3. 미션 타입 (개인 > 파티)
+        // 개인(solo)이 파티(party)보다 먼저 오도록 정렬
+        if (a.type !== b.type) {
+            return a.type === 'solo' ? -1 : 1;
+        }
+
+        return 0;
     });
 
     let isCreating = false;
