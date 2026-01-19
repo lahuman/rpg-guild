@@ -6,6 +6,7 @@ import {
     doc, runTransaction, serverTimestamp, updateDoc // [NEW] updateDoc 추가
 } from 'firebase/firestore';
 import { userStore } from './userStore';
+import type { Guild } from './guildStore';
 
 export interface Mission {
     id?: string;
@@ -109,8 +110,8 @@ function createMissionStore() {
             return snapshot.docs.map(d => d.data());
         },
 
-        // [수정] completeMission이 결과 객체를 반환하도록 변경
-        completeMission: async (guildId: string, mission: Mission, characters: any[]) => {
+        // [수정] completeMission이 결과 객체를 반환하고 길드 설정을 받도록 변경
+        completeMission: async (guildId: string, mission: Mission, characters: any[], guild: Guild) => {
             const currentUser = get(userStore);
             const today = getTodayDateString();
 
@@ -124,13 +125,16 @@ function createMissionStore() {
                 throw new Error("🚫 이미 금일 완료된 미션입니다.");
             }
 
-            // 확률 로직 (20%)
+            // 길드 설정에 따른 확률 로직으로 변경
             let bonusGold = 0;
             let isChestFound = false;
             
-            if (Math.random() < 0.2) {
+            const boxChance = guild.boxChance ?? 0.2; // 기본값 20%
+            const maxBonusGold = guild.maxBonusGold ?? 36; // 기본값 36
+            
+            if (Math.random() < boxChance) {
                 isChestFound = true;
-                bonusGold = Math.floor(Math.random() * 36); // 0 ~ 36
+                bonusGold = Math.floor(Math.random() * (maxBonusGold + 1));
             }
 
             const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`));

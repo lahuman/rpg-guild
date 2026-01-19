@@ -143,6 +143,7 @@
     // [MODIFIED] 완료 처리 핸들러 (상자 이펙트 로직 추가)
     async function handleComplete() {
         if(!selectedMission || selectedCharIds.length === 0) return;
+        if(!$guildStore) return alert("길드 정보를 불러오지 못했습니다.");
         
         const targets = characters
             .filter(c => selectedCharIds.includes(c.id!))
@@ -162,7 +163,7 @@
         if(confirm(confirmMsg)) {
             try {
                 // missionStore.completeMission이 { isChestFound, bonusGold }를 반환한다고 가정
-                const result = await missionStore.completeMission(guildId, selectedMission, targets);
+                const result = await missionStore.completeMission(guildId, selectedMission, targets, $guildStore);
                 
                 selectedMission = null;
                 selectedCharIds = [];

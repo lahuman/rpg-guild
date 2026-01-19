@@ -37,6 +37,8 @@ export interface Guild {
     leaderId: string;
     description: string;
     characters?: GuildCharacter[];
+    boxChance?: number;
+    maxBonusGold?: number;
 }
 
 function createGuildStore() {
@@ -149,6 +151,18 @@ function createGuildStore() {
             const guildRef = doc(db, 'guilds', guildId);
             await updateDoc(guildRef, {
                 description: newDesc.trim() // 앞뒤 공백 제거 후 저장
+            });
+        },
+
+        // [NEW] 길드 보상 설정 변경
+        updateGuildRewardSettings: async (guildId: string, boxChance: number, maxBonusGold: number) => {
+            const currentUser = get(userStore);
+            if (!currentUser) throw new Error("로그인이 필요합니다.");
+
+            const guildRef = doc(db, 'guilds', guildId);
+            await updateDoc(guildRef, {
+                boxChance: Number(boxChance),
+                maxBonusGold: Number(maxBonusGold)
             });
         },
 

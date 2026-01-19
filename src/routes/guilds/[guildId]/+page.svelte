@@ -55,10 +55,37 @@
     let newDesc = "";
     let isSavingDesc = false;
 
+    // [NEW] 길드 환경설정 상태 관리
+    let isEditingSettings = false;
+    let isSavingSettings = false;
+    let newBoxChance = 0.2;
+    let newMaxBonusGold = 36;
+
     // 설명 수정 시작
     function startEditingDesc() {
         newDesc = guild?.description || "";
         isEditingDesc = true;
+    }
+
+    // [NEW] 환경설정 수정 시작
+    function startEditingSettings() {
+        newBoxChance = guild?.boxChance ?? 0.2;
+        newMaxBonusGold = guild?.maxBonusGold ?? 36;
+        isEditingSettings = true;
+    }
+
+    // [NEW] 환경설정 저장 (다음 단계에서 guildStore에 함수 추가 필요)
+    async function saveGuildSettings() {
+        try {
+            isSavingSettings = true;
+            await guildStore.updateGuildRewardSettings(guildId, newBoxChance, newMaxBonusGold);
+            isEditingSettings = false;
+            alert('설정이 저장되었습니다.');
+        } catch (e: any) {
+            alert('저장 실패: ' + e.message);
+        } finally {
+            isSavingSettings = false;
+        }
     }
 
     // 설명 저장 핸들러
@@ -321,6 +348,55 @@
             </p>
         </a>
     </div>
+
+    <!-- [NEW] 길드 환경설정 섹션 -->
+    <div class="mb-8">
+        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
+            <h3 class="text-xl font-bold text-gray-800 mb-4">⚙️ 길드 환경설정</h3>
+
+            {#if isEditingSettings}
+                <div class="space-y-4">
+                    <div>
+                        <label for="boxChance" class="block text-sm font-medium text-gray-700">
+                            보물상자 발견 확률: <span class="font-bold text-indigo-600">{(newBoxChance * 100).toFixed(0)}%</span>
+                        </label>
+                        <input type="range" id="boxChance" bind:value={newBoxChance} min="0" max="1" step="0.01" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label for="maxBonusGold" class="block text-sm font-medium text-gray-700">최대 보너스 골드</label>
+                        <input type="number" id="maxBonusGold" bind:value={newMaxBonusGold} min="0" class="w-full mt-1 border rounded p-2">
+                    </div>
+                    <div class="flex justify-end gap-2">
+                        <button on:click={() => isEditingSettings = false} disabled={isSavingSettings}
+                                class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition">
+                            취소
+                        </button>
+                        <button on:click={saveGuildSettings} disabled={isSavingSettings}
+                                class="px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition disabled:opacity-50">
+                            {isSavingSettings ? '저장 중...' : '💾 저장'}
+                        </button>
+                    </div>
+                </div>
+            {:else}
+                <div class="space-y-3">
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">🎁 보물상자 발견 확률</span>
+                        <span class="font-bold text-lg text-gray-800">{((guild?.boxChance ?? 0.2) * 100).toFixed(0)}%</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-gray-600">💰 최대 보너스 골드</span>
+                        <span class="font-bold text-lg text-gray-800">{guild?.maxBonusGold ?? 36} G</span>
+                    </div>
+                </div>
+                <div class="mt-4 text-right">
+                    <button on:click={startEditingSettings} class="px-4 py-2 bg-white border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-100 transition shadow-sm">
+                        설정 변경
+                    </button>
+                </div>
+            {/if}
+        </div>
+    </div>
+
 
     <div class="border-t pt-8 mt-8">
         <div
