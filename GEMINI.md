@@ -23,6 +23,8 @@
 - `name`: string
 - `description`: string
 - `createdAt`: timestamp
+- `boxChance`: number (Optional, 미션 완료 시 보너스 상자 발견 확률, 0 to 1)
+- `maxBonusGold`: number (Optional, 보너스 상자의 최대 골드)
 
 #### ↳ `members` (Sub-collection) -> *현재는 캐릭터(characters)로 대체 사용 중*
 *(Note: 초기 설계와 달리 현재는 `characters` 컬렉션이 실질적인 멤버(캐릭터) 역할을 수행함)*
@@ -33,6 +35,8 @@
 - `currentGold`: number
 - `level`: number
 - `description`: string
+- `lastCheckInDate`: string (Optional, YYYY-MM-DD 형식의 마지막 출석일)
+- `consecutiveDays`: number (Optional, 연속 출석 일수)
 
 #### ↳ `missions` (Sub-collection)
 - `title`: string
@@ -55,6 +59,7 @@
 - `performerIds`: string[] (수행자 목록)
 - `totalReward`: number
 - `performedDate`: string (YYYY-MM-DD)
+*(Note: 출석 체크 기록도 이 컬렉션을 함께 사용하며, `missionId`가 'ATTENDANCE'로 기록됨)*
 
 #### ↳ `usage_logs` (Sub-collection, 상점 이용 기록)
 - `characterId`: string
@@ -73,6 +78,7 @@
 ### B. 미션 수행 (Daily Execution)
 - **1일 1회 제한:** `performedDate`와 `performerIds`를 대조하여 중복 수행 방지.
 - **파티 수행:** 다중 선택된 캐릭터들에게 일괄 보상 지급.
+- **(NEW) 커스텀 보상:** 길드 설정에서 '보물상자 발견 확률'과 '최대 보너스 골드'를 직접 정할 수 있음.
 
 ### C. 경제 시스템 (Economy)
 - **골드 획득:** 미션 수행 시 즉시 캐릭터의 `currentGold` 증가.
@@ -84,6 +90,11 @@
     - 메인 페이지로 리다이렉트되어 새로운 길드 생성/가입 가능 상태로 전환.
 - **초대:** 대시보드 상단의 길드 ID(초대 코드)를 복사하여 공유.
 
+### E. 출석 시스템 (Daily Attendance)
+- **1일 1회:** 캐릭터별로 하루에 한 번 출석하여 보상을 받을 수 있음.
+- **연속 보너스:** 연속 출석 일수에 따라 보상이 증가 (1일차: 1G, 2일차: 2G, 3일차: 4G, 4일차: 8G, 5일차 이상: 10G).
+- **초기화:** 하루라도 출석을 놓치면 연속 일수가 1로 초기화됨.
+
 ## 5. Implementation Status
 
 ### ✅ Completed
@@ -93,7 +104,9 @@
 - [x] 활동 로그 타임라인
 - [x] **상점 시스템 (아이템 관리 CRUD, 구매 기능)**
 - [x] **길드 탈퇴 기능**
-- [x] Firebase Security Rules 적용
+- [x] **길드별 미션 보상 커스텀 (룰렛)**
+- [x] **일일 출석체크 기능**
+- [x] Firebase Security Rules 적용 (신규 컬렉션 생성 제한으로 기존 컬렉션 활용)
 
 ### 🔜 Future Roadmap (Backlog)
 - [ ] 캐릭터 레벨업 및 경험치 시스템
