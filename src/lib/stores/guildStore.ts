@@ -19,6 +19,8 @@ export interface GuildCharacter {
     exp?: number; // [추가] 누적 획득 골드 (레벨업 기준)
     createdBy: string;
     createdAt: any;
+    lastCheckInDate?: string;
+    consecutiveDays?: number;
 }
 
 export interface UsageLog {
@@ -185,6 +187,79 @@ function createGuildStore() {
         deleteCharacter: async (guildId: string, charId: string) => {
             const ref = doc(db, `guilds/${guildId}/characters`, charId);
             await deleteDoc(ref);
+        },
+
+        // --- 출석 체크 ---
+        checkInCharacter: async (guildId: string, charId: string) => {
+            const currentUser = get(userStore);
+            if (!currentUser) throw new Error("로그인이 필요합니다.");
+
+            const charRef = doc(db, `guilds/${guildId}/characters`, charId);
+            const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`)); // <- 수정된 부분
+
+            const getFormattedDate = (date: Date) => {
+                const year = date.getFullYear();
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const day = String(date.getDate()).padStart(2, '0');
+                return `${year}-${month}-${day}`;
+            };
+
+            const today = getFormattedDate(new Date());
+            const yesterday = getFormattedDate(new Date(Date.now() - 86400000));
+
+            let reward = 0;
+            let streak = 0;
+
+            try {
+                await runTransaction(db, async (t) => {
+                    const charDoc = await t.get(charRef);
+                    if (!charDoc.exists()) throw new Error("캐릭터가 존재하지 않습니다.");
+
+                    const data = charDoc.data();
+                    if (data.lastCheckInDate === today) {
+                        throw new Error("이미 오늘 출석했습니다.");
+                    }
+
+                    const currentStreak = data.consecutiveDays || 0;
+                    const lastCheckIn = data.lastCheckInDate;
+
+                    if (lastCheckIn === yesterday) {
+                        streak = currentStreak + 1;
+                    } else {
+                        streak = 1; // 연속 출석 깨짐
+                    }
+
+                    // 보상 계산
+                    const rewards = [1, 2, 4, 8, 10];
+                    reward = rewards[Math.min(streak - 1, rewards.length - 1)];
+
+                    const newGold = (data.currentGold || 0) + reward;
+
+                    // 캐릭터 정보 업데이트
+                    t.update(charRef, {
+                        currentGold: newGold,
+                        lastCheckInDate: today,
+                        consecutiveDays: streak
+                    });
+
+                    // 출석 로그를 mission_logs 형식에 맞춰 기록
+                    t.set(logRef, {
+                        missionId: 'ATTENDANCE',
+                        missionTitle: `출석 보상 (${streak}일차)`,
+                        performerCharacterIds: [charId],
+                        performerNames: [data.name],
+                        approverUserId: currentUser.uid,
+                        totalReward: reward,
+                        performedDate: today,
+                        createdAt: serverTimestamp()
+                    });
+                });
+
+                return { reward, streak };
+            } catch (e) {
+                console.error("Check-in failed:", e);
+                throw e;
+            }
         },
 
         // --- 골드 사용 (Shop) ---

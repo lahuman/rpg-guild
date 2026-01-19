@@ -92,6 +92,23 @@
         }
     }
 
+    const getTodayDateString = () => {
+        const date = new Date();
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        return `${year}-${month}-${day}`;
+    };
+
+    async function handleCheckIn(charId: string) {
+        try {
+            const result = await guildStore.checkInCharacter(guildId, charId);
+            alert(`✅ 출석 완료!\n\n 연속 ${result.streak}일 출석으로 ${result.reward}G를 획득했습니다!`);
+        } catch (e: any) {
+            alert("출석 실패: " + e.message);
+        }
+    }
+
    // 🎨 레벨별 스타일(랭크) 계산 헬퍼
     function getRankStyle(level: number = 1) {
         if (level >= 30) {
@@ -294,7 +311,9 @@
 
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {#each characters as char (char.id)}
-            {@const style = getRankStyle(char.level)} <div class="{style.bg} {style.border} {style.shadow} {style.effect} 
+            {@const style = getRankStyle(char.level)}
+            {@const hasCheckedInToday = char.lastCheckInDate === getTodayDateString()}
+            <div class="{style.bg} {style.border} {style.shadow} {style.effect} 
                         rounded-xl overflow-hidden transition-all duration-300 group relative flex flex-col transform hover:-translate-y-1">
                  
                 <div class="p-4 border-b border-black/5 flex justify-between items-start">
@@ -308,6 +327,9 @@
                         
                         <div class="text-xs font-mono mt-1 {style.levelText}">
                             Lv.{char.level || 1}
+                            {#if (char.consecutiveDays || 0) > 1}
+                                <span class="text-green-500 font-bold"> (🔥{char.consecutiveDays})</span>
+                            {/if}
                         </div>
                     </div>
                 </div>
@@ -328,7 +350,14 @@
                     <p class="text-gray-600 text-sm line-clamp-3 min-h-[3rem]">{char.description || '설정이 없습니다.'}</p>
                 </div>
 
-                <div class="p-4 pt-0">
+                <div class="p-4 pt-0 grid grid-cols-2 gap-2">
+                    <button 
+                        on:click={() => handleCheckIn(char.id!)}
+                        disabled={hasCheckedInToday}
+                        class="w-full py-2 bg-green-100/80 hover:bg-green-200 text-green-900 font-bold rounded-lg transition flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                    >
+                        <span>{hasCheckedInToday ? '✅ 출석완료' : '👋 출석체크'}</span>
+                    </button>
                     <button 
                         on:click={() => shoppingChar = char}
                         class="w-full py-2 bg-yellow-100/80 hover:bg-yellow-200 text-yellow-900 font-bold rounded-lg transition flex items-center justify-center gap-2"
