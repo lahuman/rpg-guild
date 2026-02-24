@@ -2,7 +2,7 @@
     import { page } from '$app/stores';
     import { onDestroy } from 'svelte';
     import { missionStore, type Mission } from '$lib/stores/missionStore';
-    import { guildStore } from '$lib/stores/guildStore';
+    import { guildStore, GRADE_INFO } from '$lib/stores/guildStore';
     
     // [NEW] 애니메이션 효과를 위한 모듈 추가
     import { fade, scale } from 'svelte/transition';
@@ -362,7 +362,12 @@
                                             {jobIcons[char.jobClass] || '😐'}
                                         </div>
                                         <div>
-                                            <div class="font-bold text-gray-800">{char.name}</div>
+                                            <div class="font-bold text-gray-800 flex items-center gap-1">
+                                                {#if char.grade}
+                                                    <span title={GRADE_INFO[char.grade].label}>{GRADE_INFO[char.grade].icon}</span>
+                                                {/if}
+                                                {char.name}
+                                            </div>
                                             {#if isDone}
                                                 <div class="text-xs text-green-600 font-bold">✓ 오늘 완료함</div>
                                             {:else}

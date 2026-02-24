@@ -1,7 +1,7 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import { onDestroy } from 'svelte';
-    import { guildStore, type GuildCharacter } from '$lib/stores/guildStore';
+    import { guildStore, type GuildCharacter, GRADE_INFO, type CharacterGrade } from '$lib/stores/guildStore';
     import { userStore } from '$lib/stores/userStore';
     import { itemStore, type ShopItem } from '$lib/stores/itemStore';
 
@@ -24,6 +24,7 @@
     let newChar: Partial<GuildCharacter> = {
         name: '',
         jobClass: '검사',
+        grade: 'Bronze',
         description: ''
     };
 
@@ -72,6 +73,7 @@
             await guildStore.updateCharacter(guildId, editingChar.id, {
                 name: editingChar.name,
                 jobClass: editingChar.jobClass,
+                grade: editingChar.grade,
                 description: editingChar.description
             });
             alert("수정되었습니다.");
@@ -284,7 +286,18 @@
                         {/each}
                     </select>
                 </div>
-                <div class="md:col-span-2">
+                <div>
+                    <label class="block text-sm font-bold text-gray-600 mb-1">등급</label>
+                    <select 
+                        bind:value={newChar.grade}
+                        class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
+                    >
+                        {#each Object.entries(GRADE_INFO) as [key, info]}
+                            <option value={key}>{info.icon} {info.label}</option>
+                        {/each}
+                    </select>
+                </div>
+                <div class="md:col-span-1">
                     <label class="block text-sm font-bold text-gray-600 mb-1">설명 / 특징</label>
                     <input 
                         type="text" 
@@ -317,16 +330,26 @@
                         rounded-xl overflow-hidden transition-all duration-300 group relative flex flex-col transform hover:-translate-y-1">
                  
                 <div class="p-4 border-b border-black/5 flex justify-between items-start">
-                    <span class="px-2 py-1 rounded text-xs font-bold shadow-sm {style.badge}">
-                        {jobIcons[char.jobClass] || '❓'} {char.jobClass}
-                    </span>
+                    <div class="flex flex-col gap-1">
+                        <span class="px-2 py-1 rounded text-xs font-bold shadow-sm {style.badge} w-fit">
+                            {jobIcons[char.jobClass] || '❓'} {char.jobClass}
+                        </span>
+                        {#if char.grade}
+                            <span class="text-xs font-bold {GRADE_INFO[char.grade].color} flex items-center gap-1">
+                                {GRADE_INFO[char.grade].icon} {GRADE_INFO[char.grade].label}
+                            </span>
+                        {/if}
+                    </div>
                     <div class="text-right">
                         <div class="font-bold text-xl {char.level >= 30 ? 'text-yellow-600 drop-shadow-sm' : 'text-yellow-600'}">
                             💰 {char.currentGold?.toLocaleString() || 0}
                         </div>
                         
-                        <div class="text-xs font-mono mt-1 {style.levelText}">
-                            Lv.{char.level || 1}
+                        <div class="text-xs font-mono mt-1 {style.levelText} flex items-center justify-end gap-1">
+                            {#if char.grade}
+                                <span class="text-lg" title={GRADE_INFO[char.grade].label}>{GRADE_INFO[char.grade].icon}</span>
+                            {/if}
+                            <span>Lv.{char.level || 1}</span>
                             {#if (char.consecutiveDays || 0) > 1}
                                 <span class="text-green-500 font-bold"> (🔥{char.consecutiveDays})</span>
                             {/if}
@@ -335,11 +358,18 @@
                 </div>
 
                 <div class="p-5 flex-1 relative"> 
-                    <div class="flex justify-between items-start mb-2">
+                    {#if char.grade === 'God'}
+                        <div class="absolute inset-0 bg-gradient-to-tr from-indigo-500/10 to-purple-500/10 animate-pulse pointer-events-none"></div>
+                    {/if}
+                    <div class="flex justify-between items-start mb-2 relative z-10">
                         <h3 class="text-xl font-bold text-gray-800 flex items-center gap-2">
                             {char.name}
-                            {#if char.level >= 30}
-                                <span title="전설적인 영웅">👑</span>
+                            {#if char.grade === 'God'}
+                                <span class="animate-bounce" title="가족의 신">🔱</span>
+                            {:else}
+                                {#if char.level >= 30}
+                                    <span title="전설적인 영웅">👑</span>
+                                {/if}
                             {/if}
                         </h3>
                         <div class="flex gap-1 ml-2 opacity-0 group-hover:opacity-100 transition-opacity">
@@ -384,6 +414,14 @@
                         <select bind:value={editingChar.jobClass} class="w-full border rounded p-2 bg-white">
                             {#each Object.keys(jobIcons) as job}
                                 <option value={job}>{jobIcons[job]} {job}</option>
+                            {/each}
+                        </select>
+                    </div>
+                    <div>
+                        <label class="block text-sm font-bold text-gray-600 mb-1">등급</label>
+                        <select bind:value={editingChar.grade} class="w-full border rounded p-2 bg-white">
+                            {#each Object.entries(GRADE_INFO) as [key, info]}
+                                <option value={key}>{info.icon} {info.label}</option>
                             {/each}
                         </select>
                     </div>
