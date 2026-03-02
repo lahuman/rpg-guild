@@ -4,9 +4,11 @@
     import { guildStore, type GuildCharacter, GRADE_INFO, type CharacterGrade } from '$lib/stores/guildStore';
     import { userStore } from '$lib/stores/userStore';
     import { itemStore, type ShopItem } from '$lib/stores/itemStore';
+    import MiniGameModal from '$lib/components/MiniGameModal.svelte';
 
     // --- 기본 데이터 ---
     const guildId = $page.params.guildId;
+    const today = new Date().toISOString().split('T')[0];
     
     // 스토어 구독
     const unsubscribeGuild = guildStore.init(guildId);
@@ -19,6 +21,7 @@
     // --- State: 캐릭터 관리 ---
     let isCreating = false; // 캐릭터 생성 폼 열기/닫기
     let editingChar: GuildCharacter | null = null; // 수정 모달 (null이면 닫힘)
+    let selectedCharForGame: GuildCharacter | null = null; // 등급전 모달
     
     // 캐릭터 입력 폼 데이터
     let newChar: Partial<GuildCharacter> = {
@@ -380,20 +383,35 @@
                     <p class="text-gray-600 text-sm line-clamp-3 min-h-[3rem]">{char.description || '설정이 없습니다.'}</p>
                 </div>
 
-                <div class="p-4 pt-0 grid grid-cols-2 gap-2">
-                    <button 
-                        on:click={() => handleCheckIn(char.id!)}
-                        disabled={hasCheckedInToday}
-                        class="w-full py-2 bg-green-100/80 hover:bg-green-200 text-green-900 font-bold rounded-lg transition flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
-                    >
-                        <span>{hasCheckedInToday ? '✅ 출석완료' : '👋 출석체크'}</span>
-                    </button>
-                    <button 
-                        on:click={() => shoppingChar = char}
-                        class="w-full py-2 bg-yellow-100/80 hover:bg-yellow-200 text-yellow-900 font-bold rounded-lg transition flex items-center justify-center gap-2"
-                    >
-                        <span>🛒 상점 이용</span>
-                    </button>
+                <div class="p-4 pt-0 flex flex-col gap-2">
+                    <div class="grid grid-cols-2 gap-2">
+                        <button 
+                            on:click={() => handleCheckIn(char.id!)}
+                            disabled={hasCheckedInToday}
+                            class="w-full py-2 bg-green-100/80 hover:bg-green-200 text-green-900 font-bold rounded-lg transition flex items-center justify-center gap-2 disabled:bg-gray-200 disabled:text-gray-500 disabled:cursor-not-allowed"
+                        >
+                            <span>{hasCheckedInToday ? '✅ 출석완료' : '👋 출석체크'}</span>
+                        </button>
+                        <button 
+                            on:click={() => shoppingChar = char}
+                            class="w-full py-2 bg-yellow-100/80 hover:bg-yellow-200 text-yellow-900 font-bold rounded-lg transition flex items-center justify-center gap-2"
+                        >
+                            <span>🛒 상점 이용</span>
+                        </button>
+                    </div>
+
+                    {#if hasCheckedInToday && char.lastMiniGameDate !== today}
+                        <button 
+                            on:click={() => selectedCharForGame = char}
+                            class="w-full py-2 bg-gradient-to-r from-amber-500 to-orange-600 hover:from-amber-600 hover:to-orange-700 text-white rounded-lg text-sm font-bold shadow-md shadow-orange-200 transition animate-pulse"
+                        >
+                            🎖️ 등급 도전!
+                        </button>
+                    {:else if hasCheckedInToday && char.lastMiniGameDate === today}
+                        <div class="w-full py-2 bg-gray-100 text-gray-400 rounded-lg text-sm font-bold text-center border border-gray-200">
+                            ✨ 오늘 등급전 완료
+                        </div>
+                    {/if}
                 </div>
             </div>
         {/each}
@@ -564,6 +582,15 @@
                 </div>
             </div>
         </div>
+    {/if}
+
+    {#if selectedCharForGame}
+        <MiniGameModal 
+            guildId={guildId}
+            characterId={selectedCharForGame.id!}
+            characterName={selectedCharForGame.name}
+            on:close={() => selectedCharForGame = null}
+        />
     {/if}
 
 </div>

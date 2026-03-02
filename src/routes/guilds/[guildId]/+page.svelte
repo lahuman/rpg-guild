@@ -2,11 +2,13 @@
     import { page } from "$app/stores";
     import { onDestroy } from "svelte";
     import { goto } from "$app/navigation";
-    import { guildStore } from "$lib/stores/guildStore";
+    import { guildStore, GRADE_INFO } from "$lib/stores/guildStore";
     import { userStore } from "$lib/stores/userStore";
     import ShopManager from '$lib/components/ShopManager.svelte';
+    import MiniGameModal from '$lib/components/MiniGameModal.svelte';
 
     const guildId = $page.params.guildId;
+    const today = new Date().toISOString().split('T')[0];
 
     // 길드 데이터 & 멤버 목록 실시간 구독
     const unsubscribe = guildStore.init(guildId);
@@ -15,6 +17,9 @@
     $: guild = $guildStore;
     $: characters = $guildStore?.characters || []; // 멤버 목록 배열
     $: currentUser = $userStore;
+
+    // 미니게임 모달 상태
+    let selectedCharForGame: any = null;
 
     // [NEW] 수정 모드 상태 관리
     let isEditingName = false;
@@ -429,5 +434,14 @@
             <ShopManager guildId={guildId} />
         </div>
     </div>
-{/if}
+    {/if}
+
+    {#if selectedCharForGame}
+        <MiniGameModal 
+            guildId={guildId}
+            characterId={selectedCharForGame.id}
+            characterName={selectedCharForGame.name}
+            on:close={() => selectedCharForGame = null}
+        />
+    {/if}
 </div>

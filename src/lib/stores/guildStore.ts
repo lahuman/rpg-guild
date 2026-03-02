@@ -10,6 +10,8 @@ import { userStore } from './userStore';
 export type JobClass = '검사' | '마법사' | '힐러' | '사냥꾼' | '도적' | '탱커';
 export type CharacterGrade = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Master' | 'GrandMaster' | 'God';
 
+export const GRADE_ORDER: CharacterGrade[] = ['Bronze', 'Silver', 'Gold', 'Platinum', 'Diamond', 'Master', 'GrandMaster', 'God'];
+
 export const GRADE_INFO: Record<CharacterGrade, { label: string, icon: string, color: string }> = {
     Bronze: { label: '브론즈', icon: '🥉', color: 'text-orange-600' },
     Silver: { label: '실버', icon: '🥈', color: 'text-gray-400' },
@@ -29,11 +31,12 @@ export interface GuildCharacter {
     description: string;
     currentGold: number;
     level: number;
-    exp?: number; // [추가] 누적 획득 골드 (레벨업 기준)
+    exp?: number;
     createdBy: string;
     createdAt: any;
     lastCheckInDate?: string;
     consecutiveDays?: number;
+    lastMiniGameDate?: string; // [추가] 미니게임 참여일
 }
 
 export interface UsageLog {
@@ -250,10 +253,14 @@ function createGuildStore() {
                     else reward = 5;
 
                     const newGold = (data.currentGold || 0) + reward;
+                    const newExp = (data.exp || 0) + reward;
+                    const newLevel = Math.floor(newExp / 1000) + 1;
 
                     // 캐릭터 정보 업데이트
                     t.update(charRef, {
                         currentGold: newGold,
+                        exp: newExp,
+                        level: newLevel,
                         lastCheckInDate: today,
                         consecutiveDays: streak
                     });
@@ -274,6 +281,39 @@ function createGuildStore() {
                 return { reward, streak };
             } catch (e) {
                 console.error("Check-in failed:", e);
+                throw e;
+            }
+        },
+
+        // --- 등급전 미니 게임 ---
+        updateGrade: async (guildId: string, charId: string, result: 'up' | 'down' | 'stay') => {
+            const charRef = doc(db, `guilds/${guildId}/characters`, charId);
+            const today = new Date().toISOString().split('T')[0];
+
+            try {
+                await runTransaction(db, async (t) => {
+                    const charDoc = await t.get(charRef);
+                    if (!charDoc.exists()) throw new Error("Character not found");
+                    
+                    const data = charDoc.data() as GuildCharacter;
+                    if (data.lastMiniGameDate === today) throw new Error("이미 오늘 등급전에 참여했습니다.");
+
+                    let currentGradeIndex = GRADE_ORDER.indexOf(data.grade || 'Bronze');
+                    let nextGradeIndex = currentGradeIndex;
+
+                    if (result === 'up') {
+                        nextGradeIndex = Math.min(currentGradeIndex + 1, GRADE_ORDER.length - 1);
+                    } else if (result === 'down') {
+                        nextGradeIndex = Math.max(currentGradeIndex - 1, 0);
+                    }
+
+                    t.update(charRef, {
+                        grade: GRADE_ORDER[nextGradeIndex],
+                        lastMiniGameDate: today
+                    });
+                });
+            } catch (e) {
+                console.error("Grade update failed:", e);
                 throw e;
             }
         },
