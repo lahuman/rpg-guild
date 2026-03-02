@@ -243,9 +243,11 @@ function createGuildStore() {
                         streak = 1; // 연속 출석 깨짐
                     }
 
-                    // 보상 계산
-                    const rewards = [1, 2, 4, 8, 10];
-                    reward = rewards[Math.min(streak - 1, rewards.length - 1)];
+                    // 보상 계산 (수정됨: 1-4일: 1, 5-9일: 2, 10-29일: 3, 30일+: 5)
+                    if (streak < 5) reward = 1;
+                    else if (streak < 10) reward = 2;
+                    else if (streak < 30) reward = 3;
+                    else reward = 5;
 
                     const newGold = (data.currentGold || 0) + reward;
 
