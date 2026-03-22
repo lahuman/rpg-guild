@@ -3,7 +3,11 @@
     import { onMount } from 'svelte';
     import { logStore } from '$lib/stores/logStore';
     
-    const guildId = $page.params.guildId;
+    const guildIdParam = $page.params.guildId;
+    if (!guildIdParam) {
+        throw new Error('guildId is required');
+    }
+    const guildId: string = guildIdParam;
     
     // 상태 관리
     let isLoading = true;

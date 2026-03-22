@@ -7,7 +7,11 @@
     import ShopManager from '$lib/components/ShopManager.svelte';
     import MiniGameModal from '$lib/components/MiniGameModal.svelte';
 
-    const guildId = $page.params.guildId;
+    const guildIdParam = $page.params.guildId;
+    if (!guildIdParam) {
+        throw new Error('guildId is required');
+    }
+    const guildId: string = guildIdParam;
     const today = new Date().toISOString().split('T')[0];
 
     // 길드 데이터 & 멤버 목록 실시간 구독

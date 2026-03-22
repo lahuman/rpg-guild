@@ -54,6 +54,7 @@ export interface Guild {
     code: string;
     leaderId: string;
     description: string;
+    createdAt?: any;
     characters?: GuildCharacter[];
     boxChance?: number;
     maxBonusGold?: number;

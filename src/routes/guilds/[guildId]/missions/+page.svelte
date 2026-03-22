@@ -8,7 +8,11 @@
     import { fade, scale } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
     
-    const guildId = $page.params.guildId;
+    const guildIdParam = $page.params.guildId;
+    if (!guildIdParam) {
+        throw new Error('guildId is required');
+    }
+    const guildId: string = guildIdParam;
 
     // 1. 구독 시작
     const unsubMissions = missionStore.init(guildId);
@@ -224,12 +228,12 @@
 
              <div class="grid gap-4 md:grid-cols-2">
                 <div class="col-span-2">
-                    <label class="block text-sm font-medium text-gray-700">퀘스트명</label>
-                    <input bind:value={newMission.title} class="w-full border rounded p-2" placeholder="예: 아침 회의 참석"/>
+                    <label for="mission-title" class="block text-sm font-medium text-gray-700">퀘스트명</label>
+                    <input id="mission-title" bind:value={newMission.title} class="w-full border rounded p-2" placeholder="예: 아침 회의 참석"/>
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-gray-700">보상 (1인당)</label>
-                    <input bind:value={newMission.cost} type="number" class="w-full border rounded p-2"/>
+                    <label for="mission-cost" class="block text-sm font-medium text-gray-700">보상 (1인당)</label>
+                    <input id="mission-cost" bind:value={newMission.cost} type="number" class="w-full border rounded p-2"/>
                 </div>
                 <div>
                      <span class="block text-sm font-medium text-gray-700 mb-2">유형</span>
@@ -251,8 +255,8 @@
 
                 {#if newMission.type === 'party'}
                     <div class="col-span-2">
-                        <label class="block text-sm font-medium text-gray-700">최대 참여 인원</label>
-                        <input bind:value={newMission.maxParticipants} type="number" min="2" class="w-full border rounded p-2" />
+                        <label for="mission-max-participants" class="block text-sm font-medium text-gray-700">최대 참여 인원</label>
+                        <input id="mission-max-participants" bind:value={newMission.maxParticipants} type="number" min="2" class="w-full border rounded p-2" />
                     </div>
                 {/if}
                 <button on:click={handleSave} class="col-span-2 bg-indigo-600 text-white py-2 rounded font-bold hover:bg-indigo-700 transition">
@@ -349,13 +353,15 @@
                                 {@const isDone = completedCharIds.includes(char.id || '')}
                                 {@const isSelected = selectedCharIds.includes(char.id || '')}
                                 
-                                <div 
+                                <button
+                                    type="button"
                                     class="flex items-center justify-between p-3 rounded-lg border transition select-none
                                     {isDone 
                                         ? 'bg-gray-100 border-gray-200 opacity-60 cursor-not-allowed' 
                                         : 'cursor-pointer hover:bg-gray-50'}
                                     {isSelected ? 'bg-indigo-50 border-indigo-500 ring-1 ring-indigo-500' : ''}"
                                     on:click={() => toggleCharacter(char.id!)}
+                                    disabled={isDone}
                                 >
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
@@ -378,7 +384,7 @@
                                     {#if isSelected}
                                         <span class="text-indigo-600 font-bold text-xl">✓</span>
                                     {/if}
-                                </div>
+                                </button>
                             {/each}
                         </div>
                     {/if}
@@ -406,11 +412,14 @@
                 
                 <div class="relative h-64 flex items-center justify-center">
                     {#if !chestOpened}
-                        <div class="text-[8rem] shake-animation cursor-pointer select-none"
+                        <button
+                            type="button"
+                            class="text-[8rem] shake-animation cursor-pointer select-none bg-transparent border-0"
                             on:click={() => chestOpened = true}
-                            in:scale={{duration: 500, start: 0, easing: quintOut}}>
+                            in:scale={{duration: 500, start: 0, easing: quintOut}}
+                        >
                             🎁
-                        </div>
+                        </button>
                         <p class="text-white/80 mt-4 animate-pulse font-medium">상자를 발견했습니다!</p>
                     {:else}
                         <div class="flex flex-col items-center" in:scale={{duration: 300, start: 0.8, easing: quintOut}}>

@@ -1,5 +1,5 @@
 // src/lib/stores/missionStore.ts
-import { writable, get, derived } from 'svelte/store';
+import { writable, get } from 'svelte/store';
 import { db } from '$lib/firebase';
 import {
     collection, addDoc, query, where, onSnapshot, getDocs,
@@ -19,6 +19,10 @@ export interface Mission {
     creatorId: string;
     status: 'active' | 'inactive';
     isOneTime?: boolean; // [추가] 일회성 미션 여부
+}
+
+interface MissionLogData {
+    performerCharacterIds?: string[];
 }
 
 function createMissionStore() {
@@ -107,12 +111,13 @@ function createMissionStore() {
                 where('performedDate', '==', today)
             );
             const snapshot = await getDocs(q);
-            return snapshot.docs.map(d => d.data());
+            return snapshot.docs.map(d => d.data() as MissionLogData);
         },
 
         // [수정] completeMission이 결과 객체를 반환하고 길드 설정을 받도록 변경
         completeMission: async (guildId: string, mission: Mission, characters: any[], guild: Guild) => {
             const currentUser = get(userStore);
+            if (!currentUser) throw new Error("로그인이 필요합니다.");
             const today = getTodayDateString();
 
             const q = query(
@@ -145,8 +150,10 @@ function createMissionStore() {
             await runTransaction(db, async (t) => {
                 const charRefs = characters.map(char => doc(db, `guilds/${guildId}/characters`, char.id));
                 const charDocs = await Promise.all(charRefs.map(ref => t.get(ref)));
-
-                charDocs.forEach((d, i) => { if (!d.exists()) throw new Error("Character not found"); });
+                const charDataList = charDocs.map((charDoc) => {
+                    if (!charDoc.exists()) throw new Error("Character not found");
+                    return charDoc.data();
+                });
 
                 const logData = {
                     missionId: mission.id,
@@ -163,8 +170,7 @@ function createMissionStore() {
                 t.set(logRef, logData);
 
                 // 보상 지급
-                charDocs.forEach((d, i) => {
-                    const data = d.data();
+                charDataList.forEach((data, i) => {
                     const currentGold = data.currentGold || 0;
                     const currentExp = data.exp || 0;
                     

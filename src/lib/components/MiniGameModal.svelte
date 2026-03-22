@@ -16,7 +16,7 @@
     let isSubmitting = false;
 
     // 게임 데이터
-    const games = [
+    const games: { id: GameType; name: string; desc: string; icon: string }[] = [
         { id: 'rps', name: '가위바위보', desc: '몬스터와 대결하여 등급을 쟁취하세요!', icon: '✊' },
         { id: 'box', name: '운명의 상자', desc: '3개의 상자 중 등급 업이 들어있는 상자는?', icon: '🎁' },
         { id: 'highlow', name: '숫자 높낮이', desc: '다음에 나올 숫자가 더 클까요, 작을까요?', icon: '🔢' }
@@ -95,7 +95,7 @@
             await guildStore.updateGrade(guildId, characterId, gameResult);
             dispatch('close');
         } catch (e) {
-            alert(e.message);
+            alert(e instanceof Error ? e.message : '등급전 결과를 저장하지 못했습니다.');
         } finally {
             isSubmitting = false;
         }

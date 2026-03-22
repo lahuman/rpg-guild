@@ -123,7 +123,7 @@
             </div>
 
             <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
-                <label class="block text-xs font-bold text-gray-500 mb-2">아이콘 선택</label>
+                <p class="block text-xs font-bold text-gray-500 mb-2">아이콘 선택</p>
                 <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
                     {#each EMOJI_CATEGORIES as category}
                         <div class="flex items-start gap-2">

@@ -7,7 +7,11 @@
     import MiniGameModal from '$lib/components/MiniGameModal.svelte';
 
     // --- 기본 데이터 ---
-    const guildId = $page.params.guildId;
+    const guildIdParam = $page.params.guildId;
+    if (!guildIdParam) {
+        throw new Error('guildId is required');
+    }
+    const guildId: string = guildIdParam;
     const today = new Date().toISOString().split('T')[0];
     
     // 스토어 구독
@@ -216,7 +220,7 @@
                 alert(`구매 완료! ${item.name} 획득.`);
 
                 // [일회성 아이템 처리]
-                if (item.isOneTime) {
+                if (item.isOneTime && item.id) {
                     await itemStore.deleteItem(guildId, item.id);
                 }
                 // shoppingChar = null; // 계속 쇼핑하려면 주석 처리
@@ -270,8 +274,9 @@
             <h3 class="font-bold text-lg mb-4 text-indigo-900">✨ 새로운 모험가 등록</h3>
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                 <div>
-                    <label class="block text-sm font-bold text-gray-600 mb-1">이름</label>
+                    <label for="new-char-name" class="block text-sm font-bold text-gray-600 mb-1">이름</label>
                     <input 
+                        id="new-char-name"
                         type="text" 
                         bind:value={newChar.name}
                         placeholder="예: 용감한 쿠키"
@@ -279,8 +284,9 @@
                     />
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-600 mb-1">직업</label>
+                    <label for="new-char-job" class="block text-sm font-bold text-gray-600 mb-1">직업</label>
                     <select 
+                        id="new-char-job"
                         bind:value={newChar.jobClass}
                         class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     >
@@ -290,8 +296,9 @@
                     </select>
                 </div>
                 <div>
-                    <label class="block text-sm font-bold text-gray-600 mb-1">등급</label>
+                    <label for="new-char-grade" class="block text-sm font-bold text-gray-600 mb-1">등급</label>
                     <select 
+                        id="new-char-grade"
                         bind:value={newChar.grade}
                         class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     >
@@ -301,8 +308,9 @@
                     </select>
                 </div>
                 <div class="md:col-span-1">
-                    <label class="block text-sm font-bold text-gray-600 mb-1">설명 / 특징</label>
+                    <label for="new-char-description" class="block text-sm font-bold text-gray-600 mb-1">설명 / 특징</label>
                     <input 
+                        id="new-char-description"
                         type="text" 
                         bind:value={newChar.description}
                         placeholder="예: 잠이 많지만 힘은 셈"
@@ -424,28 +432,28 @@
                 
                 <div class="space-y-4 mb-6">
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-1">이름</label>
-                        <input bind:value={editingChar.name} class="w-full border rounded p-2" />
+                        <label for="edit-char-name" class="block text-sm font-bold text-gray-600 mb-1">이름</label>
+                        <input id="edit-char-name" bind:value={editingChar.name} class="w-full border rounded p-2" />
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-1">직업</label>
-                        <select bind:value={editingChar.jobClass} class="w-full border rounded p-2 bg-white">
+                        <label for="edit-char-job" class="block text-sm font-bold text-gray-600 mb-1">직업</label>
+                        <select id="edit-char-job" bind:value={editingChar.jobClass} class="w-full border rounded p-2 bg-white">
                             {#each Object.keys(jobIcons) as job}
                                 <option value={job}>{jobIcons[job]} {job}</option>
                             {/each}
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-1">등급</label>
-                        <select bind:value={editingChar.grade} class="w-full border rounded p-2 bg-white">
+                        <label for="edit-char-grade" class="block text-sm font-bold text-gray-600 mb-1">등급</label>
+                        <select id="edit-char-grade" bind:value={editingChar.grade} class="w-full border rounded p-2 bg-white">
                             {#each Object.entries(GRADE_INFO) as [key, info]}
                                 <option value={key}>{info.icon} {info.label}</option>
                             {/each}
                         </select>
                     </div>
                     <div>
-                        <label class="block text-sm font-bold text-gray-600 mb-1">설명</label>
-                        <textarea bind:value={editingChar.description} class="w-full border rounded p-2" rows="3"></textarea>
+                        <label for="edit-char-description" class="block text-sm font-bold text-gray-600 mb-1">설명</label>
+                        <textarea id="edit-char-description" bind:value={editingChar.description} class="w-full border rounded p-2" rows="3"></textarea>
                     </div>
                 </div>
 
@@ -555,22 +563,22 @@
                 
                 <div class="space-y-3 mb-6">
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">상품명</label>
-                        <input bind:value={newItem.name} class="w-full border rounded p-2" placeholder="예: 휴식 1시간" />
+                        <label for="item-name" class="block text-xs font-bold text-gray-500 mb-1">상품명</label>
+                        <input id="item-name" bind:value={newItem.name} class="w-full border rounded p-2" placeholder="예: 휴식 1시간" />
                     </div>
                     <div class="flex gap-3">
                         <div class="flex-1">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">가격 (G)</label>
-                            <input type="number" bind:value={newItem.cost} class="w-full border rounded p-2" min="0" />
+                            <label for="item-cost" class="block text-xs font-bold text-gray-500 mb-1">가격 (G)</label>
+                            <input id="item-cost" type="number" bind:value={newItem.cost} class="w-full border rounded p-2" min="0" />
                         </div>
                         <div class="w-1/3">
-                            <label class="block text-xs font-bold text-gray-500 mb-1">아이콘</label>
-                            <input bind:value={newItem.icon} class="w-full border rounded p-2 text-center" placeholder="🎁" />
+                            <label for="item-icon" class="block text-xs font-bold text-gray-500 mb-1">아이콘</label>
+                            <input id="item-icon" bind:value={newItem.icon} class="w-full border rounded p-2 text-center" placeholder="🎁" />
                         </div>
                     </div>
                     <div>
-                        <label class="block text-xs font-bold text-gray-500 mb-1">설명 (선택)</label>
-                        <input bind:value={newItem.description} class="w-full border rounded p-2" placeholder="예: 주말에만 사용 가능" />
+                        <label for="item-description" class="block text-xs font-bold text-gray-500 mb-1">설명 (선택)</label>
+                        <input id="item-description" bind:value={newItem.description} class="w-full border rounded p-2" placeholder="예: 주말에만 사용 가능" />
                     </div>
                 </div>
 
