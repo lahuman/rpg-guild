@@ -29,6 +29,10 @@
     // 2. 데이터 바인딩
     $: missions = $missionStore;
     $: characters = $guildStore?.characters || [];
+    $: selectableCharacters =
+        selectedMission?.type === 'assigned' && selectedMission.assignedCharacterId
+            ? characters.filter((char) => char.id === selectedMission?.assignedCharacterId)
+            : characters;
 
     // 완료 목록 스토어
     const completedIds = missionStore.completedMissionIds;
@@ -109,6 +113,25 @@
         selectedCharIds = toggleMissionCharacterAction(selectedMission, selectedCharIds, completedCharIds, id);
     }
 
+    function handleMissionTypeChange(type: Mission['type']) {
+        newMission.type = type;
+
+        if (type !== 'party') {
+            newMission.maxParticipants = 1;
+        }
+
+        if (type !== 'assigned') {
+            newMission.assignedCharacterId = '';
+            newMission.assignedCharacterName = '';
+        }
+    }
+
+    function handleAssignedCharacterChange(characterId: string) {
+        const assignedCharacter = characters.find((character) => character.id === characterId);
+        newMission.assignedCharacterId = characterId;
+        newMission.assignedCharacterName = assignedCharacter?.name || '';
+    }
+
     // [MODIFIED] 완료 처리 핸들러 (상자 이펙트 로직 추가)
     async function handleComplete() {
         try {
@@ -182,8 +205,9 @@
                 <div>
                      <span class="block text-sm font-medium text-gray-700 mb-2">유형</span>
                     <div class="flex gap-4">
-                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="solo" class="text-indigo-600"><span>개인</span></label>
-                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" bind:group={newMission.type} value="party" class="text-green-600"><span>파티</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" checked={newMission.type === 'solo'} on:change={() => handleMissionTypeChange('solo')} class="text-indigo-600"><span>개인</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" checked={newMission.type === 'assigned'} on:change={() => handleMissionTypeChange('assigned')} class="text-amber-600"><span>배정</span></label>
+                        <label class="flex items-center space-x-2 cursor-pointer"><input type="radio" checked={newMission.type === 'party'} on:change={() => handleMissionTypeChange('party')} class="text-green-600"><span>파티</span></label>
                     </div>
                 </div>
                
@@ -196,6 +220,23 @@
                         </div>
                     </label>
                 </div>
+
+                {#if newMission.type === 'assigned'}
+                    <div class="col-span-2">
+                        <label for="mission-assigned-character" class="block text-sm font-medium text-gray-700">배정 멤버</label>
+                        <select
+                            id="mission-assigned-character"
+                            class="w-full border rounded p-2 bg-white"
+                            bind:value={newMission.assignedCharacterId}
+                            on:change={(event) => handleAssignedCharacterChange((event.currentTarget as HTMLSelectElement).value)}
+                        >
+                            <option value="">멤버를 선택하세요</option>
+                            {#each characters as char}
+                                <option value={char.id}>{JOB_ICONS[char.jobClass] || '😐'} {char.name}</option>
+                            {/each}
+                        </select>
+                    </div>
+                {/if}
 
                 {#if newMission.type === 'party'}
                     <div class="col-span-2">
@@ -220,7 +261,7 @@
                     : 'bg-white hover:border-indigo-300 order-first'}">
                 
                 <div class="h-2 w-full absolute top-0 left-0
-                    {isSoldOut ? 'bg-gray-400' : (mission.type === 'party' ? 'bg-green-500' : 'bg-indigo-500')}">
+                    {isSoldOut ? 'bg-gray-400' : (mission.type === 'party' ? 'bg-green-500' : mission.type === 'assigned' ? 'bg-amber-500' : 'bg-indigo-500')}">
                 </div>
                 
                 <div class="p-5 flex-1 flex flex-col">
@@ -235,8 +276,8 @@
                             {#if isSoldOut}
                                 <span class="text-xs font-bold px-2 py-1 rounded bg-gray-200 text-gray-600">완료됨</span>
                             {:else}
-                                <span class="text-xs font-bold px-2 py-1 rounded {mission.type === 'party' ? 'bg-green-100 text-green-800' : 'bg-indigo-100 text-indigo-800'}">
-                                    {mission.type === 'party' ? 'PARTY' : 'SOLO'}
+                                <span class="text-xs font-bold px-2 py-1 rounded {mission.type === 'party' ? 'bg-green-100 text-green-800' : mission.type === 'assigned' ? 'bg-amber-100 text-amber-800' : 'bg-indigo-100 text-indigo-800'}">
+                                    {mission.type === 'party' ? 'PARTY' : mission.type === 'assigned' ? 'ASSIGNED' : 'SOLO'}
                                 </span>
                             {/if}
                         </div>
@@ -259,6 +300,9 @@
                     
                     <h3 class="font-bold text-lg text-gray-800 mb-2 {isSoldOut ? 'line-through decoration-gray-400' : ''}">{mission.title}</h3>
                     <p class="text-sm text-gray-500 line-clamp-2 mb-4 flex-1">{mission.description || ''}</p>
+                    {#if mission.type === 'assigned' && mission.assignedCharacterName}
+                        <p class="text-xs text-amber-700 font-bold mb-4">배정 멤버: {mission.assignedCharacterName}</p>
+                    {/if}
                     
                     <button 
                         on:click={() => !isSoldOut && openCompleteModal(mission)}
@@ -293,7 +337,7 @@
                          <div class="text-center py-8 text-gray-400">등록된 캐릭터가 없습니다.</div>
                     {:else}
                         <div class="space-y-2">
-                            {#each characters as char}
+                            {#each selectableCharacters as char}
                                 {@const isDone = completedCharIds.includes(char.id || '')}
                                 {@const isSelected = selectedCharIds.includes(char.id || '')}
                                 

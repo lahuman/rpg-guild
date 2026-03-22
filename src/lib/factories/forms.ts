@@ -33,6 +33,7 @@ export function createShopManagerForm() {
 export function createMissionForm(): Pick<
     Mission,
     'title' | 'description' | 'cost' | 'type' | 'minParticipants' | 'maxParticipants' | 'isOneTime'
+    | 'assignedCharacterId' | 'assignedCharacterName'
 > {
     return {
         title: '',
@@ -41,6 +42,8 @@ export function createMissionForm(): Pick<
         type: 'solo',
         minParticipants: 1,
         maxParticipants: 1,
-        isOneTime: false
+        isOneTime: false,
+        assignedCharacterId: '',
+        assignedCharacterName: ''
     };
 }

@@ -4,6 +4,12 @@ import { missionStore } from '$lib/stores/missionStore';
 import { confirmAction, createMissionForm, notify } from '$lib';
 
 export function sortMissionsAction(missions: Mission[], completedIds: Set<string>) {
+    const missionTypeOrder: Record<Mission['type'], number> = {
+        solo: 0,
+        assigned: 1,
+        party: 2
+    };
+
     return [...missions].sort((a, b) => {
         const isDoneA = completedIds.has(a.id || '');
         const isDoneB = completedIds.has(b.id || '');
@@ -14,7 +20,7 @@ export function sortMissionsAction(missions: Mission[], completedIds: Set<string
         if (oneTimeA !== oneTimeB) return oneTimeA ? 1 : -1;
 
         if (a.type !== b.type) {
-            return a.type === 'solo' ? -1 : 1;
+            return missionTypeOrder[a.type] - missionTypeOrder[b.type];
         }
 
         return 0;
@@ -42,8 +48,25 @@ export async function saveMissionAction(
         };
     }
 
+    if (newMission.type === 'assigned' && !newMission.assignedCharacterId) {
+        notify('배정할 멤버를 선택해주세요.');
+        return {
+            shouldClose: false,
+            ...resetMissionFormAction(),
+            preservedMission: newMission as ReturnType<typeof createMissionForm> | null
+        };
+    }
+
+    const normalizedMission = {
+        ...newMission,
+        minParticipants: 1,
+        maxParticipants: newMission.type === 'party' ? newMission.maxParticipants : 1,
+        assignedCharacterId: newMission.type === 'assigned' ? newMission.assignedCharacterId : '',
+        assignedCharacterName: newMission.type === 'assigned' ? newMission.assignedCharacterName : ''
+    };
+
     if (editingMissionId) {
-        await missionStore.updateMission(guildId, editingMissionId, newMission);
+        await missionStore.updateMission(guildId, editingMissionId, normalizedMission);
         notify('퀘스트가 수정되었습니다.');
         return {
             shouldClose: true,
@@ -52,7 +75,7 @@ export async function saveMissionAction(
         };
     }
 
-    await missionStore.addMission(guildId, newMission);
+    await missionStore.addMission(guildId, normalizedMission);
     return {
         shouldClose: false,
         ...resetMissionFormAction(),
@@ -86,7 +109,8 @@ export async function openCompleteMissionModalAction(guildId: string, mission: M
 
     return {
         selectedMission: mission,
-        selectedCharIds: [] as string[],
+        selectedCharIds:
+            mission.type === 'assigned' && mission.assignedCharacterId ? [mission.assignedCharacterId] : ([] as string[]),
         completedCharIds: Array.from(doneIds),
         isLoadingLogs: false
     };
@@ -106,6 +130,10 @@ export function toggleMissionCharacterAction(
 
     if (selectedMission?.type === 'solo') {
         return [id];
+    }
+
+    if (selectedMission?.type === 'assigned') {
+        return selectedMission.assignedCharacterId === id ? [id] : selectedCharIds;
     }
 
     return [...selectedCharIds, id];
@@ -128,8 +156,17 @@ export async function completeMissionAction(
         .filter((character) => selectedCharIds.includes(character.id!))
         .map((character) => ({ id: character.id!, name: character.name }));
 
-    if (selectedMission.type === 'solo' && targets.length > 1) {
+    if ((selectedMission.type === 'solo' || selectedMission.type === 'assigned') && targets.length > 1) {
         notify('🚫 개인(Solo) 미션은 한 번에 한 명만 수행할 수 있습니다.');
+        return null;
+    }
+
+    if (
+        selectedMission.type === 'assigned' &&
+        selectedMission.assignedCharacterId &&
+        targets.some((target) => target.id !== selectedMission.assignedCharacterId)
+    ) {
+        notify('🚫 배정된 멤버만 이 미션을 수행할 수 있습니다.');
         return null;
     }
 
@@ -139,7 +176,7 @@ export async function completeMissionAction(
     }
 
     const confirmMsg =
-        selectedMission.type === 'solo'
+        selectedMission.type === 'solo' || selectedMission.type === 'assigned'
             ? `[${targets[0].name}] 캐릭터에게 ${selectedMission.cost}골드를 지급하시겠습니까?`
             : `${targets.length}명에게 각각 ${selectedMission.cost}골드를 지급하시겠습니까?`;
 

@@ -14,9 +14,11 @@ export interface Mission {
     title: string;
     description: string;
     cost: number;
-    type: 'solo' | 'party';
+    type: 'solo' | 'party' | 'assigned';
     minParticipants: number;
     maxParticipants: number;
+    assignedCharacterId?: string;
+    assignedCharacterName?: string;
     creatorId: string;
     status: 'active' | 'inactive';
     isOneTime?: boolean; // [추가] 일회성 미션 여부
@@ -29,6 +31,7 @@ interface MissionLogData {
 export type MissionInput = Pick<
     Mission,
     'title' | 'description' | 'cost' | 'type' | 'minParticipants' | 'maxParticipants' | 'isOneTime'
+    | 'assignedCharacterId' | 'assignedCharacterName'
 >;
 
 export interface MissionCompletionCharacter {
