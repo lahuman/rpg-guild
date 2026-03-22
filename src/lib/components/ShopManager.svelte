@@ -2,6 +2,7 @@
     import { itemStore, type ShopItem } from '$lib/stores/itemStore';
     import { slide } from 'svelte/transition';
     import { onDestroy } from 'svelte';
+    import { SHOP_EMOJI_CATEGORIES, createShopManagerForm } from '$lib';
 
     export let guildId: string;
     // 아이템 스토어 구독
@@ -13,27 +14,12 @@
     let isSaving = false;
     let editingItemId: string | null = null; // 수정 중인 아이템 ID (null이면 새 등록)
 
-    // [NEW] 이모지 프리셋 데이터 정의
-    const EMOJI_CATEGORIES = [
-        { name: '공격', icons: ['⚔️', '🗡️', '🏹', '🪓', '🔫', '🪄', '💣', '🧨'] },
-        { name: '방어', icons: ['🛡️', '🪖', '🧥', '🥋', '🧱', '⛓️'] },
-        { name: '소비', icons: ['🧪', '💊', '🩹', '🥩', '🍞', '🍎', '🍷', '☕'] },
-        { name: '보상', icons: ['🎁', '📦', '💎', '💰', '🪙', '🗝️', '🏺', '👑'] },
-        { name: '기타', icons: ['📜', '💍', '💀', '🐴', '🎒', '🔦', '⚜️', '🔮'] }
-    ];
-
     // 입력 폼 데이터
-    let formData = {
-        name: "",
-        cost: 100,
-        description: "",
-        icon: "🗡️",
-        isOneTime: false
-    };
+    let formData = createShopManagerForm();
 
     // 폼 초기화
     function resetForm() {
-        formData = { name: "", cost: 100, description: "", icon: "🗡️", isOneTime: false };
+        formData = createShopManagerForm();
         editingItemId = null;
         isSaving = false;
     }
@@ -125,7 +111,7 @@
             <div class="bg-white p-3 rounded-lg border border-indigo-100 shadow-sm">
                 <p class="block text-xs font-bold text-gray-500 mb-2">아이콘 선택</p>
                 <div class="space-y-2 max-h-32 overflow-y-auto custom-scrollbar">
-                    {#each EMOJI_CATEGORIES as category}
+                    {#each SHOP_EMOJI_CATEGORIES as category}
                         <div class="flex items-start gap-2">
                             <span class="text-[10px] text-gray-400 w-8 mt-1.5 shrink-0 text-right">{category.name}</span>
                             <div class="flex flex-wrap gap-1">

@@ -7,6 +7,7 @@ import {
 } from 'firebase/firestore';
 import { userStore } from './userStore';
 import type { Guild } from './guildStore';
+import { getTodayDateKey } from '$lib';
 
 export interface Mission {
     id?: string;
@@ -25,19 +26,21 @@ interface MissionLogData {
     performerCharacterIds?: string[];
 }
 
+export type MissionInput = Pick<
+    Mission,
+    'title' | 'description' | 'cost' | 'type' | 'minParticipants' | 'maxParticipants' | 'isOneTime'
+>;
+
+export interface MissionCompletionCharacter {
+    id: string;
+    name: string;
+}
+
 function createMissionStore() {
     const { subscribe, set } = writable<Mission[]>([]);
 
     // 오늘 완료된 미션 ID들을 저장하는 별도 스토어
     const completedMissionIds = writable<Set<string>>(new Set());
-
-    const getTodayDateString = () => {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
 
     return {
         subscribe,
@@ -57,7 +60,7 @@ function createMissionStore() {
 
         // 2. 오늘 수행된 로그 리스너
         initTodayStatus: (guildId: string) => {
-            const today = getTodayDateString();
+            const today = getTodayDateKey();
             const q = query(
                 collection(db, `guilds/${guildId}/mission_logs`),
                 where('performedDate', '==', today)
@@ -73,7 +76,7 @@ function createMissionStore() {
             });
         },
 
-        addMission: async (guildId: string, mission: any) => {
+        addMission: async (guildId: string, mission: MissionInput) => {
             const currentUser = get(userStore);
             if (!currentUser) throw new Error("로그인이 필요합니다.");
             await addDoc(collection(db, `guilds/${guildId}/missions`), {
@@ -104,7 +107,7 @@ function createMissionStore() {
         },
 
         fetchMissionLogsByDate: async (guildId: string, missionId: string) => {
-            const today = getTodayDateString();
+            const today = getTodayDateKey();
             const q = query(
                 collection(db, `guilds/${guildId}/mission_logs`),
                 where('missionId', '==', missionId),
@@ -115,10 +118,15 @@ function createMissionStore() {
         },
 
         // [수정] completeMission이 결과 객체를 반환하고 길드 설정을 받도록 변경
-        completeMission: async (guildId: string, mission: Mission, characters: any[], guild: Guild) => {
+        completeMission: async (
+            guildId: string,
+            mission: Mission,
+            characters: MissionCompletionCharacter[],
+            guild: Guild
+        ) => {
             const currentUser = get(userStore);
             if (!currentUser) throw new Error("로그인이 필요합니다.");
-            const today = getTodayDateString();
+            const today = getTodayDateKey();
 
             const q = query(
                 collection(db, `guilds/${guildId}/mission_logs`),

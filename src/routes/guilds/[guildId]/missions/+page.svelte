@@ -7,12 +7,19 @@
     // [NEW] 애니메이션 효과를 위한 모듈 추가
     import { fade, scale } from 'svelte/transition';
     import { quintOut } from 'svelte/easing';
+    import { JOB_ICONS, createMissionForm, requireRouteParam } from '$lib';
+    import {
+        completeMissionAction,
+        deleteMissionAction,
+        openCompleteMissionModalAction,
+        resetMissionFormAction,
+        saveMissionAction,
+        sortMissionsAction,
+        startEditMissionAction,
+        toggleMissionCharacterAction
+    } from '$lib/features/missions/actions';
     
-    const guildIdParam = $page.params.guildId;
-    if (!guildIdParam) {
-        throw new Error('guildId is required');
-    }
-    const guildId: string = guildIdParam;
+    const guildId = requireRouteParam($page.params.guildId, 'guildId');
 
     // 1. 구독 시작
     const unsubMissions = missionStore.init(guildId);
@@ -28,36 +35,12 @@
 
     // 3. 정렬 로직 (반응형)
     // [수정됨] 정렬 로직 변경
-    $: sortedMissions = [...missions].sort((a, b) => {
-        // 1. 완료된 미션은 항상 맨 아래로 보냄
-        const isDoneA = $completedIds.has(a.id || '');
-        const isDoneB = $completedIds.has(b.id || '');
-        if (isDoneA !== isDoneB) return isDoneA ? 1 : -1;
-
-        // 2. 1회성 미션 여부 (일반 미션 > 1회성 미션)
-        // 1회성 미션(isOneTime: true)을 목록 뒤로 보냄
-        const oneTimeA = !!a.isOneTime;
-        const oneTimeB = !!b.isOneTime;
-        if (oneTimeA !== oneTimeB) return oneTimeA ? 1 : -1;
-
-        // 3. 미션 타입 (개인 > 파티)
-        // 개인(solo)이 파티(party)보다 먼저 오도록 정렬
-        if (a.type !== b.type) {
-            return a.type === 'solo' ? -1 : 1;
-        }
-
-        return 0;
-    });
+    $: sortedMissions = sortMissionsAction(missions, $completedIds);
 
     let isCreating = false;
     let editingMissionId: string | null = null;
 
-    let newMission = { 
-        title: '', description: '', cost: 100, 
-        type: 'solo' as 'solo' | 'party', 
-        minParticipants: 1, maxParticipants: 1 ,
-        isOneTime: false // [NEW] 초기값
-    };
+    let newMission = createMissionForm();
 
     let selectedMission: Mission | null = null;
     let selectedCharIds: string[] = [];
@@ -69,44 +52,38 @@
     let chestOpened = false;
     let chestBonus = 0;
 
-    const jobIcons: Record<string, string> = { 
-        '검사': '⚔️', '마법사': '🔮', '힐러': '🌿', 
-        '사냥꾼': '🏹', '도적': '🗡️', '탱커': '🛡️' 
-    };
-
     function resetForm() {
-        newMission = { title: '', description: '', cost: 100, type: 'solo', minParticipants: 1, maxParticipants: 1,isOneTime: false };
-        editingMissionId = null;
+        const resetState = resetMissionFormAction();
+        newMission = resetState.newMission;
+        editingMissionId = resetState.editingMissionId;
     }
 
     async function handleSave() {
-        if(!newMission.title) return alert("퀘스트명을 입력해주세요.");
         try {
-            if (editingMissionId) {
-                await missionStore.updateMission(guildId, editingMissionId, newMission);
-                alert("퀘스트가 수정되었습니다.");
-                resetForm();
-                isCreating = false;
-            } else {
-                await missionStore.addMission(guildId, newMission);
-                resetForm();
+            const result = await saveMissionAction(guildId, editingMissionId, newMission);
+            if (result.preservedMission) {
+                newMission = result.preservedMission;
+                return;
             }
+
+            newMission = result.newMission;
+            editingMissionId = result.editingMissionId;
+            isCreating = !result.shouldClose;
         } catch (e: any) { alert(e.message); }
     }
 
     function startEdit(mission: Mission) {
-        newMission = { ...mission, isOneTime: mission.isOneTime ?? false };
-        editingMissionId = mission.id!;
-        isCreating = true;
+        const nextState = startEditMissionAction(mission);
+        newMission = nextState.newMission;
+        editingMissionId = nextState.editingMissionId;
+        isCreating = nextState.isCreating;
         window.scrollTo({ top: 0, behavior: 'smooth' });
     }
 
     async function handleDelete(mission: Mission) {
-        if (confirm(`🗑️ 정말 삭제하시겠습니까?\n[${mission.title}] 퀘스트가 목록에서 사라집니다.`)) {
-            try {
-                await missionStore.deleteMission(guildId, mission.id!);
-            } catch (e: any) { alert(e.message); }
-        }
+        try {
+            await deleteMissionAction(guildId, mission);
+        } catch (e: any) { alert(e.message); }
     }
 
     async function openCompleteModal(mission: Mission) {
@@ -116,14 +93,11 @@
         isLoadingLogs = true;
 
         try {
-            const logs = await missionStore.fetchMissionLogsByDate(guildId, mission.id!);
-            const doneIds = new Set<string>();
-            logs.forEach((log: any) => {
-                if (log.performerCharacterIds) {
-                    log.performerCharacterIds.forEach((id: string) => doneIds.add(id));
-                }
-            });
-            completedCharIds = Array.from(doneIds);
+            const modalState = await openCompleteMissionModalAction(guildId, mission);
+            selectedMission = modalState.selectedMission;
+            selectedCharIds = modalState.selectedCharIds;
+            completedCharIds = modalState.completedCharIds;
+            isLoadingLogs = modalState.isLoadingLogs;
         } catch (e) {
             console.error(e);
         } finally {
@@ -132,65 +106,35 @@
     }
 
     function toggleCharacter(id: string) {
-        if (completedCharIds.includes(id)) return;
-        if (selectedCharIds.includes(id)) {
-            selectedCharIds = selectedCharIds.filter(x => x !== id);
-        } else {
-            if (selectedMission?.type === 'solo') {
-                selectedCharIds = [id];
-            } else {
-                selectedCharIds = [...selectedCharIds, id];
-            }
-        }
+        selectedCharIds = toggleMissionCharacterAction(selectedMission, selectedCharIds, completedCharIds, id);
     }
 
     // [MODIFIED] 완료 처리 핸들러 (상자 이펙트 로직 추가)
     async function handleComplete() {
-        if(!selectedMission || selectedCharIds.length === 0) return;
-        if(!$guildStore) return alert("길드 정보를 불러오지 못했습니다.");
-        
-        const targets = characters
-            .filter(c => selectedCharIds.includes(c.id!))
-            .map(c => ({ id: c.id!, name: c.name }));
+        try {
+            const result = await completeMissionAction(
+                guildId,
+                selectedMission,
+                selectedCharIds,
+                characters,
+                $guildStore
+            );
 
-        if (selectedMission.type === 'solo' && targets.length > 1) {
-             return alert("🚫 개인(Solo) 미션은 한 번에 한 명만 수행할 수 있습니다.");
-        }
-        if (selectedMission.type === 'party' && targets.length > selectedMission.maxParticipants) {
-             return alert(`🚫 파티 최대 인원(${selectedMission.maxParticipants}명)을 초과했습니다.`);
-        }
+            if (!result) return;
 
-        const confirmMsg = selectedMission.type === 'solo'
-            ? `[${targets[0].name}] 캐릭터에게 ${selectedMission.cost}골드를 지급하시겠습니까?`
-            : `${targets.length}명에게 각각 ${selectedMission.cost}골드를 지급하시겠습니까?`;
+            selectedMission = result.selectedMission;
+            selectedCharIds = result.selectedCharIds;
+            showChestModal = result.showChestModal;
+            chestOpened = result.chestOpened;
+            chestBonus = result.chestBonus;
 
-        if(confirm(confirmMsg)) {
-            try {
-                // missionStore.completeMission이 { isChestFound, bonusGold }를 반환한다고 가정
-                const result = await missionStore.completeMission(guildId, selectedMission, targets, $guildStore);
-                
-                selectedMission = null;
-                selectedCharIds = [];
-
-                // [NEW] 상자 발견 시 이펙트 실행 로직
-                // result가 존재하고 isChestFound가 true일 때
-                if (result && result.isChestFound) {
-                    chestBonus = result.bonusGold;
-                    showChestModal = true;
-                    chestOpened = false;
-
-                    // 1.5초 뒤에 자동으로 상자가 열리는 연출
-                    setTimeout(() => {
-                        chestOpened = true;
-                    }, 1500);
-                } else {
-                    // 상자가 없으면 일반 완료 메시지
-                    alert("✅ 미션 완료! 보상이 지급되었습니다.");
-                }
-
-            } catch(e: any) { 
-                alert(e.message); 
+            if (showChestModal) {
+                setTimeout(() => {
+                    chestOpened = true;
+                }, 1500);
             }
+        } catch(e: any) { 
+            alert(e.message); 
         }
     }
 
@@ -365,7 +309,7 @@
                                 >
                                     <div class="flex items-center gap-3">
                                         <div class="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xl">
-                                            {jobIcons[char.jobClass] || '😐'}
+                                            {JOB_ICONS[char.jobClass] || '😐'}
                                         </div>
                                         <div>
                                             <div class="font-bold text-gray-800 flex items-center gap-1">

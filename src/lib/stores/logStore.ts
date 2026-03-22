@@ -2,6 +2,7 @@
 import { writable } from 'svelte/store';
 import { db } from '$lib/firebase';
 import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { formatDateKey, formatKoreanTime, toDateOrNull } from '$lib';
 
 // 통합 로그 타입 정의
 export interface UnifiedLog {
@@ -10,7 +11,7 @@ export interface UnifiedLog {
     title: string;             // 미션명 or 아이템명
     names: string[];           // 수행자들 or 사용자
     amount: number;            // 골드 양
-    timestamp: any;            // 정렬용 원본 시간
+    timestamp: Date;           // 정렬용 원본 시간
     dateStr: string;           // YYYY-MM-DD
     timeStr: string;           // HH:mm
 }
@@ -47,7 +48,7 @@ function createLogStore() {
             // 3. 미션 로그 변환
             missionSnaps.forEach(doc => {
                 const data = doc.data();
-                const dateObj = data.createdAt?.toDate() || new Date();
+                const dateObj = toDateOrNull(data.createdAt) || new Date();
                 logs.push({
                     id: doc.id,
                     type: 'mission',
@@ -55,15 +56,15 @@ function createLogStore() {
                     names: data.performerNames || [],
                     amount: data.totalReward,
                     timestamp: dateObj,
-                    dateStr: dateObj.toISOString().split('T')[0],
-                    timeStr: dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                    dateStr: formatDateKey(dateObj),
+                    timeStr: formatKoreanTime(dateObj)
                 });
             });
 
             // 4. 사용 로그 변환
             usageSnaps.forEach(doc => {
                 const data = doc.data();
-                const dateObj = data.usedAt?.toDate() || new Date();
+                const dateObj = toDateOrNull(data.usedAt) || new Date();
                 logs.push({
                     id: doc.id,
                     type: 'usage',
@@ -71,13 +72,13 @@ function createLogStore() {
                     names: [data.characterName], // 배열 형태로 통일
                     amount: data.cost,
                     timestamp: dateObj,
-                    dateStr: dateObj.toISOString().split('T')[0],
-                    timeStr: dateObj.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' })
+                    dateStr: formatDateKey(dateObj),
+                    timeStr: formatKoreanTime(dateObj)
                 });
             });
 
             // 5. 전체 시간순 정렬 (최신순)
-            logs.sort((a, b) => b.timestamp - a.timestamp);
+            logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
 
             // 6. 날짜별 그룹핑
             const grouped: LogGroup[] = [];

@@ -1,6 +1,7 @@
 // src/lib/stores/itemStore.ts
 import { writable } from 'svelte/store';
 import { db } from '$lib/firebase';
+import type { FirestoreTimestampLike } from '$lib/stores/guild/types';
 import { 
     collection, addDoc, doc, updateDoc, deleteDoc, 
     query, onSnapshot, serverTimestamp, orderBy 
@@ -13,7 +14,7 @@ export interface ShopItem {
     icon: string;
     description?: string;
     isOneTime?: boolean; // [추가] 일회성 아이템 여부
-    createdAt?: any;
+    createdAt?: FirestoreTimestampLike | Date | null;
 }
 
 function createItemStore() {

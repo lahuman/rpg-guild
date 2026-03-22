@@ -3,6 +3,7 @@
   import { guildStore } from '$lib/stores/guildStore';
   import { login } from '$lib/firebase';
   import { goto } from '$app/navigation';
+  import { notify, notifyError } from '$lib';
   import { Shield, Sword, Scroll, Users, History, Gem, Loader2 } from 'lucide-svelte';
   // 아이콘 추가 (Loader2는 로딩 스피너용)
   
@@ -18,27 +19,27 @@
   }
 
   const handleCreate = async () => {
-    if (!inputName) return alert("길드 이름을 입력해주세요!");
+    if (!inputName) return notify("길드 이름을 입력해주세요!");
     isProcessing = true;
     try {
       const newGuildId = await guildStore.createGuild(inputName, $userStore);
-      alert("길드가 창설되었습니다!");
+      notify("길드가 창설되었습니다!");
       goto(`/guilds/${newGuildId}`);
-    } catch (e: any) {
-      alert("생성 실패: " + e.message);
+    } catch (e) {
+      notifyError(e, "길드 생성에 실패했습니다.");
     } finally {
       isProcessing = false;
     }
   };
   const handleJoin = async () => {
-    if (!inputCode) return alert("코드를 입력해주세요!");
+    if (!inputCode) return notify("코드를 입력해주세요!");
     isProcessing = true;
     try {
       const guildId = await guildStore.joinGuild(inputCode.toUpperCase(), $userStore);
-      alert("길드에 가입되었습니다!");
+      notify("길드에 가입되었습니다!");
       goto(`/guilds/${guildId}`);
-    } catch (e: any) {
-      alert("가입 실패: " + e.message);
+    } catch (e) {
+      notifyError(e, "길드 가입에 실패했습니다.");
     } finally {
       isProcessing = false;
     }

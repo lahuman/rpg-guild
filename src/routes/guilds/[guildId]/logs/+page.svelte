@@ -2,12 +2,9 @@
     import { page } from '$app/stores';
     import { onMount } from 'svelte';
     import { logStore } from '$lib/stores/logStore';
+    import { formatRelativeDateLabel, requireRouteParam } from '$lib';
     
-    const guildIdParam = $page.params.guildId;
-    if (!guildIdParam) {
-        throw new Error('guildId is required');
-    }
-    const guildId: string = guildIdParam;
+    const guildId = requireRouteParam($page.params.guildId, 'guildId');
     
     // 상태 관리
     let isLoading = true;
@@ -40,15 +37,6 @@
 
     $: groupedLogs = $logStore;
 
-    // 날짜 포맷 (오늘/어제 표시)
-    function formatDate(dateStr: string) {
-        const today = new Date().toISOString().split('T')[0];
-        const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
-
-        if (dateStr === today) return '오늘 (Today)';
-        if (dateStr === yesterday) return '어제 (Yesterday)';
-        return dateStr;
-    }
 </script>
 
 <div class="p-4 max-w-2xl mx-auto pb-20"> <div class="flex items-center gap-3 mb-6">
@@ -70,7 +58,7 @@
             {#each groupedLogs as group}
                 <section>
                     <h3 class="font-bold text-gray-500 mb-3 ml-1 flex items-center gap-2">
-                        📅 {formatDate(group.date)}
+                        📅 {formatRelativeDateLabel(group.date)}
                     </h3>
                     
                     <div class="bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden">

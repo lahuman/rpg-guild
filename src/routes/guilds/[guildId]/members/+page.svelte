@@ -1,18 +1,27 @@
 <script lang="ts">
     import { page } from '$app/stores';
     import { onDestroy } from 'svelte';
-    import { guildStore, type GuildCharacter, GRADE_INFO, type CharacterGrade } from '$lib/stores/guildStore';
+    import { guildStore, type GuildCharacter, GRADE_INFO } from '$lib/stores/guildStore';
     import { userStore } from '$lib/stores/userStore';
     import { itemStore, type ShopItem } from '$lib/stores/itemStore';
     import MiniGameModal from '$lib/components/MiniGameModal.svelte';
+    import { JOB_ICONS, createCharacterForm, createShopItemForm, getTodayDateKey, requireRouteParam } from '$lib';
+    import {
+        checkInCharacterAction,
+        closeShopItemModal,
+        createCharacterAction,
+        deleteCharacterAction,
+        deleteShopItemAction,
+        openShopItemModal,
+        purchaseShopItemAction,
+        saveShopItemAction,
+        updateCharacterAction
+    } from '$lib/features/members/actions';
+    import { getRankStyle } from '$lib/features/members/helpers';
 
     // --- 기본 데이터 ---
-    const guildIdParam = $page.params.guildId;
-    if (!guildIdParam) {
-        throw new Error('guildId is required');
-    }
-    const guildId: string = guildIdParam;
-    const today = new Date().toISOString().split('T')[0];
+    const guildId = requireRouteParam($page.params.guildId, 'guildId');
+    const today = getTodayDateKey();
     
     // 스토어 구독
     const unsubscribeGuild = guildStore.init(guildId);
@@ -28,17 +37,7 @@
     let selectedCharForGame: GuildCharacter | null = null; // 등급전 모달
     
     // 캐릭터 입력 폼 데이터
-    let newChar: Partial<GuildCharacter> = {
-        name: '',
-        jobClass: '검사',
-        grade: 'Bronze',
-        description: ''
-    };
-
-    const jobIcons: Record<string, string> = {
-        '검사': '⚔️', '마법사': '🔮', '힐러': '🌿', 
-        '사냥꾼': '🏹', '도적': '🗡️', '탱커': '🛡️'
-    };
+    let newChar: Partial<GuildCharacter> = createCharacterForm();
 
     // --- State: 상점 관리 ---
     let shoppingChar: GuildCharacter | null = null; // 상점 열린 캐릭터
@@ -47,7 +46,7 @@
     let editingItem: ShopItem | null = null; // 수정 중인 아이템
     
     // 아이템 입력 폼 데이터
-    let newItem: Partial<ShopItem> = { name: '', cost: 100, icon: '🎁', description: '' };
+    let newItem: Partial<ShopItem> = createShopItemForm();
 
 
     // ==========================================
@@ -56,18 +55,10 @@
 
     // 1. 캐릭터 생성
     async function handleCreate() {
-        if (!newChar.name) return alert("이름을 입력해주세요.");
         try {
-            await guildStore.createCharacter(guildId, {
-                ...newChar,
-                currentGold: 0,
-                level: 1,
-                exp: 0
-            } as GuildCharacter);
-            
-            alert(`🎉 [${newChar.name}] 캐릭터 생성 완료!`);
-            isCreating = false;
-            newChar = { name: '', jobClass: '검사', description: '' }; // 초기화
+            const result = await createCharacterAction(guildId, newChar);
+            isCreating = result.isCreating;
+            newChar = result.newChar;
         } catch (e: any) {
             alert("생성 실패: " + e.message);
         }
@@ -75,16 +66,8 @@
 
     // 2. 캐릭터 수정 저장
     async function handleUpdate() {
-        if (!editingChar || !editingChar.id) return;
         try {
-            await guildStore.updateCharacter(guildId, editingChar.id, {
-                name: editingChar.name,
-                jobClass: editingChar.jobClass,
-                grade: editingChar.grade,
-                description: editingChar.description
-            });
-            alert("수정되었습니다.");
-            editingChar = null; // 모달 닫기
+            editingChar = await updateCharacterAction(guildId, editingChar);
         } catch (e: any) {
             alert("수정 실패: " + e.message);
         }
@@ -92,74 +75,18 @@
 
     // 3. 캐릭터 삭제
     async function handleDelete(char: GuildCharacter) {
-        if (!confirm(`정말 [${char.name}] 캐릭터를 삭제하시겠습니까?\n이 작업은 되돌릴 수 없습니다.`)) return;
         try {
-            await guildStore.deleteCharacter(guildId, char.id!);
-            alert("삭제되었습니다.");
+            await deleteCharacterAction(guildId, char);
         } catch (e: any) {
             alert("삭제 실패: " + e.message);
         }
     }
 
-    const getTodayDateString = () => {
-        const date = new Date();
-        const year = date.getFullYear();
-        const month = String(date.getMonth() + 1).padStart(2, '0');
-        const day = String(date.getDate()).padStart(2, '0');
-        return `${year}-${month}-${day}`;
-    };
-
     async function handleCheckIn(charId: string) {
         try {
-            const result = await guildStore.checkInCharacter(guildId, charId);
-            alert(`✅ 출석 완료!\n\n 연속 ${result.streak}일 출석으로 ${result.reward}G를 획득했습니다!`);
+            await checkInCharacterAction(guildId, charId);
         } catch (e: any) {
             alert("출석 실패: " + e.message);
-        }
-    }
-
-   // 🎨 레벨별 스타일(랭크) 계산 헬퍼
-    function getRankStyle(level: number = 1) {
-        if (level >= 30) {
-            // 전설 (Legendary): 붉은색 텍스트로 강력함 강조
-            return {
-                border: 'border-yellow-400 border-2',
-                shadow: 'shadow-[0_0_15px_rgba(250,204,21,0.6)]',
-                bg: 'bg-gradient-to-br from-yellow-50 to-white',
-                badge: 'bg-yellow-100 text-yellow-800 border-yellow-200',
-                effect: 'animate-pulse-slow',
-                levelText: 'text-red-600 font-black text-sm drop-shadow-sm' // [추가됨]
-            };
-        } else if (level >= 20) {
-            // 에픽 (Epic): 보라색 텍스트
-            return {
-                border: 'border-purple-400 border-2',
-                shadow: 'shadow-lg shadow-purple-100',
-                bg: 'bg-gradient-to-br from-purple-50 to-white',
-                badge: 'bg-purple-100 text-purple-800 border-purple-200',
-                effect: '',
-                levelText: 'text-purple-600 font-bold' // [추가됨]
-            };
-        } else if (level >= 10) {
-            // 레어 (Rare): 파란색 텍스트
-            return {
-                border: 'border-blue-400 border-2',
-                shadow: 'shadow-md shadow-blue-100',
-                bg: 'bg-blue-50/30',
-                badge: 'bg-blue-100 text-blue-800 border-blue-200',
-                effect: '',
-                levelText: 'text-blue-600 font-bold' // [추가됨]
-            };
-        } else {
-            // 일반 (Common): 회색 텍스트
-            return {
-                border: 'border-gray-100',
-                shadow: 'shadow-md hover:shadow-xl',
-                bg: 'bg-white',
-                badge: 'bg-white border text-gray-600',
-                effect: '',
-                levelText: 'text-gray-400 font-medium' // [추가됨]
-            };
         }
     }
 
@@ -169,31 +96,12 @@
 
     // 1. 아이템 저장 (생성/수정)
     async function handleSaveItem() {
-        if (!newItem.name) return alert("상품명을 입력해주세요.");
-        // 가격 유효성 체크
-        if (newItem.cost === undefined || newItem.cost < 0) return alert("가격은 0 이상이어야 합니다.");
-
         try {
-            if (editingItem && editingItem.id) {
-                // 수정
-                await itemStore.updateItem(guildId, editingItem.id, {
-                    name: newItem.name,
-                    cost: newItem.cost,
-                    icon: newItem.icon,
-                    description: newItem.description
-                });
-                alert("상품이 수정되었습니다.");
-            } else {
-                // 생성
-                await itemStore.addItem(guildId, {
-                    name: newItem.name,
-                    cost: newItem.cost,
-                    icon: newItem.icon || '🎁',
-                    description: newItem.description
-                } as ShopItem);
-                alert("새 상품이 등록되었습니다.");
+            const result = await saveShopItemAction(guildId, newItem, editingItem);
+            newItem = result.newItem;
+            if (result.shouldClose) {
+                closeItemModal();
             }
-            closeItemModal();
         } catch (e: any) {
             alert("오류 발생: " + e.message);
         }
@@ -201,50 +109,30 @@
 
     // 2. 아이템 삭제
     async function handleDeleteItem(item: ShopItem) {
-        if (confirm(`🗑️ [${item.name}] 상품을 삭제하시겠습니까?`)) {
-            await itemStore.deleteItem(guildId, item.id!);
-        }
+        await deleteShopItemAction(guildId, item);
     }
 
     // 3. 구매 (골드 사용)
     async function handlePurchase(item: ShopItem) {
-        if (!shoppingChar) return;
-        if (shoppingChar.currentGold < item.cost) {
-            return alert(`골드가 부족합니다! (현재: ${shoppingChar.currentGold} G)`);
-        }
-
-        if (confirm(`[${shoppingChar.name}] 캐릭터로\n'${item.name}'을(를) 구매하시겠습니까?\n💰 ${item.cost} 골드가 차감됩니다.`)) {
-            try {
-                // 로그 기록 및 골드 차감
-                await guildStore.useGold(guildId, shoppingChar.id!, item.name, item.cost);
-                alert(`구매 완료! ${item.name} 획득.`);
-
-                // [일회성 아이템 처리]
-                if (item.isOneTime && item.id) {
-                    await itemStore.deleteItem(guildId, item.id);
-                }
-                // shoppingChar = null; // 계속 쇼핑하려면 주석 처리
-            } catch (e: any) {
-                alert("구매 실패: " + e.message);
-            }
+        try {
+            await purchaseShopItemAction(guildId, shoppingChar, item);
+        } catch (e: any) {
+            alert("구매 실패: " + e.message);
         }
     }
 
     // --- Helpers (Shop) ---
     function openItemModal(item?: ShopItem) {
-        if (item) {
-            editingItem = item;
-            newItem = { ...item };
-        } else {
-            editingItem = null;
-            newItem = { name: '', cost: 100, icon: '🎁', description: '' };
-        }
-        isItemModalOpen = true;
+        const modalState = openShopItemModal(item);
+        editingItem = modalState.editingItem;
+        newItem = modalState.newItem;
+        isItemModalOpen = modalState.isItemModalOpen;
     }
 
     function closeItemModal() {
-        isItemModalOpen = false;
-        editingItem = null;
+        const modalState = closeShopItemModal();
+        isItemModalOpen = modalState.isItemModalOpen;
+        editingItem = modalState.editingItem;
     }
 
     // --- Cleanup ---
@@ -290,8 +178,8 @@
                         bind:value={newChar.jobClass}
                         class="w-full border border-gray-300 rounded-lg p-2 bg-white focus:ring-2 focus:ring-indigo-500 focus:outline-none"
                     >
-                        {#each Object.keys(jobIcons) as job}
-                            <option value={job}>{jobIcons[job]} {job}</option>
+                        {#each Object.entries(JOB_ICONS) as [job, icon]}
+                            <option value={job}>{icon} {job}</option>
                         {/each}
                     </select>
                 </div>
@@ -336,14 +224,14 @@
     <div class="grid gap-6 md:grid-cols-2 lg:grid-cols-3">
         {#each characters as char (char.id)}
             {@const style = getRankStyle(char.level)}
-            {@const hasCheckedInToday = char.lastCheckInDate === getTodayDateString()}
+            {@const hasCheckedInToday = char.lastCheckInDate === today}
             <div class="{style.bg} {style.border} {style.shadow} {style.effect} 
                         rounded-xl overflow-hidden transition-all duration-300 group relative flex flex-col transform hover:-translate-y-1">
                  
                 <div class="p-4 border-b border-black/5 flex justify-between items-start">
                     <div class="flex flex-col gap-1">
                         <span class="px-2 py-1 rounded text-xs font-bold shadow-sm {style.badge} w-fit">
-                            {jobIcons[char.jobClass] || '❓'} {char.jobClass}
+                            {JOB_ICONS[char.jobClass] || '❓'} {char.jobClass}
                         </span>
                         {#if char.grade}
                             <span class="text-xs font-bold {GRADE_INFO[char.grade].color} flex items-center gap-1">
@@ -438,8 +326,8 @@
                     <div>
                         <label for="edit-char-job" class="block text-sm font-bold text-gray-600 mb-1">직업</label>
                         <select id="edit-char-job" bind:value={editingChar.jobClass} class="w-full border rounded p-2 bg-white">
-                            {#each Object.keys(jobIcons) as job}
-                                <option value={job}>{jobIcons[job]} {job}</option>
+                            {#each Object.entries(JOB_ICONS) as [job, icon]}
+                                <option value={job}>{icon} {job}</option>
                             {/each}
                         </select>
                     </div>

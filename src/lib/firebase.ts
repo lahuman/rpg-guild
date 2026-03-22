@@ -5,6 +5,7 @@ import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getAuth, GoogleAuthProvider, signInWithPopup, signOut } from 'firebase/auth'; 
 import { getFirestore } from 'firebase/firestore';
 import { goto } from '$app/navigation'; // [추가] 네비게이션 모듈
+import { notifyError } from '$lib';
 
 
 const firebaseConfig = {
@@ -31,9 +32,9 @@ export const login = async () => {
     const result = await signInWithPopup(auth, googleProvider);
     console.log("🎉 팝업 로그인 성공!", result.user);
     // 팝업은 성공하면 여기서 바로 user 정보가 찍혀야 합니다.
-  } catch (e: any) {
+  } catch (e) {
     console.error("❌ 로그인 실패:", e);
-    alert(`로그인 실패: ${e.message}`);
+    notifyError(e, '로그인에 실패했습니다.');
   }
 };
 

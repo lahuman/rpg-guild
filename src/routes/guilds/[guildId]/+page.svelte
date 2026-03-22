@@ -6,13 +6,9 @@
     import { userStore } from "$lib/stores/userStore";
     import ShopManager from '$lib/components/ShopManager.svelte';
     import MiniGameModal from '$lib/components/MiniGameModal.svelte';
+    import { confirmAction, notify, notifyError, requireRouteParam, toDateOrNull } from '$lib';
 
-    const guildIdParam = $page.params.guildId;
-    if (!guildIdParam) {
-        throw new Error('guildId is required');
-    }
-    const guildId: string = guildIdParam;
-    const today = new Date().toISOString().split('T')[0];
+    const guildId = requireRouteParam($page.params.guildId, 'guildId');
 
     // 길드 데이터 & 멤버 목록 실시간 구독
     const unsubscribe = guildStore.init(guildId);
@@ -23,7 +19,7 @@
     $: currentUser = $userStore;
 
     // 미니게임 모달 상태
-    let selectedCharForGame: any = null;
+    let selectedCharForGame: { id: string; name: string } | null = null;
 
     // [NEW] 수정 모드 상태 관리
     let isEditingName = false;
@@ -44,16 +40,16 @@
 
     // [NEW] 길드명 저장 핸들러
     async function saveGuildName() {
-        if (!newName.trim()) return alert("길드 이름을 입력해주세요.");
+        if (!newName.trim()) return notify("길드 이름을 입력해주세요.");
 
         try {
             isSavingName = true;
             await guildStore.updateGuildName(guildId, newName);
             isEditingName = false;
             // alert("길드 이름이 변경되었습니다."); // UX상 자연스러운 흐름을 위해 생략 가능
-        } catch (e: any) {
+        } catch (e) {
             console.error(e);
-            alert("변경 실패: " + e.message);
+            notifyError(e, "길드 이름 변경에 실패했습니다.");
         } finally {
             isSavingName = false;
         }
@@ -89,9 +85,9 @@
             isSavingSettings = true;
             await guildStore.updateGuildRewardSettings(guildId, newBoxChance, newMaxBonusGold);
             isEditingSettings = false;
-            alert('설정이 저장되었습니다.');
-        } catch (e: any) {
-            alert('저장 실패: ' + e.message);
+            notify('설정이 저장되었습니다.');
+        } catch (e) {
+            notifyError(e, '설정 저장에 실패했습니다.');
         } finally {
             isSavingSettings = false;
         }
@@ -104,9 +100,9 @@
             // 스토어의 설명 변경 함수 호출
             await guildStore.updateGuildDescription(guildId, newDesc);
             isEditingDesc = false;
-        } catch (e: any) {
+        } catch (e) {
             console.error(e);
-            alert("설명 변경 실패: " + e.message);
+            notifyError(e, "설명 변경에 실패했습니다.");
         } finally {
             isSavingDesc = false;
         }
@@ -116,18 +112,18 @@
     async function copyInviteCode() {
         try {
             await navigator.clipboard.writeText(guild?.code || "");
-            alert(
+            notify(
                 `초대 코드가 복사되었습니다!\n친구에게 공유하세요: ${guild?.code}`,
             );
         } catch (err) {
-            alert("복사에 실패했습니다. 직접 복사해주세요: " + guild?.code);
+            notify("복사에 실패했습니다. 직접 복사해주세요: " + guild?.code);
         }
     }
 
     // [EXISTING] 길드 탈퇴 핸들러
     async function handleLeaveGuild() {
         if (
-            !confirm(
+            !confirmAction(
                 "정말로 길드를 탈퇴하시겠습니까?\n\n탈퇴 후에는 이 길드의 캐릭터나 데이터를 관리할 수 없게 되며, 다시 가입하거나 새로운 길드를 만들어야 합니다.",
             )
         ) {
@@ -138,14 +134,14 @@
             if (currentUser?.uid) {
                 // userStore의 leaveGuild 함수 호출 (DB 업데이트)
                 await userStore.leaveGuild(currentUser.uid);
-                alert("길드를 탈퇴했습니다. 메인으로 이동합니다.");
+                notify("길드를 탈퇴했습니다. 메인으로 이동합니다.");
 
                 // 메인 페이지로 이동하면서 강제로 상태 갱신
                 goto("/", { replaceState: true });
             }
-        } catch (e: any) {
+        } catch (e) {
             console.error(e);
-            alert("탈퇴 중 오류가 발생했습니다: " + e.message);
+            notifyError(e, "길드 탈퇴 중 오류가 발생했습니다.");
         }
     }
 
@@ -302,11 +298,7 @@
                     👥 멤버 {characters.length}명
                 </span>
                 <span class="bg-white/20 px-3 py-1 rounded-full">
-                    📅 생성일: {guild?.createdAt
-                        ? new Date(
-                              guild.createdAt.seconds * 1000,
-                          ).toLocaleDateString()
-                        : "-"}
+                    📅 생성일: {toDateOrNull(guild?.createdAt)?.toLocaleDateString() ?? "-"}
                 </span>
 
                 <button
