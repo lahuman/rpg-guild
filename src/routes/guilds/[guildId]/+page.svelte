@@ -1,443 +1,399 @@
 <script lang="ts">
-    import { page } from "$app/stores";
-    import { onDestroy } from "svelte";
-    import { goto } from "$app/navigation";
-    import { guildStore, GRADE_INFO } from "$lib/stores/guildStore";
-    import { userStore } from "$lib/stores/userStore";
-    import ShopManager from '$lib/components/ShopManager.svelte';
-    import MiniGameModal from '$lib/components/MiniGameModal.svelte';
-    import { confirmAction, notify, notifyError, requireRouteParam, toDateOrNull } from '$lib';
+  import { goto } from "$app/navigation";
+  import { page } from "$app/stores";
+  import { onDestroy } from "svelte";
+  import MiniGameModal from "$lib/components/MiniGameModal.svelte";
+  import ShopManager from "$lib/components/ShopManager.svelte";
+  import { confirmAction, notify, notifyError, requireRouteParam, toDateOrNull } from "$lib";
+  import { guildStore, type GuildCharacter } from "$lib/stores/guildStore";
+  import { userStore } from "$lib/stores/userStore";
+  import {
+    Coins,
+    Copy,
+    DoorOpen,
+    Gem,
+    Pencil,
+    Settings2,
+    Store,
+    Users
+  } from "lucide-svelte";
 
-    const guildId = requireRouteParam($page.params.guildId, 'guildId');
+  const guildId = requireRouteParam($page.params.guildId, "guildId");
+  const unsubscribe = guildStore.init(guildId);
 
-    // 길드 데이터 & 멤버 목록 실시간 구독
-    const unsubscribe = guildStore.init(guildId);
+  $: guild = $guildStore;
+  $: characters = $guildStore?.characters || [];
+  $: currentUser = $userStore;
+  $: createdDate = toDateOrNull(guild?.createdAt)?.toLocaleDateString() ?? "-";
+  $: totalGold = characters.reduce((sum, character) => sum + (character.currentGold || 0), 0);
+  $: averageLevel = characters.length
+    ? (characters.reduce((sum, character) => sum + (character.level || 1), 0) / characters.length).toFixed(1)
+    : "0.0";
+  $: featuredCharacters = [...characters].sort((a, b) => (b.level || 1) - (a.level || 1)).slice(0, 3);
 
-    // 스토어 상태 반응형 변수
-    $: guild = $guildStore;
-    $: characters = $guildStore?.characters || []; // 멤버 목록 배열
-    $: currentUser = $userStore;
+  let selectedCharForGame: GuildCharacter | null = null;
+  let showShopManager = false;
 
-    // 미니게임 모달 상태
-    let selectedCharForGame: { id: string; name: string } | null = null;
+  let isEditingName = false;
+  let newName = "";
+  let isSavingName = false;
 
-    // [NEW] 수정 모드 상태 관리
-    let isEditingName = false;
-    let newName = "";
-    let isSavingName = false;
-    let showShopManager = false;
+  let isEditingDesc = false;
+  let newDesc = "";
+  let isSavingDesc = false;
 
-    // 수정 모드 진입
-    function startEditing() {
-        newName = guild?.name || "";
-        isEditingName = true;
+  let isEditingSettings = false;
+  let isSavingSettings = false;
+  let newBoxChance = 0.2;
+  let newMaxBonusGold = 36;
+
+  function startEditingName() {
+    newName = guild?.name || "";
+    isEditingName = true;
+  }
+
+  function cancelEditingName() {
+    isEditingName = false;
+    newName = guild?.name || "";
+  }
+
+  async function saveGuildName() {
+    if (!newName.trim()) {
+      notify("길드 이름을 입력해주세요.");
+      return;
     }
 
-    // 수정 취소
-    function cancelEditing() {
-        isEditingName = false;
+    try {
+      isSavingName = true;
+      await guildStore.updateGuildName(guildId, newName.trim());
+      isEditingName = false;
+      notify("길드 이름이 변경되었습니다.");
+    } catch (error) {
+      notifyError(error, "길드 이름 변경에 실패했습니다.");
+    } finally {
+      isSavingName = false;
+    }
+  }
+
+  function startEditingDesc() {
+    newDesc = guild?.description || "";
+    isEditingDesc = true;
+  }
+
+  async function saveGuildDesc() {
+    try {
+      isSavingDesc = true;
+      await guildStore.updateGuildDescription(guildId, newDesc);
+      isEditingDesc = false;
+      notify("길드 설명이 저장되었습니다.");
+    } catch (error) {
+      notifyError(error, "길드 설명 변경에 실패했습니다.");
+    } finally {
+      isSavingDesc = false;
+    }
+  }
+
+  function startEditingSettings() {
+    newBoxChance = guild?.boxChance ?? 0.2;
+    newMaxBonusGold = guild?.maxBonusGold ?? 36;
+    isEditingSettings = true;
+  }
+
+  async function saveGuildSettings() {
+    try {
+      isSavingSettings = true;
+      await guildStore.updateGuildRewardSettings(guildId, newBoxChance, newMaxBonusGold);
+      isEditingSettings = false;
+      notify("보상 설정이 저장되었습니다.");
+    } catch (error) {
+      notifyError(error, "보상 설정 저장에 실패했습니다.");
+    } finally {
+      isSavingSettings = false;
+    }
+  }
+
+  async function copyInviteCode() {
+    try {
+      await navigator.clipboard.writeText(guild?.code || "");
+      notify(`초대 코드가 복사되었습니다.\n${guild?.code}`);
+    } catch (error) {
+      notifyError(error, `복사에 실패했습니다. 직접 복사해주세요: ${guild?.code}`);
+    }
+  }
+
+  async function handleLeaveGuild() {
+    if (
+      !confirmAction(
+        "정말로 길드를 탈퇴하시겠습니까?\n\n탈퇴 후에는 이 길드의 데이터를 관리할 수 없으며, 다시 가입하거나 새로운 길드를 만들어야 합니다."
+      )
+    ) {
+      return;
     }
 
-    // [NEW] 길드명 저장 핸들러
-    async function saveGuildName() {
-        if (!newName.trim()) return notify("길드 이름을 입력해주세요.");
-
-        try {
-            isSavingName = true;
-            await guildStore.updateGuildName(guildId, newName);
-            isEditingName = false;
-            // alert("길드 이름이 변경되었습니다."); // UX상 자연스러운 흐름을 위해 생략 가능
-        } catch (e) {
-            console.error(e);
-            notifyError(e, "길드 이름 변경에 실패했습니다.");
-        } finally {
-            isSavingName = false;
-        }
+    try {
+      if (currentUser?.uid) {
+        await userStore.leaveGuild(currentUser.uid);
+        notify("길드를 탈퇴했습니다.");
+        goto("/", { replaceState: true });
+      }
+    } catch (error) {
+      notifyError(error, "길드 탈퇴 중 오류가 발생했습니다.");
     }
+  }
 
-    // [NEW] 설명 수정 모드 상태 관리
-    let isEditingDesc = false;
-    let newDesc = "";
-    let isSavingDesc = false;
-
-    // [NEW] 길드 환경설정 상태 관리
-    let isEditingSettings = false;
-    let isSavingSettings = false;
-    let newBoxChance = 0.2;
-    let newMaxBonusGold = 36;
-
-    // 설명 수정 시작
-    function startEditingDesc() {
-        newDesc = guild?.description || "";
-        isEditingDesc = true;
-    }
-
-    // [NEW] 환경설정 수정 시작
-    function startEditingSettings() {
-        newBoxChance = guild?.boxChance ?? 0.2;
-        newMaxBonusGold = guild?.maxBonusGold ?? 36;
-        isEditingSettings = true;
-    }
-
-    // [NEW] 환경설정 저장 (다음 단계에서 guildStore에 함수 추가 필요)
-    async function saveGuildSettings() {
-        try {
-            isSavingSettings = true;
-            await guildStore.updateGuildRewardSettings(guildId, newBoxChance, newMaxBonusGold);
-            isEditingSettings = false;
-            notify('설정이 저장되었습니다.');
-        } catch (e) {
-            notifyError(e, '설정 저장에 실패했습니다.');
-        } finally {
-            isSavingSettings = false;
-        }
-    }
-
-    // 설명 저장 핸들러
-    async function saveGuildDesc() {
-        try {
-            isSavingDesc = true;
-            // 스토어의 설명 변경 함수 호출
-            await guildStore.updateGuildDescription(guildId, newDesc);
-            isEditingDesc = false;
-        } catch (e) {
-            console.error(e);
-            notifyError(e, "설명 변경에 실패했습니다.");
-        } finally {
-            isSavingDesc = false;
-        }
-    }
-
-    // [NEW] 초대 코드 복사 기능
-    async function copyInviteCode() {
-        try {
-            await navigator.clipboard.writeText(guild?.code || "");
-            notify(
-                `초대 코드가 복사되었습니다!\n친구에게 공유하세요: ${guild?.code}`,
-            );
-        } catch (err) {
-            notify("복사에 실패했습니다. 직접 복사해주세요: " + guild?.code);
-        }
-    }
-
-    // [EXISTING] 길드 탈퇴 핸들러
-    async function handleLeaveGuild() {
-        if (
-            !confirmAction(
-                "정말로 길드를 탈퇴하시겠습니까?\n\n탈퇴 후에는 이 길드의 캐릭터나 데이터를 관리할 수 없게 되며, 다시 가입하거나 새로운 길드를 만들어야 합니다.",
-            )
-        ) {
-            return;
-        }
-
-        try {
-            if (currentUser?.uid) {
-                // userStore의 leaveGuild 함수 호출 (DB 업데이트)
-                await userStore.leaveGuild(currentUser.uid);
-                notify("길드를 탈퇴했습니다. 메인으로 이동합니다.");
-
-                // 메인 페이지로 이동하면서 강제로 상태 갱신
-                goto("/", { replaceState: true });
-            }
-        } catch (e) {
-            console.error(e);
-            notifyError(e, "길드 탈퇴 중 오류가 발생했습니다.");
-        }
-    }
-
-    // 컴포넌트 파괴 시 구독 해제
-    onDestroy(() => {
-        unsubscribe();
-    });
+  onDestroy(() => {
+    unsubscribe();
+  });
 </script>
 
+<div class="space-y-6 pb-20">
+  <section class="app-hero reveal-rise overflow-hidden rounded-[2rem] px-6 py-8 md:px-8 md:py-9">
+    <div class="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
+      <div>
+        <div class="eyebrow">Guild Overview</div>
 
-
-<div class="p-4 max-w-4xl mx-auto pb-20">
-    <div class="flex flex-wrap gap-2 mb-6 justify-end">
-    {#if currentUser}
-        <button 
-            on:click={() => showShopManager = true}
-            class="bg-white border border-gray-200 text-gray-700 hover:bg-gray-50 hover:text-indigo-600 px-4 py-2 rounded-lg shadow-sm font-bold flex items-center gap-2 transition"
-        >
-            🏪 상점 관리
-        </button>
-    {/if}
-</div>
-    <div
-        class="bg-gradient-to-r from-indigo-600 to-purple-600 rounded-2xl p-8 text-white shadow-xl mb-8 relative overflow-hidden"
-    >
-    
-        <div class="relative z-10">
-            <div class="flex items-center gap-3 mb-2 min-h-[3rem]">
-                {#if isEditingName}
-                    <div
-                        class="flex items-center gap-2 w-full max-w-md bg-white/10 p-1 rounded"
-                    >
-                        <input
-                            type="text"
-                            bind:value={newName}
-                            class="bg-transparent border-b border-white/50 text-white text-2xl font-bold w-full px-2 focus:outline-none focus:border-white placeholder-white/50"
-                            placeholder="길드 이름 입력"
-                            disabled={isSavingName}
-                            on:keydown={(e) =>
-                                e.key === "Enter" && saveGuildName()}
-                        />
-                        <button
-                            on:click={saveGuildName}
-                            disabled={isSavingName}
-                            class="text-sm bg-green-500 hover:bg-green-600 px-3 py-1 rounded text-white disabled:opacity-50 whitespace-nowrap transition"
-                        >
-                            {isSavingName ? "저장 중..." : "확인"}
-                        </button>
-                        <button
-                            on:click={cancelEditing}
-                            disabled={isSavingName}
-                            class="text-sm bg-gray-500 hover:bg-gray-600 px-3 py-1 rounded text-white disabled:opacity-50 whitespace-nowrap transition"
-                        >
-                            취소
-                        </button>
-                    </div>
-                {:else}
-                    <h1 class="text-3xl font-bold">
-                        🏰 {guild?.name || "로딩 중..."}
-                    </h1>
-
-                    {#if guild && currentUser }
-                        <button
-                            on:click={startEditing}
-                            class="text-white/50 hover:text-white transition p-1"
-                            title="길드 이름 수정"
-                        >
-                            <svg
-                                xmlns="http://www.w3.org/2000/svg"
-                                class="h-5 w-5"
-                                fill="none"
-                                viewBox="0 0 24 24"
-                                stroke="currentColor"
-                            >
-                                <path
-                                    stroke-linecap="round"
-                                    stroke-linejoin="round"
-                                    stroke-width="2"
-                                    d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                />
-                            </svg>
-                        </button>
-                    {/if}
-                {/if}
-            </div>
-            <div class="mb-4">
-                {#if isEditingDesc}
-                    <div class="bg-white/10 p-2 rounded backdrop-blur-sm">
-                        <textarea
-                            bind:value={newDesc}
-                            class="w-full bg-transparent border-none text-white placeholder-white/50 focus:ring-0 focus:outline-none resize-none"
-                            rows="2"
-                            placeholder="우리 길드를 소개해주세요!"
-                            disabled={isSavingDesc}
-                        ></textarea>
-                        <div class="flex justify-end gap-2 mt-2">
-                            <button
-                                on:click={saveGuildDesc}
-                                disabled={isSavingDesc}
-                                class="text-xs bg-white text-indigo-600 px-3 py-1 rounded font-bold hover:bg-gray-100 transition"
-                            >
-                                {isSavingDesc ? "저장 중..." : "완료"}
-                            </button>
-                            <button
-                                on:click={() => (isEditingDesc = false)}
-                                disabled={isSavingDesc}
-                                class="text-xs bg-transparent border border-white/30 text-white px-3 py-1 rounded hover:bg-white/10 transition"
-                            >
-                                취소
-                            </button>
-                        </div>
-                    </div>
-                {:else}
-                    <div class="group flex items-start gap-2">
-                        <p
-                            class="text-indigo-100 opacity-90 leading-relaxed whitespace-pre-wrap"
-                        >
-                            {guild?.description ||
-                                "함께 성장하는 우리만의 길드"}
-                        </p>
-
-                        {#if currentUser}
-                            <button
-                                on:click={startEditingDesc}
-                                class="opacity-0 group-hover:opacity-100 transition text-white/50 hover:text-white p-1 shrink-0"
-                                title="길드 설명 수정 (누구나 가능)"
-                            >
-                                <svg
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    class="h-4 w-4"
-                                    fill="none"
-                                    viewBox="0 0 24 24"
-                                    stroke="currentColor"
-                                >
-                                    <path
-                                        stroke-linecap="round"
-                                        stroke-linejoin="round"
-                                        stroke-width="2"
-                                        d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"
-                                    />
-                                </svg>
-                            </button>
-                        {/if}
-                    </div>
-                {/if}
-            </div>
-
-            <div
-                class="flex flex-wrap gap-3 text-sm font-bold opacity-80 items-center"
-            >
-                <span
-                    class="bg-white/20 px-3 py-1 rounded-full flex items-center gap-1"
-                >
-                    👥 멤버 {characters.length}명
-                </span>
-                <span class="bg-white/20 px-3 py-1 rounded-full">
-                    📅 생성일: {toDateOrNull(guild?.createdAt)?.toLocaleDateString() ?? "-"}
-                </span>
-
-                <button
-                    on:click={copyInviteCode}
-                    class="bg-white/20 px-3 py-1 rounded-full hover:bg-white/40 transition flex items-center gap-1 cursor-pointer border border-transparent hover:border-white/50"
-                    title="클릭하여 초대 코드 복사"
-                >
-                    🎟️ 초대 코드 복사 : {guild?.code}
+        <div class="mt-5 flex flex-wrap items-start gap-3">
+          {#if isEditingName}
+            <div class="flex w-full max-w-xl flex-col gap-3 rounded-[1.25rem] border border-white/10 bg-slate-950/35 p-4 md:flex-row md:items-center">
+              <input
+                type="text"
+                bind:value={newName}
+                class="app-input text-xl font-semibold"
+                placeholder="길드 이름 입력"
+                disabled={isSavingName}
+                on:keydown={(event) => event.key === "Enter" && saveGuildName()}
+              />
+              <div class="flex gap-2">
+                <button on:click={saveGuildName} disabled={isSavingName} class="app-button app-button-primary px-4 py-3 text-sm">
+                  {isSavingName ? "저장 중..." : "저장"}
                 </button>
+                <button on:click={cancelEditingName} disabled={isSavingName} class="app-button app-button-secondary px-4 py-3 text-sm">
+                  취소
+                </button>
+              </div>
             </div>
-        </div>
-        <div
-            class="absolute top-0 right-0 -mr-10 -mt-10 w-64 h-64 bg-white opacity-10 rounded-full blur-3xl"
-        ></div>
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-        <a
-            href="/guilds/{guildId}/members"
-            class="group bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition text-center"
-        >
-            <div class="text-4xl mb-3 group-hover:scale-110 transition">🛡️</div>
-            <h3 class="font-bold text-gray-800 text-lg">멤버 & 캐릭터</h3>
-            <p class="text-gray-500 text-sm mt-1">
-                동료들의 상태를 확인하고<br />내 캐릭터를 관리합니다.
-            </p>
-        </a>
-
-        <a
-            href="/guilds/{guildId}/missions"
-            class="group bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition text-center"
-        >
-            <div class="text-4xl mb-3 group-hover:scale-110 transition">📜</div>
-            <h3 class="font-bold text-gray-800 text-lg">퀘스트 보드</h3>
-            <p class="text-gray-500 text-sm mt-1">
-                새로운 미션을 등록하고<br />완료하여 보상을 받으세요.
-            </p>
-        </a>
-
-        <a
-            href="/guilds/{guildId}/logs"
-            class="group bg-white p-6 rounded-xl shadow-md border border-gray-100 hover:shadow-xl hover:-translate-y-1 transition text-center"
-        >
-            <div class="text-4xl mb-3 group-hover:scale-110 transition">🔔</div>
-            <h3 class="font-bold text-gray-800 text-lg">활동 로그</h3>
-            <p class="text-gray-500 text-sm mt-1">
-                길드원들의 모든 활동 내역을<br />한눈에 파악합니다.
-            </p>
-        </a>
-    </div>
-
-    <!-- [NEW] 길드 환경설정 섹션 -->
-    <div class="mb-8">
-        <div class="bg-white p-6 rounded-xl shadow-md border border-gray-100">
-            <h3 class="text-xl font-bold text-gray-800 mb-4">⚙️ 길드 환경설정</h3>
-
-            {#if isEditingSettings}
-                <div class="space-y-4">
-                    <div>
-                        <label for="boxChance" class="block text-sm font-medium text-gray-700">
-                            보물상자 발견 확률: <span class="font-bold text-indigo-600">{(newBoxChance * 100).toFixed(0)}%</span>
-                        </label>
-                        <input type="range" id="boxChance" bind:value={newBoxChance} min="0" max="1" step="0.01" class="w-full h-2 bg-gray-200 rounded-lg appearance-none cursor-pointer">
-                    </div>
-                    <div>
-                        <label for="maxBonusGold" class="block text-sm font-medium text-gray-700">최대 보너스 골드</label>
-                        <input type="number" id="maxBonusGold" bind:value={newMaxBonusGold} min="0" class="w-full mt-1 border rounded p-2">
-                    </div>
-                    <div class="flex justify-end gap-2">
-                        <button on:click={() => isEditingSettings = false} disabled={isSavingSettings}
-                                class="px-4 py-2 bg-gray-200 text-gray-700 font-bold rounded-lg hover:bg-gray-300 transition">
-                            취소
-                        </button>
-                        <button on:click={saveGuildSettings} disabled={isSavingSettings}
-                                class="px-4 py-2 bg-green-600 text-white font-bold rounded-lg hover:bg-green-700 transition disabled:opacity-50">
-                            {isSavingSettings ? '저장 중...' : '💾 저장'}
-                        </button>
-                    </div>
-                </div>
-            {:else}
-                <div class="space-y-3">
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">🎁 보물상자 발견 확률</span>
-                        <span class="font-bold text-lg text-gray-800">{((guild?.boxChance ?? 0.2) * 100).toFixed(0)}%</span>
-                    </div>
-                    <div class="flex justify-between items-center">
-                        <span class="text-gray-600">💰 최대 보너스 골드</span>
-                        <span class="font-bold text-lg text-gray-800">{guild?.maxBonusGold ?? 36} G</span>
-                    </div>
-                </div>
-                <div class="mt-4 text-right">
-                    <button on:click={startEditingSettings} class="px-4 py-2 bg-white border border-gray-300 text-gray-700 font-bold rounded-lg hover:bg-gray-100 transition shadow-sm">
-                        설정 변경
-                    </button>
-                </div>
-            {/if}
-        </div>
-    </div>
-
-
-    <div class="border-t pt-8 mt-8">
-        <div
-            class="flex flex-col md:flex-row justify-between items-center bg-gray-50 p-6 rounded-xl border border-gray-200 gap-4"
-        >
-            <div class="text-center md:text-left">
-                <h4 class="font-bold text-gray-700">길드 탈퇴</h4>
-                <p class="text-sm text-gray-500 mt-1">
-                    현재 길드에서 나가고, 소속을 초기화합니다.
-                </p>
+          {:else}
+            <div class="flex items-center gap-3">
+              <h1 class="section-title text-4xl text-white md:text-5xl">
+                {guild?.name || "길드 정보를 불러오는 중"}
+              </h1>
+              {#if guild && currentUser}
+                <button
+                  on:click={startEditingName}
+                  class="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
+                  title="길드 이름 수정"
+                >
+                  <Pencil size={17} />
+                </button>
+              {/if}
             </div>
+          {/if}
+        </div>
+
+        <div class="mt-6 max-w-3xl">
+          {#if isEditingDesc}
+            <div class="rounded-[1.25rem] border border-white/10 bg-slate-950/35 p-4">
+              <textarea
+                bind:value={newDesc}
+                class="app-textarea min-h-[120px]"
+                placeholder="우리 길드를 소개해주세요."
+                disabled={isSavingDesc}
+              ></textarea>
+              <div class="mt-3 flex justify-end gap-2">
+                <button on:click={() => (isEditingDesc = false)} disabled={isSavingDesc} class="app-button app-button-secondary px-4 py-3 text-sm">
+                  취소
+                </button>
+                <button on:click={saveGuildDesc} disabled={isSavingDesc} class="app-button app-button-primary px-4 py-3 text-sm">
+                  {isSavingDesc ? "저장 중..." : "설명 저장"}
+                </button>
+              </div>
+            </div>
+          {:else}
+            <div class="group flex items-start gap-2">
+              <p class="text-base leading-7 text-slate-300 md:text-lg">
+                {guild?.description || "함께 성장하는 우리만의 길드"}
+              </p>
+              {#if currentUser}
+                <button
+                  on:click={startEditingDesc}
+                  class="mt-1 flex h-9 w-9 shrink-0 items-center justify-center rounded-full border border-transparent text-slate-500 transition hover:border-white/10 hover:bg-white/5 hover:text-white"
+                  title="길드 설명 수정"
+                >
+                  <Pencil size={15} />
+                </button>
+              {/if}
+            </div>
+          {/if}
+        </div>
+
+        <div class="mt-8 grid gap-3 sm:grid-cols-3">
+          <div class="app-hud">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Members</div>
+            <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
+              <Users size={18} class="text-cyan-300" />
+              {characters.length}
+            </div>
+            <div class="mt-2 text-sm text-slate-400">등록된 모험가 수</div>
+          </div>
+          <div class="app-hud">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Economy</div>
+            <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
+              <Coins size={18} class="text-amber-300" />
+              {totalGold.toLocaleString()}
+            </div>
+            <div class="mt-2 text-sm text-slate-400">길드 전체 보유 골드</div>
+          </div>
+          <div class="app-hud">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Average Lv</div>
+            <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
+              <Gem size={18} class="text-fuchsia-300" />
+              {averageLevel}
+            </div>
+            <div class="mt-2 text-sm text-slate-400">파티 평균 레벨</div>
+          </div>
+        </div>
+      </div>
+
+      <aside class="space-y-3">
+        <button on:click={copyInviteCode} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+          <span>
+            <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Invite Code</span>
+            <span class="mt-1 block text-lg font-semibold text-white">{guild?.code || "------"}</span>
+          </span>
+          <div class="status-orb text-cyan-200">
+            <Copy size={18} />
+          </div>
+        </button>
+
+        <button on:click={() => (showShopManager = !showShopManager)} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+          <span>
+            <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Reward System</span>
+            <span class="mt-1 block text-lg font-semibold text-white">상점 관리</span>
+          </span>
+          <Store size={18} class="float-gentle text-amber-200" />
+        </button>
+
+        <button on:click={startEditingSettings} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+          <span>
+            <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Reward Rules</span>
+            <span class="mt-1 block text-lg font-semibold text-white">보상 확률 설정</span>
+          </span>
+          <Settings2 size={18} class="text-fuchsia-200" />
+        </button>
+
+        <button on:click={handleLeaveGuild} class="app-action-tile flex w-full justify-between border border-rose-300/18 bg-rose-300/8 px-4 py-4 text-left text-rose-100">
+          <span>
+            <span class="block text-xs uppercase tracking-[0.18em] text-rose-200/70">Danger Zone</span>
+            <span class="mt-1 block text-lg font-semibold">길드 탈퇴</span>
+          </span>
+          <DoorOpen size={18} />
+        </button>
+      </aside>
+    </div>
+  </section>
+
+  <section class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+    <article class="app-card reveal-rise p-6" style="animation-delay: 120ms">
+      <div class="flex items-center justify-between gap-4">
+        <div>
+          <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Guild Status</div>
+          <h2 class="mt-2 text-2xl font-semibold text-white">길드 운영 정보</h2>
+        </div>
+        <div class="app-badge">Active</div>
+      </div>
+
+      <div class="mt-5 grid gap-3 md:grid-cols-2">
+        <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Created</div>
+          <div class="mt-2 text-lg font-semibold text-white">{createdDate}</div>
+          <p class="mt-2 text-sm text-slate-400">길드가 처음 개설된 날짜입니다.</p>
+        </div>
+        <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Reward Chest</div>
+          <div class="mt-2 text-lg font-semibold text-white">
+            {(guild?.boxChance ?? 0.2) * 100}% / 최대 {guild?.maxBonusGold ?? 36}G
+          </div>
+          <p class="mt-2 text-sm text-slate-400">미션 완료 시 랜덤 상자 확률과 최대 보너스입니다.</p>
+        </div>
+      </div>
+    </article>
+
+    <article class="app-card reveal-rise p-6" style="animation-delay: 180ms">
+      <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Top Party</div>
+      <h2 class="mt-2 text-2xl font-semibold text-white">핵심 멤버</h2>
+
+      {#if featuredCharacters.length === 0}
+        <div class="mt-5 rounded-[1.25rem] border border-dashed border-white/10 px-4 py-10 text-center text-slate-400">
+          등록된 캐릭터가 없습니다.
+        </div>
+      {:else}
+        <div class="mt-5 space-y-3">
+          {#each featuredCharacters as character}
             <button
-                on:click={handleLeaveGuild}
-                class="px-5 py-2 bg-white border border-red-300 text-red-600 font-bold rounded-lg hover:bg-red-50 hover:border-red-400 transition shadow-sm whitespace-nowrap"
+              on:click={() => (selectedCharForGame = character)}
+              class="app-action-tile flex w-full items-center justify-between px-4 py-4 text-left"
             >
-                ⚠️ 길드 탈퇴하기
+              <div>
+                <div class="font-semibold text-white">{character.name}</div>
+                <div class="mt-1 text-sm text-slate-400">
+                  Lv.{character.level || 1} · {character.jobClass}
+                </div>
+              </div>
+              <div class="text-right">
+                <div class="text-sm font-semibold text-amber-200">{character.currentGold || 0} G</div>
+                <div class="mt-1 text-xs text-cyan-200">등급전 진입</div>
+              </div>
             </button>
+          {/each}
         </div>
-    </div>
-    {#if showShopManager}
-    <div class="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4 backdrop-blur-sm">
-        <div class="w-full max-w-md relative animate-fade-in-up">
-            <button 
-                on:click={() => showShopManager = false} 
-                class="absolute -top-10 right-0 text-white hover:text-gray-200 font-bold"
-            >
-                닫기 ✕
-            </button>
-            
-            <ShopManager guildId={guildId} />
-        </div>
-    </div>
-    {/if}
+      {/if}
+    </article>
+  </section>
 
-    {#if selectedCharForGame}
-        <MiniGameModal 
-            guildId={guildId}
-            characterId={selectedCharForGame.id}
-            characterName={selectedCharForGame.name}
-            on:close={() => selectedCharForGame = null}
-        />
-    {/if}
+  {#if showShopManager}
+    <section class="app-card reveal-rise p-6 md:p-7" style="animation-delay: 240ms">
+      <ShopManager guildId={guildId} />
+    </section>
+  {/if}
+
+  {#if isEditingSettings}
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
+      <div class="app-modal w-full max-w-lg p-6 md:p-7">
+        <div class="border-b border-white/8 pb-5">
+          <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Reward Rules</div>
+          <h3 class="mt-2 text-2xl font-semibold text-white">길드 보상 설정</h3>
+        </div>
+
+        <div class="mt-5 space-y-4">
+          <div>
+            <label for="box-chance" class="mb-2 block text-sm font-medium text-slate-300">보너스 상자 확률</label>
+            <input id="box-chance" bind:value={newBoxChance} type="number" min="0" max="1" step="0.05" class="app-input" />
+            <p class="mt-2 text-sm text-slate-500">`0`에서 `1` 사이의 값으로 입력합니다. 예: `0.2` = 20%</p>
+          </div>
+          <div>
+            <label for="max-bonus-gold" class="mb-2 block text-sm font-medium text-slate-300">최대 보너스 골드</label>
+            <input id="max-bonus-gold" bind:value={newMaxBonusGold} type="number" min="0" class="app-input" />
+          </div>
+        </div>
+
+        <div class="mt-5 flex justify-end gap-2 border-t border-white/8 pt-5">
+          <button on:click={() => (isEditingSettings = false)} disabled={isSavingSettings} class="app-button app-button-secondary px-4 py-3 text-sm">
+            취소
+          </button>
+          <button on:click={saveGuildSettings} disabled={isSavingSettings} class="app-button app-button-primary px-4 py-3 text-sm">
+            {isSavingSettings ? "저장 중..." : "저장"}
+          </button>
+        </div>
+      </div>
+    </div>
+  {/if}
+
+  {#if selectedCharForGame}
+    <MiniGameModal
+      guildId={guildId}
+      characterId={selectedCharForGame.id!}
+      characterName={selectedCharForGame.name}
+      on:close={() => (selectedCharForGame = null)}
+    />
+  {/if}
 </div>
