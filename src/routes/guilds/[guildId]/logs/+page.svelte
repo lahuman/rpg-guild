@@ -168,7 +168,7 @@
   <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="app-command-strip">
-        <div class="eyebrow">Guild History</div>
+        <div class="eyebrow">History Report</div>
         <div class="mt-4 flex items-center gap-3">
           <a
             href={`/guilds/${guildId}`}
@@ -259,6 +259,11 @@
       </label>
     </div>
 
+    <div class="mt-5 flex items-center justify-between rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100">
+      <span>System Online</span>
+      <span>{totalLogs} Records Indexed</span>
+    </div>
+
   </section>
 
   {#if isLoading}
@@ -290,7 +295,7 @@
   {:else if viewMode === "timeline"}
     <section class="space-y-5">
       <article class="app-card app-ledger-panel p-4 md:p-6">
-        <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Weekly Trend</div>
+        <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Weekly Trend</div>
         <h2 class="mt-2 text-2xl font-semibold text-white">최근 7일 활동 추이</h2>
         <div class="mt-5 grid grid-cols-7 gap-2 md:gap-3">
           {#each weeklyTrend as day}
@@ -361,7 +366,7 @@
       <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="flex items-center justify-between gap-3">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Calendar View</div>
+            <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Calendar View</div>
             <h2 class="mt-2 text-2xl font-semibold text-white">{formatMonthLabel(calendarMonth)}</h2>
           </div>
           <div class="flex gap-2">
@@ -445,7 +450,7 @@
       <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="flex items-center justify-between gap-3">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Day Detail</div>
+            <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Day Detail</div>
             <h2 class="mt-2 text-2xl font-semibold text-white">
               {selectedDate ? `${selectedDayLabel} 활동` : "날짜를 선택하세요"}
             </h2>

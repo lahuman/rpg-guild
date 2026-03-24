@@ -86,26 +86,29 @@
     <div class="relative z-10">
       <div class="eyebrow">
         <Castle size={14} />
-        Guild Stitch Archive
+        RPG Guild
       </div>
 
-      <h1 class="section-title mt-5 max-w-3xl text-4xl leading-none text-white md:mt-6 md:text-7xl">
-        길드 운영을
-        <span class="block text-amber-300">스티치드 장부처럼 설계합니다.</span>
+      <div class="mt-6 flex h-20 w-20 items-center justify-center rounded-[0.4rem] border-2 border-amber-300/90 bg-slate-950/30 text-amber-300 shadow-[0_0_30px_rgba(255,191,0,0.12)]">
+        <Shield size={26} />
+      </div>
+
+      <h1 class="section-title mt-6 max-w-3xl text-4xl font-black uppercase leading-none text-white md:text-7xl">
+        Guild Operations
+        <span class="block text-slate-100">Console</span>
       </h1>
 
-      <p class="mt-5 max-w-2xl text-sm leading-7 text-slate-300 md:mt-6 md:text-lg">
-        출석, 미션, 보상, 로그, 상점까지 길드의 운영 루프를 하나의 길드 장부와 작전 보드처럼 연결합니다.
-        차가운 관리 화면보다, 손때 묻은 길드 아카이브와 보상 기록판에 가까운 경험을 목표로 합니다.
+      <p class="mt-5 max-w-xl text-sm leading-7 text-slate-300 md:text-base">
+        고등급 전술 운영, 보상 관리, 멤버 진행도를 하나의 길드 HUD에서 처리합니다.
       </p>
 
       <div class="mt-6 flex flex-wrap gap-2">
-        <div class="app-stitch-tag">Guild Ledger</div>
+        <div class="app-stitch-tag">Command HUD</div>
         <div class="app-stitch-tag">Rank Trials</div>
-        <div class="app-stitch-tag">Reward Archive</div>
+        <div class="app-stitch-tag">Reward Ops</div>
       </div>
 
-      <div class="stagger-grid mt-6 grid gap-3 md:mt-8 md:gap-4 md:grid-cols-3">
+      <div class="stagger-grid mt-8 grid gap-3 md:gap-4 md:grid-cols-3">
         <div class="app-metal-stat">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Focus</div>
           <div class="mt-2 text-2xl font-bold text-white">Mission</div>
@@ -128,8 +131,8 @@
       <section class="app-panel app-ledger-panel rounded-[1.75rem] p-5 md:p-7">
         <div class="flex items-start justify-between gap-4">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Access</div>
-            <h2 class="section-title mt-2 text-2xl text-white md:text-3xl">모험가 입장</h2>
+            <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Access Terminal</div>
+            <h2 class="section-title mt-2 text-2xl font-black uppercase text-white md:text-3xl">Sign In</h2>
             <p class="mt-2 text-sm leading-6 text-slate-400">
               구글 계정으로 로그인하고, 새 길드를 창설하거나 초대 코드로 합류하세요.
             </p>
@@ -172,7 +175,7 @@
         <div class="rounded-[1.4rem] px-4 py-5 md:px-6 md:py-6">
           {#if mode === "join"}
             <div class="mb-5">
-              <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Invite</div>
+              <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-cyan-300">Summon</div>
               <h3 class="mt-2 text-xl font-semibold text-white md:text-2xl">초대 코드로 합류</h3>
             </div>
 
@@ -188,7 +191,7 @@
             </button>
           {:else}
             <div class="mb-5">
-              <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Create</div>
+              <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-amber-300">Found</div>
               <h3 class="mt-2 text-xl font-semibold text-white md:text-2xl">새 길드 창설</h3>
             </div>
 
@@ -215,7 +218,7 @@
   <section class="reveal-rise" style="animation-delay: 120ms">
     <div class="mb-6 flex items-center justify-between gap-4">
       <div class="app-command-strip">
-        <div class="text-sm uppercase tracking-[0.18em] text-slate-500">System</div>
+        <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Protocol</div>
         <h2 class="section-title mt-2 text-3xl text-white">핵심 운영 구조</h2>
       </div>
       <div class="hidden text-sm text-slate-500 md:block">RPG UX + Guild Workflow</div>

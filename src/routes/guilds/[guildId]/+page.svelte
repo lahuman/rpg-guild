@@ -157,7 +157,7 @@
   <section class="app-hero reveal-rise overflow-hidden rounded-[2rem] px-6 py-8 md:px-8 md:py-9">
     <div class="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
       <div>
-        <div class="eyebrow">Guild Overview</div>
+        <div class="eyebrow">Sector Alpha-9</div>
 
         <div class="mt-5 flex flex-wrap items-start gap-3">
           {#if isEditingName}
@@ -181,7 +181,7 @@
             </div>
           {:else}
             <div class="flex items-center gap-3">
-              <h1 class="section-title text-4xl text-white md:text-5xl">
+              <h1 class="section-title text-4xl font-black text-white md:text-5xl">
                 {guild?.name || "길드 정보를 불러오는 중"}
               </h1>
               {#if guild && currentUser}
@@ -274,7 +274,7 @@
         </div>
       </div>
 
-      <aside class="space-y-3">
+      <aside class="grid grid-cols-3 gap-3 lg:grid-cols-1">
         <button on:click={copyInviteCode} class="app-action-tile app-ledger-panel flex w-full justify-between px-4 py-4 text-left">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Invite Code</span>
@@ -305,7 +305,7 @@
           </div>
         </button>
 
-        <button on:click={handleLeaveGuild} class="app-action-tile app-ledger-panel flex w-full justify-between border border-rose-300/18 bg-rose-300/8 px-4 py-4 text-left text-rose-100">
+        <button on:click={handleLeaveGuild} class="app-action-tile app-ledger-panel col-span-3 flex w-full justify-between border border-rose-300/18 bg-rose-300/8 px-4 py-4 text-left text-rose-100 lg:col-span-1">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-rose-200/70">Danger Zone</span>
             <span class="mt-1 block text-lg font-semibold">길드 탈퇴</span>
@@ -319,11 +319,11 @@
   <section class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
     <article class="app-card app-ledger-panel reveal-rise p-6" style="animation-delay: 120ms">
       <div class="flex items-center justify-between gap-4">
-        <div>
-          <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Guild Status</div>
+        <div class="app-command-strip">
+          <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Global Standing</div>
           <h2 class="mt-2 text-2xl font-semibold text-white">길드 운영 정보</h2>
         </div>
-        <div class="app-stitch-tag">Active Ledger</div>
+        <div class="app-stitch-tag">Active Status</div>
       </div>
 
       <div class="mt-5 grid gap-3 md:grid-cols-2">
@@ -344,7 +344,7 @@
 
     <article class="app-card app-ledger-panel reveal-rise p-6" style="animation-delay: 180ms">
       <div class="app-command-strip">
-      <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Top Party</div>
+      <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Top Operatives</div>
       <h2 class="mt-2 text-2xl font-semibold text-white">핵심 멤버</h2>
       </div>
 

@@ -31,10 +31,10 @@
   <section class="app-workspace reveal-rise mb-6 px-4 py-5 md:px-6">
     <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
       <div>
-        <div class="eyebrow">Guild Workshop</div>
+        <div class="eyebrow">Guild Command</div>
         <h2 class="section-title mt-3 text-2xl text-white md:text-3xl">길드 운영 대시보드</h2>
         <p class="mt-2 text-sm text-slate-400 md:text-base">
-          길드 정보, 멤버 운영, 미션 흐름을 스티치드 레저 스타일 워크스페이스로 정리했습니다.
+          길드 정보, 멤버 운영, 미션 흐름을 전술형 커맨드 워크스페이스로 정리했습니다.
         </p>
       </div>
 

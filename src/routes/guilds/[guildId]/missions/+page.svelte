@@ -176,7 +176,7 @@
   <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="app-command-strip">
-        <div class="eyebrow">Quest Board</div>
+        <div class="eyebrow">Mission Board</div>
         <h1 class="section-title mt-4 text-3xl text-white md:text-4xl">퀘스트 게시판</h1>
         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
           활성 미션, 오늘 완료 상태, 이벤트 퀘스트를 같은 보드 언어로 관리합니다.
@@ -211,6 +211,11 @@
         <div class="mt-2 text-3xl font-bold text-white">{characters.length}</div>
         <div class="mt-1 text-sm text-slate-400">완료 처리 가능한 캐릭터 수</div>
       </div>
+    </div>
+
+    <div class="mt-5 flex items-center justify-between rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100">
+      <span>Available Missions</span>
+      <span>{sortedMissions.length} Entries</span>
     </div>
   </section>
 
@@ -387,7 +392,13 @@
             </div>
           </div>
 
-          <h3 class={`text-xl font-semibold ${isSoldOut ? "text-slate-400 line-through" : "text-white"}`}>{mission.title}</h3>
+          <div class="flex items-start justify-between gap-3">
+            <h3 class={`text-xl font-semibold ${isSoldOut ? "text-slate-400 line-through" : "text-white"}`}>{mission.title}</h3>
+            <div class="shrink-0 text-right">
+              <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Reward</div>
+              <div class="mt-1 text-sm font-bold text-amber-300">{mission.cost} G</div>
+            </div>
+          </div>
           <p class="mt-3 min-h-[56px] text-sm leading-6 text-slate-400 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
 
           {#if mission.type === "assigned" && mission.assignedCharacterName}
@@ -427,7 +438,7 @@
       <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl p-5 md:p-7">
         <div class="flex items-start justify-between gap-4 border-b border-white/8 pb-5">
           <div>
-            <div class="app-stitch-tag">Complete Mission</div>
+            <div class="app-stitch-tag">Pending Distribution</div>
             <h3 class="mt-2 text-2xl font-semibold text-white">{selectedMission.title}</h3>
             <p class="mt-2 text-sm text-slate-400">보상을 받을 캐릭터를 선택하세요.</p>
           </div>
@@ -445,6 +456,10 @@
               선택 가능한 캐릭터가 없습니다.
             </div>
           {:else}
+            <div class="rounded-[1rem] border border-amber-300/18 bg-amber-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-amber-100">
+              Select Party Members for Reward Split
+            </div>
+
             {#each selectableCharacters as char}
               {@const isDone = completedCharIds.includes(char.id || "")}
               {@const isSelected = selectedCharIds.includes(char.id || "")}
@@ -511,7 +526,7 @@
             >
               🎁
             </button>
-            <p class="mt-5 text-lg font-semibold text-white">보물상자를 발견했습니다</p>
+            <p class="mt-5 text-lg font-semibold text-white">Secure Vault Opened</p>
             <p class="mt-2 text-sm text-slate-400">잠시 후 자동으로 열리며, 직접 클릭해도 됩니다.</p>
           {:else}
             <div class="flex flex-col items-center" in:scale={{ duration: 300, start: 0.8, easing: quintOut }}>

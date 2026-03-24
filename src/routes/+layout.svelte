@@ -21,7 +21,7 @@
         </div>
         <div class="min-w-0">
           <div class="section-title truncate text-lg font-semibold text-white">RPG Guild</div>
-          <div class="truncate text-xs tracking-[0.18em] text-slate-400 uppercase">Stitched Guild Ledger</div>
+          <div class="truncate text-xs tracking-[0.18em] text-slate-400 uppercase">Guild Operations Console</div>
         </div>
       </a>
 
