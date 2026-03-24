@@ -3,7 +3,15 @@ import { addDoc, collection, deleteDoc, doc, runTransaction, serverTimestamp, up
 import { db } from '$lib/firebase';
 import { userStore } from '$lib/stores/userStore';
 import { getRelativeDateKey, getTodayDateKey } from '$lib';
-import { GRADE_ORDER } from './constants';
+import {
+    GRADE_ORDER,
+    getGradeChallenge,
+    getGradeInfo,
+    getGradeIndex,
+    getGradePenaltySteps,
+    getGradeRewardGold,
+    normalizeGrade
+} from './constants';
 import type { GuildCharacter } from './types';
 
 function requireSignedInUser() {
@@ -20,7 +28,7 @@ export function createCharacterActions() {
         ) {
             await addDoc(collection(db, `guilds/${guildId}/characters`), {
                 ...charData,
-                grade: charData.grade || 'Bronze',
+                grade: charData.grade || 'Rank01',
                 level: 1,
                 currentGold: 0,
                 createdAt: serverTimestamp()
@@ -89,7 +97,9 @@ export function createCharacterActions() {
         },
 
         async updateGrade(guildId: string, charId: string, result: 'up' | 'down' | 'stay') {
+            const currentUser = requireSignedInUser();
             const charRef = doc(db, `guilds/${guildId}/characters`, charId);
+            const gradeLogRef = doc(collection(db, `guilds/${guildId}/grade_logs`));
             const today = getTodayDateKey();
 
             await runTransaction(db, async (transaction) => {
@@ -99,18 +109,43 @@ export function createCharacterActions() {
                 const data = charDoc.data() as GuildCharacter;
                 if (data.lastMiniGameDate === today) throw new Error('이미 오늘 등급전에 참여했습니다.');
 
-                const currentGradeIndex = GRADE_ORDER.indexOf(data.grade || 'Bronze');
+                const currentGrade = normalizeGrade(data.grade);
+                const currentGradeIndex = getGradeIndex(currentGrade);
                 let nextGradeIndex = currentGradeIndex;
+                let rewardGold = 0;
+                let penaltySteps = 0;
 
                 if (result === 'up') {
                     nextGradeIndex = Math.min(currentGradeIndex + 1, GRADE_ORDER.length - 1);
+                    rewardGold = getGradeRewardGold(GRADE_ORDER[nextGradeIndex]);
                 } else if (result === 'down') {
-                    nextGradeIndex = Math.max(currentGradeIndex - 1, 0);
+                    penaltySteps = getGradePenaltySteps(currentGrade);
+                    nextGradeIndex = Math.max(currentGradeIndex - penaltySteps, 0);
                 }
 
+                const nextGrade = GRADE_ORDER[nextGradeIndex];
+                const newGold = (data.currentGold || 0) + rewardGold;
+
                 transaction.update(charRef, {
-                    grade: GRADE_ORDER[nextGradeIndex],
+                    grade: nextGrade,
+                    currentGold: newGold,
                     lastMiniGameDate: today
+                });
+
+                transaction.set(gradeLogRef, {
+                    characterId: charId,
+                    characterName: data.name,
+                    previousGrade: currentGrade,
+                    previousGradeLabel: getGradeInfo(currentGrade).label,
+                    nextGrade,
+                    nextGradeLabel: getGradeInfo(nextGrade).label,
+                    challengeTitle: getGradeChallenge(currentGrade).title,
+                    result,
+                    rewardGold,
+                    penaltySteps,
+                    performedDate: today,
+                    createdAt: serverTimestamp(),
+                    approverUserId: currentUser.uid
                 });
             });
         },

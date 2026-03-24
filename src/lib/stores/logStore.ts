@@ -1,13 +1,13 @@
 // src/lib/stores/logStore.ts
 import { writable } from 'svelte/store';
 import { db } from '$lib/firebase';
-import { collection, query, orderBy, limit, getDocs } from 'firebase/firestore';
+import { collection, getDocs } from 'firebase/firestore';
 import { formatDateKey, formatKoreanTime, toDateOrNull } from '$lib';
 
 // 통합 로그 타입 정의
 export interface UnifiedLog {
     id: string;
-    type: 'mission' | 'usage'; // 수입 vs 지출
+    type: 'mission' | 'usage' | 'grade';
     title: string;             // 미션명 or 아이템명
     names: string[];           // 수행자들 or 사용자
     amount: number;            // 골드 양
@@ -24,6 +24,35 @@ export interface LogGroup {
 function createLogStore() {
     const { subscribe, set } = writable<LogGroup[]>([]);
 
+    type FirestoreDateCandidate =
+        | Date
+        | string
+        | number
+        | { seconds: number }
+        | { toDate: () => Date }
+        | null
+        | undefined;
+
+    function getLogDate(data: Record<string, unknown>, primaryField: string) {
+        const candidates: FirestoreDateCandidate[] = [
+            data[primaryField] as FirestoreDateCandidate,
+            data.createdAt as FirestoreDateCandidate,
+            data.usedAt as FirestoreDateCandidate
+        ];
+
+        for (const candidate of candidates) {
+            const parsed = toDateOrNull(candidate);
+            if (parsed) return parsed;
+        }
+
+        if (typeof data.performedDate === 'string') {
+            const fallbackDate = new Date(`${data.performedDate}T00:00:00`);
+            if (!Number.isNaN(fallbackDate.getTime())) return fallbackDate;
+        }
+
+        return new Date(0);
+    }
+
     return {
         subscribe,
 
@@ -31,30 +60,34 @@ function createLogStore() {
         fetchLogs: async (guildId: string, limitCount = 50) => {
             // 1. 미션 로그 (수입) 가져오기
             const missionRef = collection(db, `guilds/${guildId}/mission_logs`);
-            const missionQ = query(missionRef, orderBy('createdAt', 'desc'), limit(limitCount));
             
             // 2. 사용 로그 (지출) 가져오기
             const usageRef = collection(db, `guilds/${guildId}/usage_logs`);
-            const usageQ = query(usageRef, orderBy('usedAt', 'desc'), limit(limitCount));
 
-            // 병렬 실행
-            const [missionSnaps, usageSnaps] = await Promise.all([
-                getDocs(missionQ),
-                getDocs(usageQ)
+            const gradeRef = collection(db, `guilds/${guildId}/grade_logs`);
+
+            const [missionResult, usageResult, gradeResult] = await Promise.allSettled([
+                getDocs(missionRef),
+                getDocs(usageRef),
+                getDocs(gradeRef)
             ]);
+
+            const missionSnaps = missionResult.status === 'fulfilled' ? missionResult.value : null;
+            const usageSnaps = usageResult.status === 'fulfilled' ? usageResult.value : null;
+            const gradeSnaps = gradeResult.status === 'fulfilled' ? gradeResult.value : null;
 
             const logs: UnifiedLog[] = [];
 
             // 3. 미션 로그 변환
-            missionSnaps.forEach(doc => {
+            missionSnaps?.forEach(doc => {
                 const data = doc.data();
-                const dateObj = toDateOrNull(data.createdAt) || new Date();
+                const dateObj = getLogDate(data, 'createdAt');
                 logs.push({
                     id: doc.id,
                     type: 'mission',
-                    title: data.missionTitle,
+                    title: data.missionTitle || '미션 완료',
                     names: data.performerNames || [],
-                    amount: data.totalReward,
+                    amount: data.totalReward || 0,
                     timestamp: dateObj,
                     dateStr: formatDateKey(dateObj),
                     timeStr: formatKoreanTime(dateObj)
@@ -62,15 +95,37 @@ function createLogStore() {
             });
 
             // 4. 사용 로그 변환
-            usageSnaps.forEach(doc => {
+            usageSnaps?.forEach(doc => {
                 const data = doc.data();
-                const dateObj = toDateOrNull(data.usedAt) || new Date();
+                const dateObj = getLogDate(data, 'usedAt');
                 logs.push({
                     id: doc.id,
                     type: 'usage',
-                    title: data.itemName,
-                    names: [data.characterName], // 배열 형태로 통일
-                    amount: data.cost,
+                    title: data.itemName || '아이템 사용',
+                    names: data.characterName ? [data.characterName] : [], // 배열 형태로 통일
+                    amount: data.cost || 0,
+                    timestamp: dateObj,
+                    dateStr: formatDateKey(dateObj),
+                    timeStr: formatKoreanTime(dateObj)
+                });
+            });
+
+            gradeSnaps?.forEach(doc => {
+                const data = doc.data();
+                const dateObj = getLogDate(data, 'createdAt');
+                const isPromotion = data.result === 'up';
+                const isDemotion = data.result === 'down';
+
+                logs.push({
+                    id: doc.id,
+                    type: 'grade',
+                    title: isPromotion
+                        ? `${data.previousGradeLabel} → ${data.nextGradeLabel}`
+                        : isDemotion
+                            ? `${data.previousGradeLabel} → ${data.nextGradeLabel}`
+                            : `${data.previousGradeLabel} 유지`,
+                    names: [data.characterName],
+                    amount: data.rewardGold || 0,
                     timestamp: dateObj,
                     dateStr: formatDateKey(dateObj),
                     timeStr: formatKoreanTime(dateObj)
@@ -79,10 +134,11 @@ function createLogStore() {
 
             // 5. 전체 시간순 정렬 (최신순)
             logs.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
+            const limitedLogs = logs.slice(0, limitCount);
 
             // 6. 날짜별 그룹핑
             const grouped: LogGroup[] = [];
-            logs.forEach(log => {
+            limitedLogs.forEach(log => {
                 const lastGroup = grouped[grouped.length - 1];
                 if (lastGroup && lastGroup.date === log.dateStr) {
                     lastGroup.logs.push(log);

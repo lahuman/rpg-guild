@@ -11,7 +11,7 @@
     purchaseShopItemAction,
     updateCharacterAction
   } from "$lib/features/members/actions";
-  import { GRADE_INFO, guildStore, type GuildCharacter } from "$lib/stores/guildStore";
+  import { GRADE_ORDER, getGradeInfo, guildStore, isMaxGrade, type GuildCharacter } from "$lib/stores/guildStore";
   import { itemStore, type ShopItem } from "$lib/stores/itemStore";
   import { getTodayDateKey } from "$lib/utils/date";
   import {
@@ -33,6 +33,7 @@
   $: characters = $guildStore?.characters || [];
   $: shopItems = $itemStore || [];
   $: readyCount = characters.filter((character) => character.lastCheckInDate === today).length;
+  $: gradeOptions = GRADE_ORDER.map((grade) => ({ key: grade, info: getGradeInfo(grade) }));
 
   let isCreating = false;
   let editingChar: GuildCharacter | null = null;
@@ -186,8 +187,8 @@
         <div>
           <label for="new-character-grade" class="mb-2 block text-sm font-medium text-slate-300">등급</label>
           <select id="new-character-grade" bind:value={newChar.grade} class="app-select">
-            {#each Object.entries(GRADE_INFO) as [key, info]}
-              <option value={key}>{info.icon} {info.label}</option>
+            {#each gradeOptions as option}
+              <option value={option.key}>{option.info.icon} {option.info.label}</option>
             {/each}
           </select>
         </div>
@@ -220,6 +221,7 @@
       {#each characters as char (char.id)}
         {@const style = getRankStyle(char.level)}
         {@const hasCheckedInToday = char.lastCheckInDate === today}
+        {@const gradeInfo = getGradeInfo(char.grade)}
         <article class={`app-card flex flex-col p-5 md:p-6 transition hover:-translate-y-1 ${style.border} ${style.glow}`}>
           <div class="flex items-start justify-between gap-4">
             <div>
@@ -227,9 +229,10 @@
                 {JOB_ICONS[char.jobClass] || "❓"} {char.jobClass}
               </div>
               <div class="mt-3 flex items-center gap-2 text-sm text-slate-400">
-                <span title={GRADE_INFO[char.grade].label}>{GRADE_INFO[char.grade].icon}</span>
-                <span>{GRADE_INFO[char.grade].label}</span>
+                <span title={gradeInfo.label}>{gradeInfo.icon}</span>
+                <span>{gradeInfo.label}</span>
               </div>
+              <div class="mt-2 text-xs text-amber-200">{gradeInfo.title}</div>
             </div>
 
             <div class="flex gap-1">
@@ -245,7 +248,7 @@
           <div class="mt-5">
             <div class="flex items-center gap-2">
               <h3 class="text-2xl font-semibold text-white">{char.name}</h3>
-              {#if char.grade === "God"}
+              {#if isMaxGrade(char.grade)}
                 <span title="가족의 신">🔱</span>
               {:else if (char.level || 1) >= 30}
                 <Crown size={18} class="text-amber-300" />
@@ -296,7 +299,11 @@
               </button>
             </div>
 
-            {#if hasCheckedInToday && char.lastMiniGameDate !== today}
+            {#if isMaxGrade(char.grade)}
+              <div class="rounded-2xl border border-indigo-300/14 bg-indigo-300/8 px-4 py-3 text-center text-sm font-semibold text-indigo-100">
+                최고 등급 도달
+              </div>
+            {:else if hasCheckedInToday && char.lastMiniGameDate !== today}
               <button
                 on:click={() => (selectedCharForGame = char)}
                 class="app-button border border-cyan-300/20 bg-cyan-300/12 px-4 py-3 text-sm text-cyan-100"
@@ -342,10 +349,10 @@
           </div>
 
           <div>
-            <label for="edit-character-grade" class="mb-2 block text-sm font-medium text-slate-300">등급</label>
-            <select id="edit-character-grade" bind:value={editingChar.grade} class="app-select">
-              {#each Object.entries(GRADE_INFO) as [key, info]}
-                <option value={key}>{info.icon} {info.label}</option>
+          <label for="edit-character-grade" class="mb-2 block text-sm font-medium text-slate-300">등급</label>
+          <select id="edit-character-grade" bind:value={editingChar.grade} class="app-select">
+              {#each gradeOptions as option}
+                <option value={option.key}>{option.info.icon} {option.info.label}</option>
               {/each}
             </select>
           </div>
@@ -445,6 +452,7 @@
       guildId={guildId}
       characterId={selectedCharForGame.id!}
       characterName={selectedCharForGame.name}
+      characterGrade={selectedCharForGame.grade}
       on:close={() => (selectedCharForGame = null)}
     />
   {/if}

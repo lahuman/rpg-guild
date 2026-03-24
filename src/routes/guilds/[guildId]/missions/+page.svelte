@@ -14,7 +14,7 @@
     startEditMissionAction,
     toggleMissionCharacterAction
   } from "$lib/features/missions/actions";
-  import { GRADE_INFO, guildStore } from "$lib/stores/guildStore";
+  import { getGradeInfo, guildStore } from "$lib/stores/guildStore";
   import { missionStore, type Mission } from "$lib/stores/missionStore";
   import {
     CheckCircle2,
@@ -461,7 +461,7 @@
                   <div>
                     <div class="flex items-center gap-2 font-semibold text-white">
                       {#if char.grade}
-                        <span title={GRADE_INFO[char.grade].label}>{GRADE_INFO[char.grade].icon}</span>
+                        <span title={getGradeInfo(char.grade).label}>{getGradeInfo(char.grade).icon}</span>
                       {/if}
                       {char.name}
                     </div>

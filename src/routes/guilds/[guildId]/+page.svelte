@@ -5,7 +5,7 @@
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
   import { confirmAction, notify, notifyError, requireRouteParam, toDateOrNull } from "$lib";
-  import { guildStore, type GuildCharacter } from "$lib/stores/guildStore";
+  import { getGradeInfo, guildStore, isMaxGrade, type GuildCharacter } from "$lib/stores/guildStore";
   import { userStore } from "$lib/stores/userStore";
   import {
     Coins,
@@ -29,7 +29,14 @@
   $: averageLevel = characters.length
     ? (characters.reduce((sum, character) => sum + (character.level || 1), 0) / characters.length).toFixed(1)
     : "0.0";
-  $: featuredCharacters = [...characters].sort((a, b) => (b.level || 1) - (a.level || 1)).slice(0, 3);
+  $: rankedCharacters = [...characters].sort((a, b) => {
+    const gradeDiff = getGradeInfo(b.grade).level - getGradeInfo(a.grade).level;
+    if (gradeDiff !== 0) return gradeDiff;
+    return (b.level || 1) - (a.level || 1);
+  });
+  $: featuredCharacters = rankedCharacters.slice(0, 3);
+  $: topRankCharacter = rankedCharacters[0] ?? null;
+  $: topRankInfo = topRankCharacter ? getGradeInfo(topRankCharacter.grade) : null;
 
   let selectedCharForGame: GuildCharacter | null = null;
   let showShopManager = false;
@@ -226,7 +233,7 @@
           {/if}
         </div>
 
-        <div class="mt-8 grid gap-3 sm:grid-cols-3">
+        <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
           <div class="app-hud">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Members</div>
             <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
@@ -250,6 +257,19 @@
               {averageLevel}
             </div>
             <div class="mt-2 text-sm text-slate-400">파티 평균 레벨</div>
+          </div>
+          <div class="app-hud">
+            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Top Rank</div>
+            {#if topRankCharacter && topRankInfo}
+              <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
+                <span class="text-amber-200">{topRankInfo.icon}</span>
+                {topRankInfo.label}
+              </div>
+              <div class="mt-2 text-sm text-amber-200">{topRankCharacter.name} · {topRankInfo.title}</div>
+            {:else}
+              <div class="mt-2 text-2xl font-bold text-white">-</div>
+              <div class="mt-2 text-sm text-slate-400">등급 데이터 없음</div>
+            {/if}
           </div>
         </div>
       </div>
@@ -329,19 +349,40 @@
       {:else}
         <div class="mt-5 space-y-3">
           {#each featuredCharacters as character}
+            {@const gradeInfo = getGradeInfo(character.grade)}
             <button
               on:click={() => (selectedCharForGame = character)}
-              class="app-action-tile flex w-full items-center justify-between px-4 py-4 text-left"
+              class="app-rank-focus app-action-tile flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
             >
-              <div>
-                <div class="font-semibold text-white">{character.name}</div>
-                <div class="mt-1 text-sm text-slate-400">
-                  Lv.{character.level || 1} · {character.jobClass}
+              <div class="min-w-0 flex-1">
+                <div class="flex items-start gap-3">
+                  <div class="app-rank-emblem shrink-0">
+                    <div class="text-2xl font-black text-amber-200">{gradeInfo.icon}</div>
+                    <div class="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
+                      Stage {gradeInfo.level}
+                    </div>
+                  </div>
+                  <div class="min-w-0">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <div class="font-semibold text-white">{character.name}</div>
+                      <div class="app-rank-pill">
+                        {gradeInfo.label}
+                      </div>
+                    </div>
+                    <div class="mt-2 text-sm font-medium text-amber-200">{gradeInfo.title}</div>
+                    <div class="mt-1 text-sm text-slate-400">
+                      Lv.{character.level || 1} · {character.jobClass}
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div class="text-right">
-                <div class="text-sm font-semibold text-amber-200">{character.currentGold || 0} G</div>
-                <div class="mt-1 text-xs text-cyan-200">등급전 진입</div>
+
+              <div class="shrink-0 text-right">
+                <div class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Status</div>
+                <div class="mt-2 text-sm font-semibold text-amber-200">{character.currentGold || 0} G</div>
+                <div class="mt-2 text-xs font-semibold text-cyan-200">
+                  {isMaxGrade(character.grade) ? "최고 등급" : "등급전 진입"}
+                </div>
               </div>
             </button>
           {/each}
@@ -393,6 +434,7 @@
       guildId={guildId}
       characterId={selectedCharForGame.id!}
       characterName={selectedCharForGame.name}
+      characterGrade={selectedCharForGame.grade}
       on:close={() => (selectedCharForGame = null)}
     />
   {/if}

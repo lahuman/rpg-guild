@@ -1,5 +1,35 @@
 export type JobClass = '검사' | '마법사' | '힐러' | '사냥꾼' | '도적' | '탱커';
-export type CharacterGrade = 'Bronze' | 'Silver' | 'Gold' | 'Platinum' | 'Diamond' | 'Master' | 'GrandMaster' | 'God';
+export type CharacterGrade =
+    | 'Rank01'
+    | 'Rank02'
+    | 'Rank03'
+    | 'Rank04'
+    | 'Rank05'
+    | 'Rank06'
+    | 'Rank07'
+    | 'Rank08'
+    | 'Rank09'
+    | 'Rank10'
+    | 'Rank11'
+    | 'Rank12'
+    | 'Rank13'
+    | 'Rank14'
+    | 'Rank15'
+    | 'Rank16'
+    | 'Rank17'
+    | 'Rank18'
+    | 'Rank19'
+    | 'Rank20';
+
+export type LegacyCharacterGrade =
+    | 'Bronze'
+    | 'Silver'
+    | 'Gold'
+    | 'Platinum'
+    | 'Diamond'
+    | 'Master'
+    | 'GrandMaster'
+    | 'God';
 
 export type FirestoreTimestampLike = {
     seconds: number;
@@ -10,7 +40,7 @@ export interface GuildCharacter {
     id?: string;
     name: string;
     jobClass: JobClass;
-    grade: CharacterGrade;
+    grade: CharacterGrade | LegacyCharacterGrade;
     description: string;
     currentGold: number;
     level: number;

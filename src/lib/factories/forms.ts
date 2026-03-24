@@ -6,7 +6,7 @@ export function createCharacterForm(): Partial<GuildCharacter> {
     return {
         name: '',
         jobClass: '검사',
-        grade: 'Bronze',
+        grade: 'Rank01',
         description: ''
     };
 }
