@@ -127,9 +127,9 @@
 </script>
 
 <div class="space-y-5 pb-20">
-  <section class="app-panel-strong reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
+  <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+      <div class="app-command-strip">
         <div class="eyebrow">Roster</div>
         <h1 class="section-title mt-4 text-3xl text-white md:text-4xl">멤버 & 캐릭터 운영</h1>
         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
@@ -137,24 +137,24 @@
         </p>
       </div>
 
-      <button on:click={() => (isCreating = !isCreating)} class="app-button app-button-primary px-5 py-3 text-sm">
+      <button on:click={() => (isCreating = !isCreating)} class="app-button app-command-button px-5 py-3 text-sm">
         <UserPlus size={18} />
         {isCreating ? "생성 닫기" : "캐릭터 생성"}
       </button>
     </div>
 
     <div class="mt-5 grid gap-3 md:grid-cols-3">
-      <div class="app-stat">
+      <div class="app-metal-stat">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Characters</div>
         <div class="mt-2 text-3xl font-bold text-white">{characters.length}</div>
         <div class="mt-1 text-sm text-slate-400">현재 운영 중인 캐릭터 수</div>
       </div>
-      <div class="app-stat">
+      <div class="app-metal-stat app-metal-stat-cyan">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Shop Items</div>
         <div class="mt-2 text-3xl font-bold text-white">{shopItems.length}</div>
         <div class="mt-1 text-sm text-slate-400">교환 가능한 보상 아이템 수</div>
       </div>
-      <div class="app-stat">
+      <div class="app-metal-stat app-metal-stat-rose">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Ready</div>
         <div class="mt-2 text-3xl font-bold text-white">{readyCount}</div>
         <div class="mt-1 text-sm text-slate-400">오늘 출석 완료한 캐릭터 수</div>
@@ -222,10 +222,10 @@
         {@const style = getRankStyle(char.level)}
         {@const hasCheckedInToday = char.lastCheckInDate === today}
         {@const gradeInfo = getGradeInfo(char.grade)}
-        <article class={`app-card flex flex-col p-5 md:p-6 transition hover:-translate-y-1 ${style.border} ${style.glow}`}>
+        <article class={`app-card app-ledger-panel app-ledger-lines flex flex-col p-5 md:p-6 transition hover:-translate-y-1 ${style.border} ${style.glow}`}>
           <div class="flex items-start justify-between gap-4">
             <div>
-              <div class={`inline-flex rounded-full px-3 py-1 text-xs font-semibold ${style.badge}`}>
+              <div class={`app-stitch-tag ${style.badge}`}>
                 {JOB_ICONS[char.jobClass] || "❓"} {char.jobClass}
               </div>
               <div class="mt-3 flex items-center gap-2 text-sm text-slate-400">

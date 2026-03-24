@@ -173,9 +173,9 @@
 </script>
 
 <div class="space-y-5 pb-20">
-  <section class="app-panel-strong reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
+  <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+      <div class="app-command-strip">
         <div class="eyebrow">Quest Board</div>
         <h1 class="section-title mt-4 text-3xl text-white md:text-4xl">퀘스트 게시판</h1>
         <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
@@ -188,7 +188,7 @@
           isCreating = !isCreating;
           if (!isCreating) resetForm();
         }}
-        class="app-button app-button-primary px-5 py-3 text-sm"
+        class="app-button app-command-button px-5 py-3 text-sm"
       >
         <Plus size={18} />
         {isCreating ? "작성 닫기" : "새 퀘스트"}
@@ -196,17 +196,17 @@
     </div>
 
     <div class="mt-6 grid gap-3 md:grid-cols-3">
-      <div class="app-stat">
+      <div class="app-metal-stat">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Active</div>
         <div class="mt-2 text-3xl font-bold text-white">{activeCount}</div>
         <div class="mt-1 text-sm text-slate-400">오늘 아직 남은 퀘스트</div>
       </div>
-      <div class="app-stat">
+      <div class="app-metal-stat app-metal-stat-cyan">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Completed</div>
         <div class="mt-2 text-3xl font-bold text-white">{completedCount}</div>
         <div class="mt-1 text-sm text-slate-400">오늘 완료 처리된 퀘스트</div>
       </div>
-      <div class="app-stat">
+      <div class="app-metal-stat app-metal-stat-rose">
         <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Roster</div>
         <div class="mt-2 text-3xl font-bold text-white">{characters.length}</div>
         <div class="mt-1 text-sm text-slate-400">완료 처리 가능한 캐릭터 수</div>
@@ -215,10 +215,10 @@
   </section>
 
   {#if isCreating}
-    <section class="app-card reveal-rise p-5 md:p-7" style="animation-delay: 120ms">
+    <section class="app-card app-ledger-panel reveal-rise p-5 md:p-7" style="animation-delay: 120ms">
       <div class="mb-5 flex items-center justify-between gap-4">
         <div>
-          <div class="text-sm uppercase tracking-[0.18em] text-slate-500">
+          <div class="app-stitch-tag">
             {editingMissionId ? "Edit Quest" : "Create Quest"}
           </div>
           <h2 class="mt-2 text-2xl font-semibold text-white">
@@ -226,7 +226,7 @@
           </h2>
         </div>
         {#if editingMissionId}
-          <div class="rounded-full border border-cyan-300/20 bg-cyan-300/10 px-3 py-1 text-xs font-semibold text-cyan-200">
+          <div class="app-stitch-tag text-cyan-100">
             수정 모드
           </div>
         {/if}
@@ -260,7 +260,7 @@
               <button
                 type="button"
                 on:click={() => handleMissionTypeChange("solo")}
-                class={`rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "solo" ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "solo" ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/4 text-slate-400"}`}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <Swords size={16} />
@@ -272,7 +272,7 @@
               <button
                 type="button"
                 on:click={() => handleMissionTypeChange("assigned")}
-                class={`rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "assigned" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "assigned" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-white/10 bg-white/4 text-slate-400"}`}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <UserRoundCheck size={16} />
@@ -287,7 +287,7 @@
                   handleMissionTypeChange("party");
                   if (newMission.maxParticipants < 2) newMission.maxParticipants = 2;
                 }}
-                class={`rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "party" ? "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "party" ? "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-100" : "border-white/10 bg-white/4 text-slate-400"}`}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <Users size={16} />
@@ -323,7 +323,7 @@
           {/if}
         </div>
 
-        <label class="md:col-span-2 flex cursor-pointer items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+        <label class="app-ledger-panel md:col-span-2 flex cursor-pointer items-start gap-3 p-4">
           <input type="checkbox" bind:checked={newMission.isOneTime} class="mt-1 h-4 w-4 accent-amber-400" />
           <div>
             <div class="font-semibold text-white">일회성 퀘스트</div>
@@ -352,7 +352,7 @@
   {/if}
 
   {#if sortedMissions.length === 0}
-    <section class="app-card px-6 py-14 text-center">
+    <section class="app-card app-ledger-panel px-6 py-14 text-center">
       <ScrollText size={28} class="mx-auto text-slate-500" />
       <h2 class="mt-4 text-2xl font-semibold text-white">등록된 퀘스트가 없습니다</h2>
       <p class="mt-3 text-sm text-slate-400">새 퀘스트를 만들어 길드 운영 루프를 시작하세요.</p>
@@ -361,27 +361,27 @@
     <section class="stagger-grid grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {#each sortedMissions as mission (mission.id)}
         {@const isSoldOut = $completedIds.has(mission.id || "")}
-        <article class={`app-card flex flex-col p-5 md:p-6 transition ${isSoldOut ? "quest-card-done opacity-60 grayscale" : "quest-card-active hover:-translate-y-1"}`}>
+        <article class={`app-card app-ledger-panel app-ledger-lines app-command-strip flex flex-col p-5 md:p-6 transition ${isSoldOut ? "quest-card-done opacity-60 grayscale" : "quest-card-active hover:-translate-y-1"}`}>
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
-              <span class={`rounded-full px-3 py-1 text-xs font-semibold ${mission.type === "party" ? "bg-fuchsia-300/12 text-fuchsia-200" : mission.type === "assigned" ? "bg-amber-300/12 text-amber-200" : "bg-cyan-300/12 text-cyan-200"}`}>
+              <span class={`app-stitch-tag ${mission.type === "party" ? "bg-fuchsia-300/12 text-fuchsia-200" : mission.type === "assigned" ? "bg-amber-300/12 text-amber-200" : "bg-cyan-300/12 text-cyan-200"}`}>
                 {mission.type === "party" ? "PARTY" : mission.type === "assigned" ? "ASSIGNED" : "SOLO"}
               </span>
               {#if mission.isOneTime}
-                <span class="rounded-full bg-rose-300/12 px-3 py-1 text-xs font-semibold text-rose-200">
+                <span class="app-stitch-tag bg-rose-300/12 text-rose-200">
                   1회 한정
                 </span>
               {/if}
               {#if isSoldOut}
-                <span class="rounded-full bg-white/8 px-3 py-1 text-xs font-semibold text-slate-400">오늘 완료</span>
+                <span class="app-stitch-tag bg-white/8 text-slate-400">오늘 완료</span>
               {/if}
             </div>
 
             <div class="flex gap-1">
-              <button on:click={() => startEdit(mission)} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-cyan-200" title="수정">
+              <button on:click={() => startEdit(mission)} class="app-seal h-9 w-9 text-slate-400 transition hover:text-cyan-200" title="수정">
                 <Pencil size={15} />
               </button>
-              <button on:click={() => handleDelete(mission)} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-rose-200" title="삭제">
+              <button on:click={() => handleDelete(mission)} class="app-seal h-9 w-9 text-slate-400 transition hover:text-rose-200" title="삭제">
                 <Trash2 size={15} />
               </button>
             </div>
@@ -397,11 +397,11 @@
           {/if}
 
           <div class="mt-5 grid grid-cols-2 gap-3">
-            <div class="rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
+            <div class="app-ledger-panel px-4 py-3">
               <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Reward</div>
               <div class="mt-2 text-2xl font-bold text-amber-200">{mission.cost} G</div>
             </div>
-            <div class="rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
+            <div class="app-ledger-panel px-4 py-3">
               <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Party Size</div>
               <div class="mt-2 text-2xl font-bold text-white">
                 {mission.type === "party" ? mission.maxParticipants : 1}
@@ -412,7 +412,7 @@
           <button
             on:click={() => !isSoldOut && openCompleteModal(mission)}
             disabled={isSoldOut}
-            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut ? "border border-white/10 bg-white/5 text-slate-500" : "app-button-secondary border-cyan-300/18 bg-cyan-300/10 text-cyan-50 pulse-amber"}`}
+            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut ? "border border-white/10 bg-white/5 text-slate-500" : "app-command-button pulse-amber"}`}
           >
             <CheckCircle2 size={17} />
             {isSoldOut ? "오늘 마감됨" : "수행 완료 보고"}
@@ -424,14 +424,14 @@
 
   {#if selectedMission}
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 md:p-4 backdrop-blur-md">
-      <div class="app-modal app-modal-scroll w-full max-w-2xl p-5 md:p-7">
+      <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl p-5 md:p-7">
         <div class="flex items-start justify-between gap-4 border-b border-white/8 pb-5">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Complete Mission</div>
+            <div class="app-stitch-tag">Complete Mission</div>
             <h3 class="mt-2 text-2xl font-semibold text-white">{selectedMission.title}</h3>
             <p class="mt-2 text-sm text-slate-400">보상을 받을 캐릭터를 선택하세요.</p>
           </div>
-          <button on:click={() => (selectedMission = null)} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-white">✕</button>
+          <button on:click={() => (selectedMission = null)} class="app-brass-coin p-2 text-slate-400 transition hover:text-white">✕</button>
         </div>
 
         <div class="mt-5 max-h-[58vh] space-y-3 overflow-y-auto pr-1">
@@ -452,10 +452,10 @@
               <button
                 on:click={() => toggleCharacter(char.id!)}
                 disabled={isDone}
-                class={`flex w-full items-center justify-between rounded-[1.25rem] border p-3.5 text-left transition md:p-4 ${isDone ? "border-white/8 bg-white/4 opacity-50" : isSelected ? "border-cyan-300/30 bg-cyan-300/10" : "border-white/10 bg-white/4 hover:bg-white/6"}`}
+                class={`app-ledger-panel flex w-full items-center justify-between rounded-[1.25rem] border p-3.5 text-left transition md:p-4 ${isDone ? "border-white/8 bg-white/4 opacity-50" : isSelected ? "border-cyan-300/30 bg-cyan-300/10" : "border-white/10 bg-white/4 hover:bg-white/6"}`}
               >
                 <div class="flex items-center gap-3">
-                  <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-white/8 bg-slate-950/40 text-xl md:h-12 md:w-12">
+                  <div class="app-seal h-11 w-11 text-xl md:h-12 md:w-12">
                     {JOB_ICONS[char.jobClass] || "😐"}
                   </div>
                   <div>
@@ -472,9 +472,9 @@
                 </div>
 
                 {#if isSelected}
-                  <span class="text-cyan-200">선택됨</span>
+                  <span class="app-stitch-tag text-cyan-100">선택됨</span>
                 {:else if isDone}
-                  <span class="text-slate-500">완료</span>
+                  <span class="app-stitch-tag text-slate-300">완료</span>
                 {/if}
               </button>
             {/each}
@@ -488,7 +488,7 @@
           <button
             on:click={handleComplete}
             disabled={selectedCharIds.length === 0}
-            class="app-button app-button-primary flex-1 px-4 py-3 text-sm"
+            class="app-button app-command-button flex-1 px-4 py-3 text-sm"
           >
             완료 처리
           </button>
@@ -501,7 +501,7 @@
     <div class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/85 p-3 md:p-4 overflow-hidden" transition:fade={{ duration: 300 }}>
       <div class="relative w-full max-w-md text-center">
         <div class="absolute inset-0 -z-10 rounded-full bg-amber-400/15 blur-3xl"></div>
-        <div class="app-panel-strong rounded-[2rem] px-5 py-8 md:px-6 md:py-10">
+        <div class="app-panel-strong app-ledger-panel rounded-[2rem] px-5 py-8 md:px-6 md:py-10">
           {#if !chestOpened}
             <button
               type="button"

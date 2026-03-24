@@ -86,31 +86,37 @@
     <div class="relative z-10">
       <div class="eyebrow">
         <Castle size={14} />
-        Guild Campaign OS
+        Guild Stitch Archive
       </div>
 
       <h1 class="section-title mt-5 max-w-3xl text-4xl leading-none text-white md:mt-6 md:text-7xl">
         길드 운영을
-        <span class="block text-amber-300">게임처럼 설계합니다.</span>
+        <span class="block text-amber-300">스티치드 장부처럼 설계합니다.</span>
       </h1>
 
       <p class="mt-5 max-w-2xl text-sm leading-7 text-slate-300 md:mt-6 md:text-lg">
-        출석, 미션, 보상, 로그, 상점까지 길드의 운영 루프를 하나의 RPG HUD처럼 연결합니다.
-        단순한 관리 화면이 아니라, 참여를 유도하는 운영 콘솔을 목표로 합니다.
+        출석, 미션, 보상, 로그, 상점까지 길드의 운영 루프를 하나의 길드 장부와 작전 보드처럼 연결합니다.
+        차가운 관리 화면보다, 손때 묻은 길드 아카이브와 보상 기록판에 가까운 경험을 목표로 합니다.
       </p>
 
+      <div class="mt-6 flex flex-wrap gap-2">
+        <div class="app-stitch-tag">Guild Ledger</div>
+        <div class="app-stitch-tag">Rank Trials</div>
+        <div class="app-stitch-tag">Reward Archive</div>
+      </div>
+
       <div class="stagger-grid mt-6 grid gap-3 md:mt-8 md:gap-4 md:grid-cols-3">
-        <div class="app-hud">
+        <div class="app-metal-stat">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Focus</div>
           <div class="mt-2 text-2xl font-bold text-white">Mission</div>
           <p class="mt-2 text-sm text-slate-400">반복 업무를 퀘스트 루프로 전환</p>
         </div>
-        <div class="app-hud">
+        <div class="app-metal-stat app-metal-stat-cyan">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Economy</div>
           <div class="mt-2 text-2xl font-bold text-white">Reward</div>
           <p class="mt-2 text-sm text-slate-400">골드와 아이템으로 참여 동기 유지</p>
         </div>
-        <div class="app-hud">
+        <div class="app-metal-stat app-metal-stat-rose">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Records</div>
           <div class="mt-2 text-2xl font-bold text-white">Logs</div>
           <p class="mt-2 text-sm text-slate-400">활동 이력을 날짜 단위로 축적</p>
@@ -119,7 +125,7 @@
     </div>
 
     <div class="relative z-10 space-y-5">
-      <section class="app-panel rounded-[1.75rem] p-5 md:p-7">
+      <section class="app-panel app-ledger-panel rounded-[1.75rem] p-5 md:p-7">
         <div class="flex items-start justify-between gap-4">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Access</div>
@@ -128,7 +134,7 @@
               구글 계정으로 로그인하고, 새 길드를 창설하거나 초대 코드로 합류하세요.
             </p>
           </div>
-          <div class="rounded-2xl border border-amber-300/15 bg-amber-400/10 p-3 text-amber-300">
+          <div class="app-brass-coin h-14 w-14 text-amber-100">
             <Shield size={22} />
           </div>
         </div>
@@ -140,23 +146,23 @@
             <p class="mt-2 text-sm text-slate-400">길드 본부와 연결 상태를 동기화하고 있습니다.</p>
           </div>
         {:else}
-          <button on:click={login} class="app-button app-button-primary mt-8 w-full text-base">
+          <button on:click={login} class="app-button app-command-button mt-8 w-full text-base">
             <img src="https://www.google.com/favicon.ico" alt="Google" class="h-5 w-5 rounded-full" />
             구글 계정으로 시작
           </button>
         {/if}
       </section>
 
-      <section class="app-card p-2">
+      <section class="app-card app-ledger-panel p-2">
         <div class="grid grid-cols-2 gap-2 rounded-[1.25rem] bg-slate-950/50 p-2">
           <button
-            class={`app-button px-3 py-3 text-sm ${mode === "join" ? "bg-amber-400 text-slate-950" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${mode === "join" ? "app-command-button" : "text-slate-400"}`}
             on:click={() => (mode = "join")}
           >
             길드 참가
           </button>
           <button
-            class={`app-button px-3 py-3 text-sm ${mode === "create" ? "bg-cyan-300 text-slate-950" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${mode === "create" ? "app-command-button" : "text-slate-400"}`}
             on:click={() => (mode = "create")}
           >
             길드 생성
@@ -176,7 +182,7 @@
               class="app-input text-center text-xl font-black tracking-[0.28em] uppercase md:text-2xl md:tracking-[0.4em]"
             />
 
-            <button on:click={handleJoin} disabled={isProcessing} class="app-button app-button-primary mt-5 w-full">
+            <button on:click={handleJoin} disabled={isProcessing} class="app-button app-command-button mt-5 w-full">
               <ArrowRight size={18} />
               {isProcessing ? "처리 중..." : "길드 입장"}
             </button>
@@ -195,7 +201,7 @@
             <button
               on:click={handleCreate}
               disabled={isProcessing}
-              class="app-button app-button-secondary mt-5 w-full border-cyan-300/20 bg-cyan-300/12 text-cyan-100"
+              class="app-button app-command-button mt-5 w-full"
             >
               <Swords size={18} />
               {isProcessing ? "생성 중..." : "길드 만들기"}
@@ -208,7 +214,7 @@
 
   <section class="reveal-rise" style="animation-delay: 120ms">
     <div class="mb-6 flex items-center justify-between gap-4">
-      <div>
+      <div class="app-command-strip">
         <div class="text-sm uppercase tracking-[0.18em] text-slate-500">System</div>
         <h2 class="section-title mt-2 text-3xl text-white">핵심 운영 구조</h2>
       </div>
@@ -217,8 +223,8 @@
 
     <div class="stagger-grid grid gap-5 md:grid-cols-3">
       {#each features as feature}
-        <article class="app-card p-6">
-          <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/8 bg-white/5 text-amber-300">
+        <article class="app-card app-ledger-panel p-6">
+          <div class="app-seal h-12 w-12 text-amber-200">
             <svelte:component this={feature.icon} size={22} />
           </div>
           <h3 class="mt-5 text-xl font-semibold text-white">{feature.title}</h3>

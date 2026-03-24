@@ -245,10 +245,10 @@
 </script>
 
 <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-  <div class="app-modal app-modal-scroll w-full max-w-2xl overflow-hidden">
+  <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl overflow-hidden">
     <div class="flex items-center justify-between border-b border-white/8 px-6 py-5">
       <div>
-        <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Grade Match</div>
+        <div class="app-stitch-tag">Grade Match</div>
         <h3 class="mt-2 text-2xl font-semibold text-white">{characterName}의 등급전</h3>
         <p class="mt-2 text-sm text-slate-400">
           현재 등급 {gradeInfo.icon} {gradeInfo.label}
@@ -258,7 +258,7 @@
           {/if}
         </p>
       </div>
-      <button on:click={() => dispatch("close")} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-white">
+      <button on:click={() => dispatch("close")} class="app-brass-coin p-2 text-slate-400 transition hover:text-white">
         <X size={16} />
       </button>
     </div>
@@ -276,28 +276,30 @@
           </button>
         </div>
       {:else if gameStep === "intro"}
-        <div class="mb-6 rounded-[1.5rem] border border-white/10 bg-white/4 px-5 py-4">
+        <div class="app-ledger-panel app-ledger-lines mb-6 px-5 py-4">
           <div class="flex items-center gap-2 text-white">
-            <Trophy size={18} class="text-amber-300" />
+            <div class="app-seal text-amber-300">
+              <Trophy size={18} />
+            </div>
             <span class="font-semibold">{challenge.title}</span>
           </div>
           <p class="mt-2 text-sm text-slate-300">{challenge.subtitle}</p>
           <p class="mt-2 text-sm leading-6 text-slate-400">{challenge.instructions}</p>
         </div>
 
-        <div class="rounded-[1.5rem] border border-cyan-300/14 bg-cyan-300/8 px-5 py-4">
+        <div class="app-ledger-panel px-5 py-4">
           <div class="text-xs uppercase tracking-[0.18em] text-cyan-200">Stage {gradeInfo.level}</div>
           <div class="mt-2 text-lg font-semibold text-white">{gradeInfo.icon} {gradeInfo.label}</div>
           <div class="mt-1 text-sm text-amber-200">{gradeInfo.title}</div>
         </div>
 
         <div class="mt-4 grid gap-3 sm:grid-cols-2">
-          <div class="rounded-[1.25rem] border border-amber-300/14 bg-amber-300/8 px-4 py-4">
+          <div class="app-ledger-panel px-4 py-4">
             <div class="text-xs uppercase tracking-[0.18em] text-amber-200/80">Promotion Reward</div>
             <div class="mt-2 text-xl font-bold text-white">+{rewardGold} G</div>
             <div class="mt-1 text-sm text-slate-400">승급 시 즉시 지급</div>
           </div>
-          <div class="rounded-[1.25rem] border border-rose-300/14 bg-rose-300/8 px-4 py-4">
+          <div class="app-ledger-panel px-4 py-4">
             <div class="text-xs uppercase tracking-[0.18em] text-rose-200/80">Failure Penalty</div>
             <div class="mt-2 text-xl font-bold text-white">
               {failPenalty === 0 ? "유지" : `${failPenalty}단계 강등`}

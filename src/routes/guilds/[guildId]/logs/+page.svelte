@@ -165,9 +165,9 @@
 </script>
 
 <div class="space-y-5 pb-20">
-  <section class="app-panel-strong reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
+  <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div>
+      <div class="app-command-strip">
         <div class="eyebrow">Guild History</div>
         <div class="mt-4 flex items-center gap-3">
           <a
@@ -178,7 +178,7 @@
           </a>
           <div>
             <h1 class="section-title text-3xl text-white md:text-4xl">길드 활동 기록</h1>
-            <p class="mt-2 text-sm leading-6 text-slate-400 md:text-base">
+            <p class="app-reading-copy mt-2 text-sm leading-6 text-slate-400 md:text-base">
               특정 멤버 기준으로 모아보거나, 달력 기준으로 활동 밀도를 확인할 수 있습니다.
             </p>
           </div>
@@ -186,19 +186,19 @@
       </div>
 
       <div class="grid gap-3 sm:grid-cols-4">
-        <div class="app-stat min-w-[10rem]">
+        <div class="app-metal-stat min-w-[10rem]">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Entries</div>
           <div class="mt-2 text-3xl font-bold text-white">{totalLogs}</div>
         </div>
-        <div class="app-stat min-w-[10rem]">
+        <div class="app-metal-stat app-metal-stat-cyan min-w-[10rem]">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Mission</div>
           <div class="mt-2 text-3xl font-bold text-cyan-200">{missionLogs}</div>
         </div>
-        <div class="app-stat min-w-[10rem]">
+        <div class="app-metal-stat min-w-[10rem]">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Grade</div>
           <div class="mt-2 text-3xl font-bold text-amber-200">{gradeLogs}</div>
         </div>
-        <div class="app-stat min-w-[10rem]">
+        <div class="app-metal-stat app-metal-stat-rose min-w-[10rem]">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Usage</div>
           <div class="mt-2 text-3xl font-bold text-rose-200">{usageLogs}</div>
         </div>
@@ -207,16 +207,16 @@
 
     <div class="mt-5 grid gap-3 lg:grid-cols-[1fr_14rem]">
       <div class="space-y-3">
-        <div class="grid grid-cols-2 gap-2 rounded-[1.25rem] bg-slate-950/40 p-2">
+        <div class="app-ledger-panel grid grid-cols-2 gap-2 p-2">
           <button
-            class={`app-button px-3 py-3 text-sm ${viewMode === "timeline" ? "bg-amber-400 text-slate-950" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${viewMode === "timeline" ? "app-command-button" : "text-slate-400"}`}
             on:click={() => (viewMode = "timeline")}
           >
             <ScrollText size={16} />
             타임라인
           </button>
           <button
-            class={`app-button px-3 py-3 text-sm ${viewMode === "calendar" ? "bg-cyan-300 text-slate-950" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${viewMode === "calendar" ? "app-command-button" : "text-slate-400"}`}
             on:click={() => (viewMode = "calendar")}
           >
             <CalendarDays size={16} />
@@ -262,18 +262,18 @@
   </section>
 
   {#if isLoading}
-    <section class="app-card py-16 text-center">
+    <section class="app-card app-ledger-panel py-16 text-center">
       <div class="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent"></div>
       <p class="mt-4 text-sm text-slate-400">기록을 불러오는 중입니다.</p>
     </section>
   {:else if allLogs.length === 0}
-    <section class="app-card px-6 py-16 text-center">
+    <section class="app-card app-ledger-panel px-6 py-16 text-center">
       <ScrollText size={28} class="mx-auto text-slate-500" />
       <h2 class="mt-4 text-2xl font-semibold text-white">아직 기록된 활동이 없습니다</h2>
       <p class="mt-3 text-sm text-slate-400">미션 완료, 등급전, 아이템 사용이 발생하면 여기에 누적됩니다.</p>
     </section>
   {:else if filteredLogs.length === 0}
-    <section class="app-card px-6 py-16 text-center">
+    <section class="app-card app-ledger-panel px-6 py-16 text-center">
       <ScrollText size={28} class="mx-auto text-slate-500" />
       <h2 class="mt-4 text-2xl font-semibold text-white">조건에 맞는 활동 기록이 없습니다</h2>
       <p class="mt-3 text-sm text-slate-400">
@@ -289,10 +289,10 @@
     </section>
   {:else if viewMode === "timeline"}
     <section class="space-y-5">
-      <article class="app-card p-4 md:p-6">
+      <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Weekly Trend</div>
         <h2 class="mt-2 text-2xl font-semibold text-white">최근 7일 활동 추이</h2>
-        <div class="mt-5 grid grid-cols-7 gap-3">
+        <div class="mt-5 grid grid-cols-7 gap-2 md:gap-3">
           {#each weeklyTrend as day}
             <div class="app-trend-col">
               <div class="app-trend-value">{day.count}</div>
@@ -307,9 +307,9 @@
 
       <section class="stagger-grid space-y-5">
       {#each filteredGroups as group}
-        <article class="app-card p-4 md:p-6">
+        <article class="app-card app-ledger-panel p-4 md:p-6">
           <div class="mb-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <div class="rounded-full border border-white/10 bg-white/5 px-3 py-1 text-xs font-semibold uppercase tracking-[0.18em] text-slate-300">
+            <div class="app-stitch-tag">
               {formatDate(group.date)}
             </div>
             <div class="text-sm text-slate-500">{group.date}</div>
@@ -317,10 +317,10 @@
 
           <div class="space-y-3">
             {#each group.logs as log}
-              <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-3.5 transition hover:bg-white/6 md:p-4">
+              <div class={`app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div class="flex items-start gap-3">
-                    <div class={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border md:h-12 md:w-12 ${log.type === "mission" ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-100" : log.type === "grade" ? "border-amber-300/20 bg-amber-300/10 text-amber-100" : "border-rose-300/20 bg-rose-300/10 text-rose-100"}`}>
+                  <div class="flex min-w-0 items-start gap-3">
+                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
                       {#if log.type === "mission"}
                         <Shield size={20} />
                       {:else if log.type === "grade"}
@@ -331,8 +331,11 @@
                     </div>
 
                     <div class="min-w-0">
+                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
+                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : "Usage"}
+                      </div>
                       <div class="font-semibold text-white">{log.title}</div>
-                      <div class="mt-1 text-sm leading-6 text-slate-400">
+                      <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
                         <span class="text-slate-300">{log.names.join(", ")}</span>
                         {log.type === "mission" ? " 수행" : log.type === "grade" ? " 등급전" : " 구매"}
                         <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
@@ -341,7 +344,7 @@
                     </div>
                   </div>
 
-                  <div class={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${log.type === "mission" ? "bg-cyan-300/10 text-cyan-100" : log.type === "grade" ? "bg-amber-300/10 text-amber-100" : "bg-rose-300/10 text-rose-100"}`}>
+                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
                     <Coins size={15} />
                     {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
                   </div>
@@ -355,7 +358,7 @@
     </section>
   {:else}
     <section class="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-      <article class="app-card p-4 md:p-6">
+      <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="flex items-center justify-between gap-3">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Calendar View</div>
@@ -372,25 +375,25 @@
         </div>
 
         <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div class="app-stat">
+          <div class="app-metal-stat">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Month Logs</div>
             <div class="mt-2 text-2xl font-bold text-white">{monthLogs.length}</div>
           </div>
-          <div class="app-stat">
+          <div class="app-metal-stat app-metal-stat-cyan">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Active Days</div>
             <div class="mt-2 text-2xl font-bold text-cyan-200">{activeDaysInMonth}</div>
           </div>
-          <div class="app-stat">
+          <div class="app-metal-stat">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Focus</div>
             <div class="mt-2 text-lg font-bold text-amber-200">{selectedCharacter === "all" ? "전체" : selectedCharacter}</div>
           </div>
-          <div class="app-stat">
+          <div class="app-metal-stat app-metal-stat-rose">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Selected Day</div>
             <div class="mt-2 text-lg font-bold text-white">{selectedDate ? selectedDayLabel : "-"}</div>
           </div>
         </div>
 
-        <div class="mt-5 rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+        <div class="app-ledger-panel mt-5 p-4">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Monthly Stats</div>
           <h3 class="mt-2 text-lg font-semibold text-white">월별 타입 분포</h3>
           <div class="mt-4 space-y-3">
@@ -424,7 +427,7 @@
           {/each}
         </div>
 
-        <div class="mt-2 grid grid-cols-7 gap-2">
+        <div class="mt-2 grid grid-cols-7 gap-1.5 md:gap-2">
           {#each calendarDays as day}
             <button
               on:click={() => (selectedDate = day.dateStr)}
@@ -439,7 +442,7 @@
         </div>
       </article>
 
-      <article class="app-card p-4 md:p-6">
+      <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="flex items-center justify-between gap-3">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Day Detail</div>
@@ -465,10 +468,10 @@
         {:else}
           <div class="mt-5 space-y-3">
             {#each selectedDateLogs as log}
-              <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-3.5 transition hover:bg-white/6 md:p-4">
+              <div class={`app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div class="flex items-start gap-3">
-                    <div class={`flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl border md:h-12 md:w-12 ${log.type === "mission" ? "border-cyan-300/20 bg-cyan-300/10 text-cyan-100" : log.type === "grade" ? "border-amber-300/20 bg-amber-300/10 text-amber-100" : "border-rose-300/20 bg-rose-300/10 text-rose-100"}`}>
+                  <div class="flex min-w-0 items-start gap-3">
+                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
                       {#if log.type === "mission"}
                         <Shield size={20} />
                       {:else if log.type === "grade"}
@@ -479,8 +482,11 @@
                     </div>
 
                     <div class="min-w-0">
+                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
+                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : "Usage"}
+                      </div>
                       <div class="font-semibold text-white">{log.title}</div>
-                      <div class="mt-1 text-sm leading-6 text-slate-400">
+                      <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
                         <span class="text-slate-300">{log.names.join(", ")}</span>
                         <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
                         <span class="block sm:inline">{log.timeStr}</span>
@@ -488,7 +494,7 @@
                     </div>
                   </div>
 
-                  <div class={`inline-flex items-center gap-2 rounded-full px-3 py-1.5 text-sm font-semibold ${log.type === "mission" ? "bg-cyan-300/10 text-cyan-100" : log.type === "grade" ? "bg-amber-300/10 text-amber-100" : "bg-rose-300/10 text-rose-100"}`}>
+                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
                     <Coins size={15} />
                     {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
                   </div>

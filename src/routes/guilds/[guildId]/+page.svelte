@@ -217,7 +217,7 @@
             </div>
           {:else}
             <div class="group flex items-start gap-2">
-              <p class="text-base leading-7 text-slate-300 md:text-lg">
+              <p class="app-reading-copy text-base leading-7 text-slate-300 md:text-lg">
                 {guild?.description || "함께 성장하는 우리만의 길드"}
               </p>
               {#if currentUser}
@@ -234,7 +234,7 @@
         </div>
 
         <div class="mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="app-hud">
+          <div class="app-metal-stat">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Members</div>
             <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
               <Users size={18} class="text-cyan-300" />
@@ -242,7 +242,7 @@
             </div>
             <div class="mt-2 text-sm text-slate-400">등록된 모험가 수</div>
           </div>
-          <div class="app-hud">
+          <div class="app-metal-stat app-metal-stat-cyan">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Economy</div>
             <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
               <Coins size={18} class="text-amber-300" />
@@ -250,7 +250,7 @@
             </div>
             <div class="mt-2 text-sm text-slate-400">길드 전체 보유 골드</div>
           </div>
-          <div class="app-hud">
+          <div class="app-metal-stat app-metal-stat-rose">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Average Lv</div>
             <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
               <Gem size={18} class="text-fuchsia-300" />
@@ -258,7 +258,7 @@
             </div>
             <div class="mt-2 text-sm text-slate-400">파티 평균 레벨</div>
           </div>
-          <div class="app-hud">
+          <div class="app-metal-stat">
             <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Top Rank</div>
             {#if topRankCharacter && topRankInfo}
               <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-white">
@@ -275,33 +275,37 @@
       </div>
 
       <aside class="space-y-3">
-        <button on:click={copyInviteCode} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+        <button on:click={copyInviteCode} class="app-action-tile app-ledger-panel flex w-full justify-between px-4 py-4 text-left">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Invite Code</span>
             <span class="mt-1 block text-lg font-semibold text-white">{guild?.code || "------"}</span>
           </span>
-          <div class="status-orb text-cyan-200">
+          <div class="app-brass-coin text-cyan-200">
             <Copy size={18} />
           </div>
         </button>
 
-        <button on:click={() => (showShopManager = !showShopManager)} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+        <button on:click={() => (showShopManager = !showShopManager)} class="app-action-tile app-ledger-panel flex w-full justify-between px-4 py-4 text-left">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Reward System</span>
             <span class="mt-1 block text-lg font-semibold text-white">상점 관리</span>
           </span>
-          <Store size={18} class="float-gentle text-amber-200" />
+          <div class="app-seal text-amber-200">
+            <Store size={18} class="float-gentle" />
+          </div>
         </button>
 
-        <button on:click={startEditingSettings} class="app-action-tile flex w-full justify-between px-4 py-4 text-left">
+        <button on:click={startEditingSettings} class="app-action-tile app-ledger-panel flex w-full justify-between px-4 py-4 text-left">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-slate-500">Reward Rules</span>
             <span class="mt-1 block text-lg font-semibold text-white">보상 확률 설정</span>
           </span>
-          <Settings2 size={18} class="text-fuchsia-200" />
+          <div class="app-seal text-fuchsia-200">
+            <Settings2 size={18} />
+          </div>
         </button>
 
-        <button on:click={handleLeaveGuild} class="app-action-tile flex w-full justify-between border border-rose-300/18 bg-rose-300/8 px-4 py-4 text-left text-rose-100">
+        <button on:click={handleLeaveGuild} class="app-action-tile app-ledger-panel flex w-full justify-between border border-rose-300/18 bg-rose-300/8 px-4 py-4 text-left text-rose-100">
           <span>
             <span class="block text-xs uppercase tracking-[0.18em] text-rose-200/70">Danger Zone</span>
             <span class="mt-1 block text-lg font-semibold">길드 탈퇴</span>
@@ -313,22 +317,22 @@
   </section>
 
   <section class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
-    <article class="app-card reveal-rise p-6" style="animation-delay: 120ms">
+    <article class="app-card app-ledger-panel reveal-rise p-6" style="animation-delay: 120ms">
       <div class="flex items-center justify-between gap-4">
         <div>
           <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Guild Status</div>
           <h2 class="mt-2 text-2xl font-semibold text-white">길드 운영 정보</h2>
         </div>
-        <div class="app-badge">Active</div>
+        <div class="app-stitch-tag">Active Ledger</div>
       </div>
 
       <div class="mt-5 grid gap-3 md:grid-cols-2">
-        <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+        <div class="app-ledger-panel p-4">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Created</div>
           <div class="mt-2 text-lg font-semibold text-white">{createdDate}</div>
           <p class="mt-2 text-sm text-slate-400">길드가 처음 개설된 날짜입니다.</p>
         </div>
-        <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+        <div class="app-ledger-panel p-4">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Reward Chest</div>
           <div class="mt-2 text-lg font-semibold text-white">
             {(guild?.boxChance ?? 0.2) * 100}% / 최대 {guild?.maxBonusGold ?? 36}G
@@ -338,9 +342,11 @@
       </div>
     </article>
 
-    <article class="app-card reveal-rise p-6" style="animation-delay: 180ms">
+    <article class="app-card app-ledger-panel reveal-rise p-6" style="animation-delay: 180ms">
+      <div class="app-command-strip">
       <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Top Party</div>
       <h2 class="mt-2 text-2xl font-semibold text-white">핵심 멤버</h2>
+      </div>
 
       {#if featuredCharacters.length === 0}
         <div class="mt-5 rounded-[1.25rem] border border-dashed border-white/10 px-4 py-10 text-center text-slate-400">
@@ -352,11 +358,11 @@
             {@const gradeInfo = getGradeInfo(character.grade)}
             <button
               on:click={() => (selectedCharForGame = character)}
-              class="app-rank-focus app-action-tile flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
+              class="app-rank-focus app-action-tile app-ledger-panel flex w-full items-center justify-between gap-4 px-4 py-4 text-left"
             >
               <div class="min-w-0 flex-1">
                 <div class="flex items-start gap-3">
-                  <div class="app-rank-emblem shrink-0">
+                  <div class="app-rank-medal shrink-0">
                     <div class="text-2xl font-black text-amber-200">{gradeInfo.icon}</div>
                     <div class="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-slate-500">
                       Stage {gradeInfo.level}
@@ -370,17 +376,17 @@
                       </div>
                     </div>
                     <div class="mt-2 text-sm font-medium text-amber-200">{gradeInfo.title}</div>
-                    <div class="mt-1 text-sm text-slate-400">
+                    <div class="app-dense-copy mt-1 text-sm text-slate-400">
                       Lv.{character.level || 1} · {character.jobClass}
                     </div>
                   </div>
                 </div>
               </div>
 
-              <div class="shrink-0 text-right">
+              <div class="shrink-0 text-right sm:min-w-[5.5rem]">
                 <div class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Status</div>
                 <div class="mt-2 text-sm font-semibold text-amber-200">{character.currentGold || 0} G</div>
-                <div class="mt-2 text-xs font-semibold text-cyan-200">
+                <div class={`app-stitch-tag mt-2 text-[11px] ${isMaxGrade(character.grade) ? "text-amber-100" : "text-cyan-100"}`}>
                   {isMaxGrade(character.grade) ? "최고 등급" : "등급전 진입"}
                 </div>
               </div>
@@ -392,14 +398,14 @@
   </section>
 
   {#if showShopManager}
-    <section class="app-card reveal-rise p-6 md:p-7" style="animation-delay: 240ms">
+    <section class="app-card app-ledger-panel reveal-rise p-6 md:p-7" style="animation-delay: 240ms">
       <ShopManager guildId={guildId} />
     </section>
   {/if}
 
   {#if isEditingSettings}
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-      <div class="app-modal w-full max-w-lg p-6 md:p-7">
+      <div class="app-modal app-ledger-panel w-full max-w-lg p-6 md:p-7">
         <div class="border-b border-white/8 pb-5">
           <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Reward Rules</div>
           <h3 class="mt-2 text-2xl font-semibold text-white">길드 보상 설정</h3>

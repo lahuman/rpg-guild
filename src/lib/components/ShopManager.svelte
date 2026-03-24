@@ -83,7 +83,7 @@
 <div class="overflow-hidden">
   <div class="flex flex-col gap-4 border-b border-white/8 pb-5 sm:flex-row sm:items-center sm:justify-between">
     <div class="flex items-center gap-3">
-      <div class="flex h-11 w-11 items-center justify-center rounded-2xl border border-amber-300/20 bg-amber-300/10 text-amber-200">
+      <div class="app-brass-coin h-11 w-11 text-amber-200">
         <Store size={18} />
       </div>
       <div>
@@ -111,7 +111,7 @@
   {#if isFormOpen}
     <div class="border-b border-white/8 py-5" transition:slide>
       <div class="mb-4 flex items-center justify-between">
-        <div class="text-sm font-semibold text-cyan-200">{editingItemId ? "상품 수정" : "새 상품 등록"}</div>
+        <div class="app-stitch-tag text-cyan-100">{editingItemId ? "상품 수정" : "새 상품 등록"}</div>
         {#if editingItemId}
           <button
             on:click={() => {
@@ -126,7 +126,7 @@
       </div>
 
     <div class="space-y-4">
-      <div class="rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+      <div class="app-ledger-panel p-4">
           <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">아이콘 선택</p>
           <div class="space-y-3">
             {#each SHOP_EMOJI_CATEGORIES as category}
@@ -158,7 +158,7 @@
           <input bind:value={formData.description} class="app-input" placeholder="설명 (선택 사항)" />
         </div>
 
-        <label class="flex items-start gap-3 rounded-[1.25rem] border border-white/10 bg-white/4 p-4">
+        <label class="app-ledger-panel flex items-start gap-3 p-4">
           <input type="checkbox" bind:checked={formData.isOneTime} class="mt-1 h-4 w-4 accent-amber-400" />
           <div>
             <span class="font-semibold text-white">일회성 아이템</span>
@@ -180,16 +180,16 @@
       </div>
     {:else}
       {#each $itemStore as item (item.id)}
-        <div class="group flex flex-col gap-4 rounded-[1.25rem] border border-white/10 bg-white/4 p-4 transition hover:bg-white/6 sm:flex-row sm:items-center sm:justify-between">
+        <div class="app-ledger-panel app-ledger-lines group flex flex-col gap-4 p-4 transition hover:bg-white/6 sm:flex-row sm:items-center sm:justify-between">
           <div class="flex min-w-0 items-center gap-3">
-            <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/8 bg-slate-950/40 text-2xl">
+            <div class="app-seal h-12 w-12 text-2xl">
               {item.icon}
             </div>
             <div class="min-w-0">
               <div class="flex flex-wrap items-center gap-2 font-semibold text-white">
                 {item.name}
                 {#if item.isOneTime}
-                  <span class="rounded-full bg-rose-300/12 px-2 py-0.5 text-[11px] text-rose-200">1회용</span>
+                  <span class="app-stitch-tag text-[11px] text-rose-200">1회용</span>
                 {/if}
               </div>
               <div class="mt-1 text-sm text-slate-400">
