@@ -1,26 +1,75 @@
-<script>
-	import "../app.css"; // 수정된 app.css 불러오기
-	import { userStore } from "$lib/stores/userStore";
-	import { auth } from "$lib/firebase";
+<script lang="ts">
+  import "../app.css";
+  import { page } from "$app/stores";
+  import { auth } from "$lib/firebase";
+  import { userStore } from "$lib/stores/userStore";
+  import { Crown, LogOut, Shield, Sparkles, Swords } from "lucide-svelte";
 
-	function logout() {
-		auth.signOut();
-	}
+  function logout() {
+    auth.signOut();
+  }
+
+  $: isGuildRoute = $page.url.pathname.startsWith("/guilds/");
 </script>
 
-<nav class="p-4 bg-gray-800 text-white flex justify-between">
-	<a href="/" class="font-bold">Guild</a>
+<div class="app-shell">
+  <header class="app-topbar sticky top-0 z-40">
+    <div class="page-wrap app-topbar-inner flex items-center justify-between gap-4 px-3 py-4">
+      <a href="/" class="flex min-w-0 items-center gap-3">
+        <div class="app-topbar-mark">
+          <Crown size={20} />
+        </div>
+        <div class="min-w-0">
+          <div class="section-title truncate text-lg font-semibold text-white">RPG Guild</div>
+          <div class="truncate text-xs tracking-[0.18em] text-slate-400 uppercase">Guild Operations Console</div>
+        </div>
+      </a>
 
-	<div>
-		{#if $userStore}
-			<span class="mr-4">
-				👋 {$userStore.email}
-			</span>
-			<button on:click={logout} class="bg-red-500 px-3 py-1 rounded"
-				>로그아웃</button
-			>
-		{/if}
-	</div>
-</nav>
+      <div class="flex items-center gap-3">
+        {#if $userStore}
+          <div class="app-user-chip hidden items-center gap-3 md:flex">
+            {#if $userStore.photoURL}
+              <img
+                src={$userStore.photoURL}
+                alt={$userStore.displayName || "user"}
+                class="h-9 w-9 rounded-full border border-white/10 object-cover"
+              />
+            {:else}
+              <div class="flex h-9 w-9 items-center justify-center rounded-full bg-amber-400/15 text-amber-200">
+                <Shield size={16} />
+              </div>
+            {/if}
 
-<slot />
+            <div class="leading-tight">
+              <div class="max-w-48 truncate text-sm font-semibold text-white">
+                {$userStore.displayName || "Unknown Adventurer"}
+              </div>
+              <div class="max-w-48 truncate text-xs text-slate-400">
+                {$userStore.email}
+              </div>
+            </div>
+          </div>
+
+          <button on:click={logout} class="app-button app-button-secondary px-4 py-2 text-sm">
+            <LogOut size={16} />
+            로그아웃
+          </button>
+        {:else if $userStore === undefined}
+          <div class="app-user-chip hidden items-center gap-2 text-sm text-slate-300 md:flex">
+            <Sparkles size={15} class="text-cyan-300" />
+            인증 상태 확인 중
+          </div>
+        {:else if !isGuildRoute}
+          <div class="app-user-chip hidden items-center gap-2 text-sm text-slate-300 md:flex">
+            <Swords size={15} class="text-amber-300" />
+            게스트 모드
+          </div>
+        {/if}
+      </div>
+    </div>
+  </header>
+
+  <main class="pb-10 pt-6">
+    <slot />
+  </main>
+</div>
