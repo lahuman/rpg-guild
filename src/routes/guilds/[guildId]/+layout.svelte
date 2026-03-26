@@ -28,7 +28,7 @@
 </script>
 
 <div class="page-wrap">
-  <section class="app-workspace reveal-rise mb-6 px-4 py-5 md:px-6">
+  <section class="app-workspace reveal-rise mb-5 px-4 py-5 md:mb-6 md:px-6">
     <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
       <div>
         <div class="eyebrow">Guild Command</div>
@@ -38,7 +38,7 @@
         </p>
       </div>
 
-      <nav class="guild-tabs flex flex-wrap gap-2" aria-label="Guild sections">
+      <nav class="guild-tabs -mx-1 flex flex-nowrap gap-2 px-1 md:mx-0 md:flex-wrap md:px-0" aria-label="Guild sections">
         {#each navItems as item}
           <a
             href={`/guilds/${guildId}${item.href}`}

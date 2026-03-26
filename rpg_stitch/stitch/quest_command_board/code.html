@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guild Operations Console - Mission Board</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=Inter:wght@400;600;700;800&amp;family=JetBrains+Mono:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ffbf00",
+              "on-secondary": "#003737",
+              "on-surface-variant": "#d4c5ab",
+              "tertiary": "#ffdede",
+              "outline": "#9c8f78",
+              "error": "#ffb4ab",
+              "surface-tint": "#fbbc00",
+              "secondary-container": "#00fbfb",
+              "secondary": "#ffffff",
+              "inverse-on-surface": "#283044",
+              "on-surface": "#dae2fd",
+              "tertiary-container": "#ffb7ba",
+              "error-container": "#93000a",
+              "outline-variant": "#504532",
+              "on-secondary-fixed": "#002020",
+              "surface": "#0b1326",
+              "background": "#0b1326",
+              "on-tertiary-fixed-variant": "#920028",
+              "on-error-container": "#ffdad6",
+              "inverse-primary": "#795900",
+              "on-primary-container": "#6d5000",
+              "surface-container-low": "#131b2e",
+              "on-primary-fixed-variant": "#5c4300",
+              "primary-fixed-dim": "#fbbc00",
+              "on-secondary-container": "#007070",
+              "primary": "#ffe2ab",
+              "tertiary-fixed": "#ffdada",
+              "on-background": "#dae2fd",
+              "surface-dim": "#0b1326",
+              "tertiary-fixed-dim": "#ffb3b6",
+              "on-tertiary-fixed": "#40000c",
+              "on-primary-fixed": "#261a00",
+              "primary-fixed": "#ffdfa0",
+              "on-secondary-fixed-variant": "#004f4f",
+              "surface-variant": "#2d3449",
+              "secondary-fixed": "#00fbfb",
+              "on-error": "#690005",
+              "secondary-fixed-dim": "#00dddd",
+              "surface-bright": "#31394d",
+              "on-tertiary": "#68001a",
+              "on-tertiary-container": "#ac0031",
+              "surface-container-high": "#222a3d",
+              "surface-container-highest": "#2d3449",
+              "surface-container": "#171f33",
+              "on-primary": "#402d00",
+              "surface-container-lowest": "#060e20",
+              "inverse-surface": "#dae2fd"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Inter"],
+              "mono": ["JetBrains Mono"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+        .glass-panel {
+            background: rgba(45, 52, 73, 0.6);
+            backdrop-filter: blur(12px);
+        }
+        .metal-border {
+            border: 1px solid rgba(80, 69, 50, 0.2);
+        }
+        .amber-glow {
+            text-shadow: 0 0 8px rgba(255, 191, 0, 0.4);
+        }
+        .cyan-glow {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+        }
+        .sheen-effect {
+            position: relative;
+            overflow: hidden;
+        }
+        .sheen-effect::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -50%;
+            width: 200%;
+            height: 200%;
+            background: linear-gradient(45deg, transparent, rgba(255, 255, 255, 0.05), transparent);
+            transform: rotate(45deg);
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface text-on-surface font-body selection:bg-primary-container selection:text-on-primary">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#0b1326]/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,255,255,0.05)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#ffbf00] text-2xl" data-icon="shield">shield</span>
+<h1 class="font-['Space_Grotesk'] tracking-wider uppercase text-xl font-bold text-[#ffbf00] drop-shadow-[0_0_8px_rgba(255,191,0,0.4)]">Guild Operations Console</h1>
+</div>
+<div class="w-10 h-10 border border-outline-variant p-0.5">
+<img alt="Commander Profile" class="w-full h-full object-cover" data-alt="High-resolution digital portrait of a battle-worn guild commander in dark crystalline armor with golden glowing accents" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBdIUOCkmXVzlikXj7Z8lwaZD2fwOqGYl4tJLuV4pKCBrth3AoV4JoFcJdJflZftUj-78lqI7E1u1womG8hXqk4OhocJTJnZpUl2hs7k62Z1t5Bb0I0zcruTtjnBsmalPNFa46JmTGyA5SONwkAKtMeEtcokYoLZnfyqwh-toDzhEsTFRQtO6d9aITLA4GztoAPjZDucoq6dzYJxG6sYB64r-RaXJrrZuq-3vkloRsQn-F6Xv4EBzYJSR1LzcviJQ4mC49Kx-3sWW_-"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 max-w-md mx-auto space-y-8">
+<!-- Mission Stats Grid -->
+<section class="grid grid-cols-2 gap-3">
+<div class="bg-surface-container-high p-4 border-l-2 border-primary-container relative overflow-hidden sheen-effect">
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Active Quests</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-3xl font-bold text-primary-container">12</span>
+<span class="font-mono text-xs text-outline">/ 20</span>
+</div>
+<div class="absolute right-[-10px] bottom-[-10px] opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="pending_actions">pending_actions</span>
+</div>
+</div>
+<div class="bg-surface-container-high p-4 border-l-2 border-secondary-container relative overflow-hidden sheen-effect">
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Today's XP</p>
+<div class="flex items-baseline gap-2">
+<span class="font-headline text-3xl font-bold text-secondary-container">8.4k</span>
+</div>
+<div class="absolute right-[-10px] bottom-[-10px] opacity-10">
+<span class="material-symbols-outlined text-6xl" data-icon="bolt">bolt</span>
+</div>
+</div>
+<div class="col-span-2 bg-surface-container-low p-4 border border-outline-variant/20 flex justify-between items-center">
+<div>
+<p class="font-label text-[10px] uppercase tracking-widest text-on-surface-variant mb-1">Available Party Capacity</p>
+<div class="flex gap-1">
+<div class="w-4 h-1 bg-secondary-container cyan-glow"></div>
+<div class="w-4 h-1 bg-secondary-container cyan-glow"></div>
+<div class="w-4 h-1 bg-secondary-container cyan-glow"></div>
+<div class="w-4 h-1 bg-secondary-container cyan-glow"></div>
+<div class="w-4 h-1 bg-outline-variant"></div>
+<div class="w-4 h-1 bg-outline-variant"></div>
+</div>
+</div>
+<span class="font-mono text-lg font-bold text-secondary">04/06</span>
+</div>
+</section>
+<!-- Reward Distribution Panel (Completion Flow) -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-lg font-bold uppercase tracking-tight text-on-surface flex items-center gap-2">
+<span class="w-2 h-4 bg-primary-container"></span>
+                    Pending Distribution
+                </h2>
+<span class="font-mono text-[10px] text-primary-container bg-primary-container/10 px-2 py-0.5">ACTION REQUIRED</span>
+</div>
+<div class="glass-panel border border-outline-variant/30 p-5 space-y-6 relative overflow-hidden">
+<div class="flex justify-between items-start">
+<div>
+<h3 class="font-headline text-xl font-bold text-on-surface">The Sunken Spire</h3>
+<p class="text-xs text-on-surface-variant italic">Mission Success: Rank S</p>
+</div>
+<div class="text-right">
+<p class="font-label text-[10px] text-outline uppercase">Loot Pool</p>
+<p class="font-mono text-lg font-bold text-primary-container">4,250 <span class="text-xs">AMBER</span></p>
+</div>
+</div>
+<div class="space-y-3">
+<p class="font-label text-[10px] uppercase tracking-tighter text-on-surface-variant">Select Party Members for Reward Split</p>
+<div class="grid grid-cols-4 gap-2">
+<button class="aspect-square border-2 border-primary-container relative group">
+<img alt="Unit A" class="w-full h-full grayscale-0" data-alt="Cyberpunk fantasy warrior character portrait with glowing yellow visor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBxP4oy6Bawsf85oGFyf8ALggFBRnqo1i7b2C8NIZpjdhmsTnNMSvhcekpypfcnYh3XS8AjQjXRafEJY4P3PahpPtllWVSw8NakxqRaaIB0mIOAEQ2UrMjuYVKOsBAM83yuxGz3YMXmohaDReP0whNcLNF6g65iksTiz40rlnc8R5BZuxu489LP3j8IBXuQBnDcgLQiV3Ga9cZ-Zu5eZNn8nz26ViQQnooqZmDoxKTwOlw7EjiugXfZA_mI-7LP00ckszjHuZBIJ5su"/>
+<div class="absolute inset-0 bg-primary-container/20"></div>
+<div class="absolute bottom-0 right-0 p-0.5 bg-primary-container">
+<span class="material-symbols-outlined text-[10px] text-on-primary font-bold" data-icon="check">check</span>
+</div>
+</button>
+<button class="aspect-square border border-outline-variant group hover:border-secondary-container transition-colors">
+<img alt="Unit B" class="w-full h-full grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100" data-alt="Arcane mage character portrait with glowing blue eyes and dark robes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDJ0HFNlPez0RCaRY8L1AlhgnP6zXR2kY3XeL-jNXPj6D8_685IVElMaZAcQu-Dlp18mzuxqFEDmn3OuWfsk8NDasZQ0_ieH2w6pxRx_0Uut0L3i-GzIM8sXJd356sgZxWSWqvN8ZNR9uzUjxnbN9a4zlvJud_mbMwNtr8AxMjv0gDshfWiO30PbxzdG9K4NONkCZCsDdmcYatC9LF7GldpfENQnJwWI--gkvE52FM5N9iCZTyDVXCHfRgFz5ewe0g4pcbmwX7spZeM"/>
+</button>
+<button class="aspect-square border border-outline-variant group hover:border-secondary-container transition-colors">
+<img alt="Unit C" class="w-full h-full grayscale opacity-60 group-hover:grayscale-0 group-hover:opacity-100" data-alt="Fantasy priestess character portrait with silver hair and glowing white light" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCG8pHFrsgX8YU4FdSxljNQkzDpjepYPiS2QRDIz2iMGLPmMqzpkaVqhL9X08wXcdfkn4RbzJRmlyM6zr8YLMWm7Tu5n3F5ukw1TP-qxSE5Cn4U7__mQdGRLO_-nwv1dccCa3VrYWYzkCOm8qIF-d9eUOzWs_4ONash1ULIedG_LrS7D_UJ7jAUc0CUC0P8-yMNci1s7rJmoNm--aQOxzdapnhcvKKiGJTH-uBwBdlSfCTclnszoZlJBBBJRdKh54t-6onrV3lQ2nKA"/>
+</button>
+<button class="aspect-square border border-outline-variant/20 bg-surface-container-lowest flex items-center justify-center">
+<span class="material-symbols-outlined text-outline-variant" data-icon="add">add</span>
+</button>
+</div>
+</div>
+<button class="w-full bg-primary-container py-3 text-on-primary font-headline font-bold uppercase tracking-widest active:scale-[0.98] transition-all sheen-effect">
+                    Distribute Rewards
+                </button>
+</div>
+</section>
+<!-- Mission List -->
+<section class="space-y-4">
+<div class="flex items-center justify-between">
+<h2 class="font-headline text-lg font-bold uppercase tracking-tight text-on-surface flex items-center gap-2">
+<span class="w-2 h-4 bg-secondary-container"></span>
+                    Available Missions
+                </h2>
+<div class="flex gap-2">
+<span class="material-symbols-outlined text-outline text-lg" data-icon="filter_list">filter_list</span>
+</div>
+</div>
+<div class="space-y-3">
+<!-- Quest Card 1 -->
+<div class="bg-surface-container-low border border-outline-variant/20 hover:border-primary-container/40 transition-all duration-300 group">
+<div class="p-4 space-y-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-error-container text-[10px] font-mono text-error font-bold">LEGENDARY</span>
+<span class="text-[10px] font-label uppercase text-on-surface-variant">Raid</span>
+</div>
+<span class="font-mono text-primary-container font-bold text-sm">8,500 G</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold leading-tight group-hover:text-primary-container transition-colors">Siege of the Iron Citadel</h3>
+<p class="text-xs text-on-surface-variant mt-1 line-clamp-1">Infiltrate the magma core and disable the tectonic engines.</p>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex -space-x-2">
+<div class="w-6 h-6 border border-surface bg-surface-container-high rounded-full overflow-hidden">
+<img alt="Member" data-alt="Small circular avatar of a fantasy rogue character" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCqWPXOym45H2ArYRnozft7Hmep3X4oazeXm69SEyGzEurz8RBwawdMXImJCPvzrenglV6qTJWD0isIZXinPlZQinLoJId1_59J8h9Qm8FO4tbhIyCNAkK5-V8A8WO80dEtUiUIByN4xpIfnqrL5t-sARFO9VtoTMsT1Q0z4gMnfCF0us8t9xIwL4PFldR39nviW_ZN8ttmCUVySOOqgLh6upJBX7ka9puORj-eizSLgY6UC5WJthX7lYfrSxIZ9pvsvzDcumxb7Dej"/>
+</div>
+<div class="w-6 h-6 border border-surface bg-surface-container-high rounded-full overflow-hidden">
+<img alt="Member" data-alt="Small circular avatar of a fantasy knight character" src="https://lh3.googleusercontent.com/aida-public/AB6AXuDOUeqG7SnDIumw6SGFnvHbszMV-ghGnatD7_tyE8dmbIjg31XG_vq8tliEdSEbCTF2hh0W798VT5xotlDP3rOtTci6sC_U0jEWbTvYmlcMrZR2B-ZCTDNgAxlrK9BpFWZlIJqORbez6l1DxeCNP_9honQvLG64JNptk96SfruUuIita8K1tMlazkakYGHIniByZvKoyVASPsgmMjLuLnp13wmYTd4KXQKgmdzR_k9ciKIhEEX5rRsvlpofdMoaot9msHCcgJVoP8Yp"/>
+</div>
+<div class="w-6 h-6 border border-surface bg-surface-container-high flex items-center justify-center rounded-full text-[8px] font-bold text-outline">
+                                    +3
+                                </div>
+</div>
+<div class="text-right">
+<p class="text-[9px] font-mono text-outline uppercase">Min Level</p>
+<p class="text-sm font-headline font-bold text-secondary">LVL 85</p>
+</div>
+</div>
+</div>
+<div class="h-1 bg-surface-container-highest w-full overflow-hidden">
+<div class="h-full bg-error w-4/5"></div>
+</div>
+</div>
+<!-- Quest Card 2 -->
+<div class="bg-surface-container-low border border-outline-variant/20 hover:border-secondary-container/40 transition-all duration-300 group">
+<div class="p-4 space-y-4">
+<div class="flex justify-between items-start">
+<div class="flex items-center gap-2">
+<span class="px-2 py-0.5 bg-secondary-container/10 text-[10px] font-mono text-secondary-container font-bold">ACTIVE</span>
+<span class="text-[10px] font-label uppercase text-on-surface-variant">Solo</span>
+</div>
+<span class="font-mono text-primary-container font-bold text-sm">1,200 G</span>
+</div>
+<div>
+<h3 class="font-headline text-lg font-bold leading-tight group-hover:text-secondary-container transition-colors">Shadow Stalking</h3>
+<p class="text-xs text-on-surface-variant mt-1">Track the dissident movements in the lower districts.</p>
+</div>
+<div class="flex justify-between items-end">
+<div class="flex items-center gap-2">
+<div class="w-6 h-6 border border-secondary-container/40 p-0.5">
+<img alt="Assigned" class="w-full h-full object-cover" data-alt="Character portrait of a shadowy hooded figure with glowing eyes" src="https://lh3.googleusercontent.com/aida-public/AB6AXuC_OU4ZWLVqNBjht1kRKjMnGWJ4gsY8L3zpOMPCDIXNYXOAHkaS1MxXF1Lj0wTJN5dsN9NpTWyFHKSDRnvArbPc_KtfqicZ4i0Vab43dyW1fbwzahQhVP7ckaMBwSAqktIgWMDC4W7Ih1T7U0juKcWiJLF7A4QI6trn2wZDGYSNI1nzvpw5d-Uv2SZcYITYVBe3NCSg3qMijR7txpJfy5qm_xRM-fbMcFa8gjcG118queJ6KuC-LBiPRoONoeGcGO8IQFPMCX2aXUwt"/>
+</div>
+<span class="text-[10px] font-mono text-secondary-container">OPERATIVE: VEYN</span>
+</div>
+<div class="text-right">
+<p class="text-[9px] font-mono text-outline uppercase">ETA</p>
+<p class="text-sm font-headline font-bold text-secondary">02:45:12</p>
+</div>
+</div>
+</div>
+<div class="h-1 bg-surface-container-highest w-full overflow-hidden">
+<div class="h-full bg-secondary-container w-1/3"></div>
+</div>
+</div>
+</div>
+</section>
+<!-- Reward Chests Preview -->
+<section class="space-y-4">
+<h2 class="font-headline text-lg font-bold uppercase tracking-tight text-on-surface flex items-center gap-2">
+<span class="w-2 h-4 bg-tertiary-container"></span>
+                Secure Vaults
+            </h2>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-highest border border-outline-variant/30 p-4 text-center space-y-3 group hover:scale-[1.02] transition-transform">
+<div class="relative w-20 h-20 mx-auto">
+<span class="material-symbols-outlined text-6xl text-primary-container amber-glow" data-icon="inventory_2" style="font-variation-settings: 'FILL' 1;">inventory_2</span>
+<div class="absolute -top-1 -right-1 bg-error rounded-full w-5 h-5 flex items-center justify-center border-2 border-surface">
+<span class="text-[10px] font-bold text-on-error">2</span>
+</div>
+</div>
+<div>
+<p class="font-headline font-bold text-sm text-on-surface">Iron Cache</p>
+<p class="text-[9px] font-mono text-primary-container uppercase">+15% BONUS CHANCE</p>
+</div>
+</div>
+<div class="bg-surface-container-low border border-outline-variant/10 p-4 text-center space-y-3 opacity-60">
+<div class="relative w-20 h-20 mx-auto">
+<span class="material-symbols-outlined text-6xl text-outline" data-icon="lock" style="font-variation-settings: 'FILL' 1;">lock</span>
+</div>
+<div>
+<p class="font-headline font-bold text-sm text-outline">Astral Relic</p>
+<p class="text-[9px] font-mono text-outline uppercase">LOCKED</p>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-20 bg-[#0b1326] shadow-[0_-4px_20px_rgba(0,0,0,0.5)] border-t border-[#504532]/20">
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 hover:bg-[#222a3d]/50 w-full h-full" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Hub</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 hover:bg-[#222a3d]/50 w-full h-full" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Members</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.3)] border-t-2 border-[#00ffff] pt-2 hover:bg-[#222a3d]/50 w-full h-full" href="#">
+<span class="material-symbols-outlined" data-icon="sword" style="font-variation-settings: 'FILL' 1;">swords</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Missions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 hover:bg-[#222a3d]/50 w-full h-full" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Logs</span>
+</a>
+</nav>
+</body></html>

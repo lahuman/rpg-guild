@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Sparkles, Trophy, X } from "lucide-svelte";
+  import { getErrorMessage } from "$lib";
   import {
     GRADE_ORDER,
     getGradeChallenge,
@@ -237,7 +238,7 @@
       await guildStore.updateGrade(guildId, characterId, gameResult);
       dispatch("close");
     } catch (error) {
-      alert(error instanceof Error ? error.message : "등급전 결과를 저장하지 못했습니다.");
+      alert(getErrorMessage(error, "등급전 결과를 저장하지 못했습니다."));
     } finally {
       isSubmitting = false;
     }

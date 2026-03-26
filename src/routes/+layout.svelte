@@ -14,18 +14,18 @@
 
 <div class="app-shell">
   <header class="app-topbar sticky top-0 z-40">
-    <div class="page-wrap app-topbar-inner flex items-center justify-between gap-4 px-3 py-4">
+    <div class="page-wrap app-topbar-inner flex items-center justify-between gap-3 px-2 py-3 sm:gap-4 sm:px-3 sm:py-4">
       <a href="/" class="flex min-w-0 items-center gap-3">
         <div class="app-topbar-mark">
           <Crown size={20} />
         </div>
         <div class="min-w-0">
-          <div class="section-title truncate text-lg font-semibold text-white">RPG Guild</div>
-          <div class="truncate text-xs tracking-[0.18em] text-slate-400 uppercase">Guild Operations Console</div>
+          <div class="section-title truncate text-base font-semibold text-white sm:text-lg">RPG Guild</div>
+          <div class="hidden truncate text-xs tracking-[0.18em] text-slate-400 uppercase sm:block">Guild Operations Console</div>
         </div>
       </a>
 
-      <div class="flex items-center gap-3">
+      <div class="flex shrink-0 items-center gap-2 sm:gap-3">
         {#if $userStore}
           <div class="app-user-chip hidden items-center gap-3 md:flex">
             {#if $userStore.photoURL}
@@ -50,9 +50,9 @@
             </div>
           </div>
 
-          <button on:click={logout} class="app-button app-button-secondary px-4 py-2 text-sm">
+          <button on:click={logout} class="app-button app-button-secondary px-3 py-2 text-sm sm:px-4">
             <LogOut size={16} />
-            로그아웃
+            <span class="hidden sm:inline">로그아웃</span>
           </button>
         {:else if $userStore === undefined}
           <div class="app-user-chip hidden items-center gap-2 text-sm text-slate-300 md:flex">

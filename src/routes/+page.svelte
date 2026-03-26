@@ -81,19 +81,19 @@
   }
 </script>
 
-<div class="page-wrap space-y-8 py-6 md:py-10">
-  <section class="app-hero reveal-rise grid gap-6 overflow-hidden rounded-[2rem] px-5 py-6 md:px-10 md:py-10 lg:grid-cols-[1.2fr_0.8fr]">
+<div class="page-wrap space-y-6 py-4 sm:space-y-8 sm:py-6 md:py-10">
+  <section class="app-hero reveal-rise grid gap-6 overflow-hidden rounded-[1.6rem] px-4 py-5 sm:px-5 sm:py-6 md:rounded-[2rem] md:px-10 md:py-10 lg:grid-cols-[1.2fr_0.8fr]">
     <div class="relative z-10">
       <div class="eyebrow">
         <Castle size={14} />
         RPG Guild
       </div>
 
-      <div class="mt-6 flex h-20 w-20 items-center justify-center rounded-[0.4rem] border-2 border-amber-300/90 bg-slate-950/30 text-amber-300 shadow-[0_0_30px_rgba(255,191,0,0.12)]">
+      <div class="mt-5 flex h-16 w-16 items-center justify-center rounded-[0.4rem] border-2 border-amber-300/90 bg-slate-950/30 text-amber-300 shadow-[0_0_30px_rgba(255,191,0,0.12)] sm:mt-6 sm:h-20 sm:w-20">
         <Shield size={26} />
       </div>
 
-      <h1 class="section-title mt-6 max-w-3xl text-4xl font-black uppercase leading-none text-white md:text-7xl">
+      <h1 class="landing-hero-title section-title mt-5 max-w-3xl text-[2.4rem] font-black uppercase leading-none text-white sm:mt-6 sm:text-5xl md:text-7xl">
         Guild Operations
         <span class="block text-slate-100">Console</span>
       </h1>
@@ -128,7 +128,7 @@
     </div>
 
     <div class="relative z-10 space-y-5">
-      <section class="app-panel app-ledger-panel rounded-[1.75rem] p-5 md:p-7">
+      <section class="app-panel app-ledger-panel rounded-[1.5rem] p-4 sm:p-5 md:rounded-[1.75rem] md:p-7">
         <div class="flex items-start justify-between gap-4">
           <div>
             <div class="text-[10px] font-bold uppercase tracking-[0.22em] text-slate-500">Access Terminal</div>
@@ -137,7 +137,7 @@
               구글 계정으로 로그인하고, 새 길드를 창설하거나 초대 코드로 합류하세요.
             </p>
           </div>
-          <div class="app-brass-coin h-14 w-14 text-amber-100">
+          <div class="app-brass-coin h-12 w-12 text-amber-100 sm:h-14 sm:w-14">
             <Shield size={22} />
           </div>
         </div>
@@ -182,7 +182,7 @@
             <input
               bind:value={inputCode}
               placeholder="예: X7Z9A1"
-              class="app-input text-center text-xl font-black tracking-[0.28em] uppercase md:text-2xl md:tracking-[0.4em]"
+              class="landing-code-input app-input text-center text-lg font-black tracking-[0.18em] uppercase sm:text-xl sm:tracking-[0.28em] md:text-2xl md:tracking-[0.4em]"
             />
 
             <button on:click={handleJoin} disabled={isProcessing} class="app-button app-command-button mt-5 w-full">

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Guild Operations Console</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=Inter:wght@400;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ffbf00",
+              "on-secondary": "#003737",
+              "on-surface-variant": "#d4c5ab",
+              "tertiary": "#ffdede",
+              "outline": "#9c8f78",
+              "error": "#ffb4ab",
+              "surface-tint": "#fbbc00",
+              "secondary-container": "#00fbfb",
+              "secondary": "#ffffff",
+              "inverse-on-surface": "#283044",
+              "on-surface": "#dae2fd",
+              "tertiary-container": "#ffb7ba",
+              "error-container": "#93000a",
+              "outline-variant": "#504532",
+              "on-secondary-fixed": "#002020",
+              "surface": "#0b1326",
+              "background": "#0b1326",
+              "on-tertiary-fixed-variant": "#920028",
+              "on-error-container": "#ffdad6",
+              "inverse-primary": "#795900",
+              "on-primary-container": "#6d5000",
+              "surface-container-low": "#131b2e",
+              "on-primary-fixed-variant": "#5c4300",
+              "primary-fixed-dim": "#fbbc00",
+              "on-secondary-container": "#007070",
+              "primary": "#ffe2ab",
+              "tertiary-fixed": "#ffdada",
+              "on-background": "#dae2fd",
+              "surface-dim": "#0b1326",
+              "tertiary-fixed-dim": "#ffb3b6",
+              "on-tertiary-fixed": "#40000c",
+              "on-primary-fixed": "#261a00",
+              "primary-fixed": "#ffdfa0",
+              "on-secondary-fixed-variant": "#004f4f",
+              "surface-variant": "#2d3449",
+              "secondary-fixed": "#00fbfb",
+              "on-error": "#690005",
+              "secondary-fixed-dim": "#00dddd",
+              "surface-bright": "#31394d",
+              "on-tertiary": "#68001a",
+              "on-tertiary-container": "#ac0031",
+              "surface-container-high": "#222a3d",
+              "surface-container-highest": "#2d3449",
+              "surface-container": "#171f33",
+              "on-primary": "#402d00",
+              "surface-container-lowest": "#060e20",
+              "inverse-surface": "#dae2fd"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0.25rem", "lg": "0.5rem", "xl": "0.75rem", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        body {
+            background-color: #0b1326;
+            color: #dae2fd;
+            font-family: 'Manrope', sans-serif;
+            overflow-x: hidden;
+        }
+        .glass-panel {
+            background: rgba(45, 52, 73, 0.6);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+        }
+        .metal-edge {
+            border: 1px solid rgba(80, 69, 50, 0.2);
+        }
+        .amber-glow {
+            text-shadow: 0 0 8px rgba(255, 191, 0, 0.4);
+        }
+        .cyan-glow {
+            box-shadow: 0 0 15px rgba(0, 255, 255, 0.15);
+        }
+        .hero-gradient {
+            background: radial-gradient(circle at top, rgba(0, 255, 255, 0.05) 0%, transparent 70%);
+        }
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="min-h-screen pb-24">
+<!-- Top Navigation Shell (Suppressed on Landing/Auth but kept for Identity logic) -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#0b1326]/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,255,255,0.05)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#ffbf00]" style="font-variation-settings: 'FILL' 1;">shield</span>
+<span class="text-xl font-bold text-[#ffbf00] drop-shadow-[0_0_8px_rgba(255,191,0,0.4)] font-['Space_Grotesk'] tracking-wider uppercase">RPG Guild</span>
+</div>
+<div class="w-8 h-8 rounded-full border border-[#ffbf00]/30 bg-surface-container-highest overflow-hidden">
+<img alt="Commander Profile" data-alt="Stylized digital avatar of a futuristic medieval commander with glowing cyan accents and metallic armor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAvK3smm2Mipa9ZqWnq6H5JFvoBA9LFDynUm5b1a1qjpTAIN_RJi1SA9NyrIGHnoVbuANCZOHXdL2LxDD7Xlw12wAn5YXIeYKJ_vIt3268VNE10xlWTd5GOjJx1YblUIkCWY5AtyPqJyV02AiBgspSFnK2Nf9zfx5fKJHXcEJtiIc4cFSA3AwBka9SX0b_MHC2Y4FpbFCeoYCYM1efaJh3a4JFmAWVlWf4TXnboNTpd3PA-iT9w9QlNxUFRv2YkJDzgLfSYOKF5L9NB"/>
+</div>
+</header>
+<main class="relative pt-24 px-4 space-y-12 hero-gradient">
+<!-- Hero Section -->
+<section class="text-center space-y-4 pt-8">
+<div class="mx-auto w-24 h-24 mb-6 relative">
+<div class="absolute inset-0 bg-[#ffbf00]/10 blur-xl rounded-full"></div>
+<div class="relative flex items-center justify-center h-full border-2 border-[#ffbf00] metal-edge">
+<span class="material-symbols-outlined text-5xl text-[#ffbf00]" style="font-variation-settings: 'FILL' 1;">pentagon</span>
+</div>
+</div>
+<h1 class="font-headline text-4xl font-extrabold uppercase tracking-tighter text-on-surface">
+                Guild Operations Console
+            </h1>
+<p class="font-body text-on-surface-variant max-w-xs mx-auto text-sm leading-relaxed">
+                The definitive interface for high-tier tactical coordination and resource management.
+            </p>
+</section>
+<!-- Auth Panel -->
+<section class="space-y-4">
+<button class="w-full bg-[#ffbf00] text-[#402d00] font-headline font-bold py-4 flex items-center justify-center gap-3 hover:brightness-125 transition-all active:scale-95 duration-100 shadow-[0_0_15px_rgba(255,191,0,0.3)]">
+<span class="material-symbols-outlined">login</span>
+                SIGN IN WITH GOOGLE
+            </button>
+<p class="text-center font-label text-[10px] uppercase tracking-widest text-outline">Secure biometric handshake required</p>
+</section>
+<!-- System Summary HUDs -->
+<section class="grid grid-cols-1 gap-4">
+<!-- Mission Control -->
+<div class="glass-panel metal-edge p-5 flex items-start gap-4">
+<div class="bg-[#00ffff]/10 p-3">
+<span class="material-symbols-outlined text-[#00ffff]">radar</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-sm tracking-wide text-secondary uppercase">Mission Control</h3>
+<p class="font-body text-xs text-on-surface-variant mt-1">Real-time deployment and tactical objective tracking.</p>
+</div>
+</div>
+<!-- Roster HUD -->
+<div class="glass-panel metal-edge p-5 flex items-start gap-4">
+<div class="bg-[#ffbf00]/10 p-3">
+<span class="material-symbols-outlined text-[#ffbf00]">group</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-sm tracking-wide text-secondary uppercase">Roster HUD</h3>
+<p class="font-body text-xs text-on-surface-variant mt-1">Manage elite operative ranks and talent progression.</p>
+</div>
+</div>
+<!-- Reward Loop -->
+<div class="glass-panel metal-edge p-5 flex items-start gap-4">
+<div class="bg-primary-container/10 p-3">
+<span class="material-symbols-outlined text-primary-container">database</span>
+</div>
+<div>
+<h3 class="font-headline font-bold text-sm tracking-wide text-secondary uppercase">Reward Loop</h3>
+<p class="font-body text-xs text-on-surface-variant mt-1">Automated vault distribution and loot logistics.</p>
+</div>
+</div>
+</section>
+<!-- Mode Selection -->
+<section class="space-y-6">
+<div class="relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-[#ffbf00]/5 rounded-full blur-2xl"></div>
+<div class="glass-panel metal-edge p-6 space-y-4 border-l-4 border-l-[#ffbf00]">
+<div class="flex justify-between items-center">
+<h2 class="font-headline font-bold text-xl text-[#ffbf00] tracking-wide">Founding Ceremony</h2>
+<span class="font-label text-[10px] bg-[#ffbf00]/20 text-[#ffbf00] px-2 py-1">ELITE PATH</span>
+</div>
+<p class="font-body text-sm text-on-surface-variant">Inaugurate a new legacy. Claim your domain and establish the prime command structure.</p>
+<button class="w-full border border-[#ffbf00]/40 py-3 font-headline text-xs font-bold tracking-widest text-[#ffbf00] hover:bg-[#ffbf00]/10 transition-colors uppercase">
+                        Create New Guild
+                    </button>
+</div>
+</div>
+<div class="relative overflow-hidden group">
+<div class="absolute -right-4 -top-4 w-24 h-24 bg-[#00ffff]/5 rounded-full blur-2xl"></div>
+<div class="glass-panel metal-edge p-6 space-y-4 border-l-4 border-l-[#00ffff]">
+<div class="flex justify-between items-center">
+<h2 class="font-headline font-bold text-xl text-[#00ffff] tracking-wide">The Summons</h2>
+<span class="font-label text-[10px] bg-[#00ffff]/20 text-[#00ffff] px-2 py-1">ALLIANCE</span>
+</div>
+<p class="font-body text-sm text-on-surface-variant">Enter the decryption key provided by your Commander to join an existing operational unit.</p>
+<div class="relative">
+<input class="w-full bg-[#060e20] border-0 border-b border-[#504532] text-[#00ffff] font-label tracking-[0.3em] placeholder:text-[#504532] focus:ring-0 focus:border-[#00ffff] transition-colors py-3 uppercase text-center text-sm" placeholder="ENTER GUILD CODE" type="text"/>
+</div>
+<button class="w-full border border-[#00ffff]/40 py-3 font-headline text-xs font-bold tracking-widest text-[#00ffff] hover:bg-[#00ffff]/10 transition-colors uppercase">
+                        Join Guild via Code
+                    </button>
+</div>
+</div>
+</section>
+<!-- Features Bento -->
+<section class="space-y-4">
+<h4 class="font-headline text-[10px] text-outline uppercase tracking-[0.5em] text-center">Protocol Specifications</h4>
+<div class="grid grid-cols-2 gap-4">
+<div class="surface-container-high p-4 flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-[#00ffff] text-xl">security</span>
+<span class="font-headline font-bold text-[10px] uppercase leading-tight">Advanced<br/>Permissions</span>
+</div>
+<div class="surface-container-high p-4 flex flex-col justify-between h-32">
+<span class="material-symbols-outlined text-[#ffbf00] text-xl">auto_graph</span>
+<span class="font-headline font-bold text-[10px] uppercase leading-tight">Dynamic<br/>Growth Stats</span>
+</div>
+<div class="col-span-2 surface-container-high p-4 flex items-center justify-between h-20">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#00ffff] text-xl">webhook</span>
+<span class="font-headline font-bold text-[10px] uppercase">Discord Integration Relay</span>
+</div>
+<span class="material-symbols-outlined text-outline text-sm">arrow_forward</span>
+</div>
+</div>
+</section>
+<!-- Visual Anchor: Map / World View -->
+<section class="relative h-48 overflow-hidden metal-edge">
+<img class="w-full h-full object-cover opacity-40 mix-blend-luminosity" data-alt="Abstract cinematic dark digital landscape with glowing topography lines and floating data points in deep navy and cyan" data-location="Guild Territory" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBVHkkFOesqdb2FnJ3t5HOnSbz0dcYb71GEV8vRgPS5esZRvz-E-o9gr4iKpym4tP4TExsMgVmQmPk6FiOBERqz01Juu06hl97QayPsuCI0hWNWolScZ0RZEaVSTWVcgcYpCZxUZ5yL3dIMgr4GnsFEeRcobuEuH_fKLkINVk76qdEis2kmFPaPB9555YNN6cn8hvSdPxWjF1lFzhUdmPI2wLp7gP5TMf0DyvHO7MxPSxxNYjQTh5PmgbfBvy0yFEHo0Gkf5urIExP-"/>
+<div class="absolute inset-0 bg-gradient-to-t from-[#0b1326] via-transparent to-transparent"></div>
+<div class="absolute bottom-4 left-4">
+<p class="font-label text-[10px] text-[#00ffff] tracking-widest uppercase mb-1">Sector 01: Core Territory</p>
+<div class="h-[2px] w-24 bg-[#00ffff]"></div>
+</div>
+</section>
+</main>
+<!-- Bottom Navigation Shell (Suppressed on Landing/Auth pages by logic, but implemented as requested per component rules) -->
+<!-- Note: Normally suppressed on Auth/Landing, but included here to satisfy component implementation instructions -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-20 bg-[#0b1326] shadow-[0_-4px_20px_rgba(0,0,0,0.5)] border-t border-[#504532]/20">
+<a class="flex flex-col items-center justify-center text-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.3)] border-t-2 border-[#00ffff] pt-2 transition-all hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined" data-icon="grid_view">grid_view</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Hub</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined" data-icon="group">group</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Members</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined" data-icon="sword">swords</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Missions</span>
+</a>
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined" data-icon="history">history</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Logs</span>
+</a>
+</nav>
+</body></html>

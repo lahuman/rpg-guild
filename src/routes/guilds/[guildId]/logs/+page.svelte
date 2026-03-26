@@ -169,7 +169,7 @@
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="app-command-strip">
         <div class="eyebrow">History Report</div>
-        <div class="mt-4 flex items-center gap-3">
+        <div class="logs-title-row mt-4 flex items-center gap-3">
           <a
             href={`/guilds/${guildId}`}
             class="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
@@ -177,7 +177,7 @@
             <ArrowLeft size={18} />
           </a>
           <div>
-            <h1 class="section-title text-3xl text-white md:text-4xl">길드 활동 기록</h1>
+            <h1 class="logs-hero-title section-title text-3xl text-white md:text-4xl">길드 활동 기록</h1>
             <p class="app-reading-copy mt-2 text-sm leading-6 text-slate-400 md:text-base">
               특정 멤버 기준으로 모아보거나, 달력 기준으로 활동 밀도를 확인할 수 있습니다.
             </p>
@@ -185,20 +185,20 @@
         </div>
       </div>
 
-      <div class="grid gap-3 sm:grid-cols-4">
-        <div class="app-metal-stat min-w-[10rem]">
+      <div class="logs-summary-grid grid gap-3 grid-cols-2 xl:grid-cols-4">
+        <div class="app-metal-stat min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Entries</div>
           <div class="mt-2 text-3xl font-bold text-white">{totalLogs}</div>
         </div>
-        <div class="app-metal-stat app-metal-stat-cyan min-w-[10rem]">
+        <div class="app-metal-stat app-metal-stat-cyan min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Mission</div>
           <div class="mt-2 text-3xl font-bold text-cyan-200">{missionLogs}</div>
         </div>
-        <div class="app-metal-stat min-w-[10rem]">
+        <div class="app-metal-stat min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Grade</div>
           <div class="mt-2 text-3xl font-bold text-amber-200">{gradeLogs}</div>
         </div>
-        <div class="app-metal-stat app-metal-stat-rose min-w-[10rem]">
+        <div class="app-metal-stat app-metal-stat-rose min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Usage</div>
           <div class="mt-2 text-3xl font-bold text-rose-200">{usageLogs}</div>
         </div>
@@ -207,7 +207,7 @@
 
     <div class="mt-5 grid gap-3 lg:grid-cols-[1fr_14rem]">
       <div class="space-y-3">
-        <div class="app-ledger-panel grid grid-cols-2 gap-2 p-2">
+        <div class="logs-view-toggle app-ledger-panel grid grid-cols-2 gap-2 p-2">
           <button
             class={`app-button px-3 py-3 text-sm ${viewMode === "timeline" ? "app-command-button" : "text-slate-400"}`}
             on:click={() => (viewMode = "timeline")}
@@ -259,7 +259,7 @@
       </label>
     </div>
 
-    <div class="mt-5 flex items-center justify-between rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100">
+    <div class="mt-5 flex flex-col items-start justify-between gap-1 rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100 sm:flex-row sm:items-center">
       <span>System Online</span>
       <span>{totalLogs} Records Indexed</span>
     </div>
@@ -297,7 +297,7 @@
       <article class="app-card app-ledger-panel p-4 md:p-6">
         <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Weekly Trend</div>
         <h2 class="mt-2 text-2xl font-semibold text-white">최근 7일 활동 추이</h2>
-        <div class="mt-5 grid grid-cols-7 gap-2 md:gap-3">
+        <div class="logs-week-grid mt-5 grid grid-cols-7 gap-1.5 md:gap-3">
           {#each weeklyTrend as day}
             <div class="app-trend-col">
               <div class="app-trend-value">{day.count}</div>
@@ -322,7 +322,7 @@
 
           <div class="space-y-3">
             {#each group.logs as log}
-              <div class={`app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
+              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div class="flex min-w-0 items-start gap-3">
                     <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
@@ -363,13 +363,13 @@
     </section>
   {:else}
     <section class="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-      <article class="app-card app-ledger-panel p-4 md:p-6">
-        <div class="flex items-center justify-between gap-3">
+      <article class="calendar-panel app-card app-ledger-panel p-4 md:p-6">
+        <div class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Calendar View</div>
             <h2 class="mt-2 text-2xl font-semibold text-white">{formatMonthLabel(calendarMonth)}</h2>
           </div>
-          <div class="flex gap-2">
+          <div class="flex gap-2 self-end sm:self-auto">
             <button on:click={() => shiftMonth(-1)} class="app-button app-button-secondary h-11 w-11 !p-0">
               <ChevronLeft size={16} />
             </button>
@@ -426,13 +426,13 @@
           </div>
         </div>
 
-        <div class="mt-6 grid grid-cols-7 gap-2 text-center text-xs font-semibold uppercase tracking-[0.18em] text-slate-500">
+        <div class="logs-calendar-head mt-6 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 md:gap-2 md:text-xs md:tracking-[0.18em]">
           {#each ["일", "월", "화", "수", "목", "금", "토"] as day}
             <div class="py-2">{day}</div>
           {/each}
         </div>
 
-        <div class="mt-2 grid grid-cols-7 gap-1.5 md:gap-2">
+        <div class="logs-calendar-grid mt-2 grid grid-cols-7 gap-1 md:gap-2">
           {#each calendarDays as day}
             <button
               on:click={() => (selectedDate = day.dateStr)}
@@ -447,8 +447,8 @@
         </div>
       </article>
 
-      <article class="app-card app-ledger-panel p-4 md:p-6">
-        <div class="flex items-center justify-between gap-3">
+      <article class="day-detail-panel app-card app-ledger-panel p-4 md:p-6">
+        <div class="day-detail-head flex items-center justify-between gap-3">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Day Detail</div>
             <h2 class="mt-2 text-2xl font-semibold text-white">
@@ -473,7 +473,7 @@
         {:else}
           <div class="mt-5 space-y-3">
             {#each selectedDateLogs as log}
-              <div class={`app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
+              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div class="flex min-w-0 items-start gap-3">
                     <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>

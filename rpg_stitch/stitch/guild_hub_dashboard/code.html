@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+
+<html class="dark" lang="en"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>RPG Guild Hub - Strategic Command HUD</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&amp;family=Manrope:wght@300;400;500;600;700&amp;family=Inter:wght@400;600;700;900&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            colors: {
+              "primary-container": "#ffbf00",
+              "on-secondary": "#003737",
+              "on-surface-variant": "#d4c5ab",
+              "tertiary": "#ffdede",
+              "outline": "#9c8f78",
+              "error": "#ffb4ab",
+              "surface-tint": "#fbbc00",
+              "secondary-container": "#00fbfb",
+              "secondary": "#ffffff",
+              "inverse-on-surface": "#283044",
+              "on-surface": "#dae2fd",
+              "tertiary-container": "#ffb7ba",
+              "error-container": "#93000a",
+              "outline-variant": "#504532",
+              "on-secondary-fixed": "#002020",
+              "surface": "#0b1326",
+              "background": "#0b1326",
+              "on-tertiary-fixed-variant": "#920028",
+              "on-error-container": "#ffdad6",
+              "inverse-primary": "#795900",
+              "on-primary-container": "#6d5000",
+              "surface-container-low": "#131b2e",
+              "on-primary-fixed-variant": "#5c4300",
+              "primary-fixed-dim": "#fbbc00",
+              "on-secondary-container": "#007070",
+              "primary": "#ffe2ab",
+              "tertiary-fixed": "#ffdada",
+              "on-background": "#dae2fd",
+              "surface-dim": "#0b1326",
+              "tertiary-fixed-dim": "#ffb3b6",
+              "on-tertiary-fixed": "#40000c",
+              "on-primary-fixed": "#261a00",
+              "primary-fixed": "#ffdfa0",
+              "on-secondary-fixed-variant": "#004f4f",
+              "surface-variant": "#2d3449",
+              "secondary-fixed": "#00fbfb",
+              "on-error": "#690005",
+              "secondary-fixed-dim": "#00dddd",
+              "surface-bright": "#31394d",
+              "on-tertiary": "#68001a",
+              "on-tertiary-container": "#ac0031",
+              "surface-container-high": "#222a3d",
+              "surface-container-highest": "#2d3449",
+              "surface-container": "#171f33",
+              "on-primary": "#402d00",
+              "surface-container-lowest": "#060e20",
+              "inverse-surface": "#dae2fd"
+            },
+            fontFamily: {
+              "headline": ["Space Grotesk"],
+              "body": ["Manrope"],
+              "label": ["Inter"]
+            },
+            borderRadius: {"DEFAULT": "0px", "lg": "0px", "xl": "0px", "full": "9999px"},
+          },
+        },
+      }
+    </script>
+<style>
+        .glass-panel {
+            background: rgba(45, 52, 73, 0.6);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(80, 69, 50, 0.2);
+        }
+        .amber-glow {
+            text-shadow: 0 0 12px rgba(255, 191, 0, 0.5);
+        }
+        .cyan-glow {
+            text-shadow: 0 0 10px rgba(0, 255, 255, 0.4);
+        }
+        .metal-trim {
+            border-left: 2px solid #ffbf00;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 4px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #0b1326;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #504532;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-surface font-body selection:bg-primary-container selection:text-on-primary overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-50 flex justify-between items-center px-6 py-4 bg-[#0b1326]/80 backdrop-blur-xl shadow-[0_4px_20px_rgba(0,255,255,0.05)]">
+<div class="flex items-center gap-3">
+<span class="material-symbols-outlined text-[#ffbf00]" style="font-variation-settings: 'FILL' 1;">shield</span>
+<h1 class="text-xl font-bold text-[#ffbf00] font-['Space_Grotesk'] tracking-wider uppercase drop-shadow-[0_0_8px_rgba(255,191,0,0.4)]">
+                Guild Operations Console
+            </h1>
+</div>
+<div class="w-10 h-10 border border-outline-variant bg-surface-container-high flex items-center justify-center">
+<img alt="Commander Profile" class="w-8 h-8 opacity-80" data-alt="High-resolution portrait of a medieval fantasy commander in ornate obsidian and gold armor, cinematic lighting" src="https://lh3.googleusercontent.com/aida-public/AB6AXuCXoMm8sMJqmNpXJhltraZzGb43AmATFSOxUZNJi7EBYa78SVzK2dsyb96M6wKkYVdmbSBWqSLPqioKRvRd2cqPaCiMdR08lEFqIltmxMERmYRW3MiYznIgeXMZy_lg_HEBuGcxMlxTxjT3dz_2ABg6e4uou8UHJ8dNPKch2bwNmzPMIjySwH2Q6c46k41QaFbzHDtrf5kzOW1hRfeEZ7MRu1cs4_6kk9k-v9bfN4jD7xpCmTQo7_k7oqGmfqNp60-lwc4oTeE_D5ro"/>
+</div>
+</header>
+<main class="pt-24 pb-32 px-4 space-y-6 max-w-md mx-auto">
+<!-- Guild Hero Banner -->
+<section class="relative overflow-hidden glass-panel p-6 border-l-4 border-[#ffbf00]">
+<div class="absolute top-0 right-0 -mt-4 -mr-4 opacity-10">
+<span class="material-symbols-outlined text-[120px]" style="font-variation-settings: 'FILL' 1;">castle</span>
+</div>
+<div class="relative z-10">
+<div class="flex justify-between items-start mb-2">
+<span class="text-[10px] font-label font-bold uppercase tracking-[0.2em] text-[#00ffff] cyan-glow">Sector Alpha-9</span>
+<span class="material-symbols-outlined text-outline-variant">edit_square</span>
+</div>
+<h2 class="text-3xl font-headline font-bold text-secondary mb-1">Obsidian Vanguard</h2>
+<p class="text-on-surface-variant text-sm mb-6 leading-relaxed">The elite blade of the southern realms. We command the shadows and harvest the light of fallen empires.</p>
+<div class="grid grid-cols-2 gap-4">
+<div class="bg-surface-container-low p-3 border-t border-outline-variant/20">
+<span class="block text-[10px] font-label text-outline uppercase mb-1">Guild Wealth</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#ffbf00] text-lg" style="font-variation-settings: 'FILL' 1;">payments</span>
+<span class="text-xl font-headline font-bold text-[#ffbf00] amber-glow">1.2M</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 border-t border-outline-variant/20">
+<span class="block text-[10px] font-label text-outline uppercase mb-1">Total Members</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#00ffff] text-lg">group</span>
+<span class="text-xl font-headline font-bold text-secondary">142</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 border-t border-outline-variant/20">
+<span class="block text-[10px] font-label text-outline uppercase mb-1">Avg Level</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-outline text-lg">trending_up</span>
+<span class="text-xl font-headline font-bold text-secondary">LV. 84</span>
+</div>
+</div>
+<div class="bg-surface-container-low p-3 border-t border-outline-variant/20">
+<span class="block text-[10px] font-label text-outline uppercase mb-1">Top Rank</span>
+<div class="flex items-center gap-2">
+<span class="material-symbols-outlined text-[#ffbf00] text-lg" style="font-variation-settings: 'FILL' 1;">military_tech</span>
+<span class="text-xl font-headline font-bold text-[#ffbf00] amber-glow">S-Tier</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+<!-- Rank Status Progress -->
+<section class="glass-panel p-5">
+<div class="flex justify-between items-end mb-3">
+<div>
+<h3 class="text-xs font-label font-bold uppercase text-outline mb-1">Global Standing</h3>
+<div class="text-lg font-headline font-bold text-secondary tracking-tight">Ascending to <span class="text-[#ffbf00]">Master II</span></div>
+</div>
+<div class="text-right">
+<span class="text-xs font-label text-on-surface-variant">88% Progress</span>
+</div>
+</div>
+<div class="h-3 bg-surface-container-lowest relative overflow-hidden">
+<div class="absolute top-0 left-0 h-full bg-[#ffbf00] shadow-[0_0_15px_rgba(255,191,0,0.6)]" style="width: 88%"></div>
+<div class="absolute top-0 left-0 h-full w-full bg-[linear-gradient(90deg,transparent_0%,rgba(255,255,255,0.1)_50%,transparent_100%)]"></div>
+</div>
+</section>
+<!-- Quick Actions -->
+<section class="grid grid-cols-3 gap-3">
+<button class="bg-surface-container-high border border-outline-variant/30 py-4 flex flex-col items-center justify-center gap-2 hover:bg-[#222a3d] transition-all active:scale-95">
+<span class="material-symbols-outlined text-[#00ffff]">share</span>
+<span class="text-[9px] font-label font-bold uppercase text-center">Copy<br/>Invite</span>
+</button>
+<button class="bg-surface-container-high border border-outline-variant/30 py-4 flex flex-col items-center justify-center gap-2 hover:bg-[#222a3d] transition-all active:scale-95">
+<span class="material-symbols-outlined text-[#ffbf00]">storefront</span>
+<span class="text-[9px] font-label font-bold uppercase text-center">Shop<br/>Mgmt</span>
+</button>
+<button class="bg-surface-container-high border border-outline-variant/30 py-4 flex flex-col items-center justify-center gap-2 hover:bg-[#222a3d] transition-all active:scale-95">
+<span class="material-symbols-outlined text-error">casino</span>
+<span class="text-[9px] font-label font-bold uppercase text-center">Reward<br/>Odds</span>
+</button>
+</section>
+<!-- Member Highlights -->
+<section class="space-y-4">
+<div class="flex justify-between items-center">
+<h3 class="text-sm font-headline font-bold uppercase tracking-widest text-[#00ffff] cyan-glow">Top Operatives</h3>
+<span class="text-[10px] font-label text-outline-variant font-bold uppercase">View Roster</span>
+</div>
+<div class="space-y-3">
+<!-- Rank 1 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-2 border-[#ffbf00]">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Knight" class="w-12 h-12 grayscale" data-alt="Intense digital painting of a dark paladin with glowing cyan eyes and heavy ornate black metal armor" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBwnT5v0fP9GB__SIdD712b2ssqjUVqLKIslUvDKeRNah29Dnrds29R9eQWExU_GKphqcRlNdSZqJekNWg5cw2_zzSvVF_NgP5ezRkshSETMoI3qnzf58tE6EK2pPaCbLricKR4YSHN-xbs9EsvLF9-zb94BRfVv94H0IYeklmNulQ5n4Pa0VwUFwVEQzxP2EjZcmCIuoo_x7HBEf_mXVuZ8sqOzcl9JMhioOPs1A2F1s4vMeoVZeEhuR402O3Oqneu5C4b5xTdLJkb"/>
+<div class="absolute -bottom-1 -right-1 bg-[#ffbf00] w-5 h-5 flex items-center justify-center text-[10px] font-bold text-on-primary">1</div>
+</div>
+<div>
+<div class="text-secondary font-bold text-sm">Vaelen Thorne</div>
+<div class="text-[10px] font-label text-[#ffbf00] font-bold uppercase tracking-tighter">Grand Archon</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-headline font-bold text-secondary">42.5K</div>
+<div class="text-[9px] font-label text-outline uppercase">Gold Earned</div>
+</div>
+</div>
+<!-- Rank 2 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-2 border-[#dae2fd]/30">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Rogue" class="w-12 h-12 grayscale" data-alt="Portrait of a female elven rogue with silver hair, intricate leather gear, and glowing magical daggers, dark mood" src="https://lh3.googleusercontent.com/aida-public/AB6AXuBD3nI7_RwB5voRR2peaH8UBSZi9qwc4TB4fnGlBdpn6C5XUCjXjibRXWvkJZ4ewivENFhORWPpbd6RMENEYv_hnc3BQ0XHHpOZV3yKRHPOKDuS8A4oUNNjsBQl9t918ZzWHbME-PUmFQ0b91rklRhVWGaF0DD-zKaRRgsU4CGCLI1NUGqsJIgLi80IU_cj-c7lcqHhUF9WhnzyY9cR69OQq8LEsp7QJNqxiVWNJnS5L1Z1SGxhtnoXhG1_B0qz4CkDuBiceceYgdjZ"/>
+<div class="absolute -bottom-1 -right-1 bg-[#dae2fd] w-5 h-5 flex items-center justify-center text-[10px] font-bold text-surface">2</div>
+</div>
+<div>
+<div class="text-secondary font-bold text-sm">Nyx Shadowstep</div>
+<div class="text-[10px] font-label text-on-surface-variant font-bold uppercase tracking-tighter">Void Stalker</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-headline font-bold text-secondary">38.1K</div>
+<div class="text-[9px] font-label text-outline uppercase">Gold Earned</div>
+</div>
+</div>
+<!-- Rank 3 -->
+<div class="glass-panel p-4 flex items-center justify-between border-l-2 border-[#504532]">
+<div class="flex items-center gap-4">
+<div class="relative">
+<img alt="Mage" class="w-12 h-12 grayscale" data-alt="Elderly wizard with flowing beard and celestial robes, casting a blue magic spell, dark parchment style background" src="https://lh3.googleusercontent.com/aida-public/AB6AXuD-SN0hVLzDVX6fD9j7qq5uCAd9L5nlO6fMFLsybTzTHFVqgas_7KQW25viGrOB5_B2yF0ZF6Q_L2lMkyOjSzxBbCetLFLWOoqmVlOwXTCYIQntBgDvQCmgd1Jj8kWTpXUZGRgucYp-IopY08rKn1xwLtdphWtZzJJ_9SSjmaiY5BZSvFZhbzXTVrppA5kD-pkbVRP1n_BcfF_Re3FpfRJHLObDGsYvOLhdVJxjFBQYzCKO7AbI1DdggkEgF4R_XXsDtXVd4U5dN9-z"/>
+<div class="absolute -bottom-1 -right-1 bg-[#504532] w-5 h-5 flex items-center justify-center text-[10px] font-bold text-white">3</div>
+</div>
+<div>
+<div class="text-secondary font-bold text-sm">Malthazar Prime</div>
+<div class="text-[10px] font-label text-on-surface-variant font-bold uppercase tracking-tighter">Solar Weaver</div>
+</div>
+</div>
+<div class="text-right">
+<div class="text-sm font-headline font-bold text-secondary">29.8K</div>
+<div class="text-[9px] font-label text-outline uppercase">Gold Earned</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- BottomNavBar -->
+<nav class="fixed bottom-0 left-0 w-full z-50 flex justify-around items-center px-4 pb-safe h-20 bg-[#0b1326] shadow-[0_-4px_20px_rgba(0,0,0,0.5)] border-t border-[#504532]/20">
+<!-- Hub (Active) -->
+<a class="flex flex-col items-center justify-center text-[#00ffff] drop-shadow-[0_0_10px_rgba(0,255,255,0.3)] border-t-2 border-[#00ffff] pt-2 transition-all duration-200 hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">grid_view</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Hub</span>
+</a>
+<!-- Members -->
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all duration-200 hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined">group</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Members</span>
+</a>
+<!-- Missions -->
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all duration-200 hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined">swords</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Missions</span>
+</a>
+<!-- Logs -->
+<a class="flex flex-col items-center justify-center text-[#dae2fd]/60 pt-2 transition-all duration-200 hover:bg-[#222a3d]/50" href="#">
+<span class="material-symbols-outlined">history</span>
+<span class="font-['Inter'] text-[10px] font-bold uppercase tracking-tighter mt-1">Logs</span>
+</a>
+</nav>
+<!-- System Message Toast (Decorative) -->
+<div class="fixed bottom-24 left-1/2 -translate-x-1/2 w-[90%] glass-panel py-2 px-4 flex items-center gap-3 border border-[#00ffff]/20">
+<span class="w-2 h-2 rounded-full bg-[#00ffff] animate-pulse"></span>
+<span class="text-[10px] font-label text-secondary uppercase tracking-widest">System Online: All units accounted for.</span>
+</div>
+</body></html>

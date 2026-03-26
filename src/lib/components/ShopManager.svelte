@@ -101,7 +101,7 @@
           openForm();
         }
       }}
-      class="app-button app-button-primary px-4 py-2 text-sm"
+      class="app-button app-button-primary w-full px-4 py-3 text-sm sm:w-auto sm:py-2"
     >
       <Plus size={16} />
       {isFormOpen ? "닫기" : "상품 등록"}
@@ -110,7 +110,7 @@
 
   {#if isFormOpen}
     <div class="border-b border-white/8 py-5" transition:slide>
-      <div class="mb-4 flex items-center justify-between">
+      <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div class="app-stitch-tag text-cyan-100">{editingItemId ? "상품 수정" : "새 상품 등록"}</div>
         {#if editingItemId}
           <button

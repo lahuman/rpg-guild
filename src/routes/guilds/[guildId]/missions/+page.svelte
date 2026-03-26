@@ -213,7 +213,7 @@
       </div>
     </div>
 
-    <div class="mt-5 flex items-center justify-between rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100">
+    <div class="mt-5 flex flex-col items-start justify-between gap-1 rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100 sm:flex-row sm:items-center">
       <span>Available Missions</span>
       <span>{sortedMissions.length} Entries</span>
     </div>
@@ -338,7 +338,7 @@
           </div>
         </label>
 
-        <div class="md:col-span-2 flex justify-end gap-2">
+        <div class="md:col-span-2 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
           <button
             on:click={() => {
               isCreating = false;
@@ -392,9 +392,9 @@
             </div>
           </div>
 
-          <div class="flex items-start justify-between gap-3">
+          <div class="flex flex-col items-start justify-between gap-3 sm:flex-row">
             <h3 class={`text-xl font-semibold ${isSoldOut ? "text-slate-400 line-through" : "text-white"}`}>{mission.title}</h3>
-            <div class="shrink-0 text-right">
+            <div class="shrink-0 text-left sm:text-right">
               <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Reward</div>
               <div class="mt-1 text-sm font-bold text-amber-300">{mission.cost} G</div>
             </div>
@@ -407,7 +407,7 @@
             </div>
           {/if}
 
-          <div class="mt-5 grid grid-cols-2 gap-3">
+          <div class="mt-5 grid gap-3 sm:grid-cols-2">
             <div class="app-ledger-panel px-4 py-3">
               <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Reward</div>
               <div class="mt-2 text-2xl font-bold text-amber-200">{mission.cost} G</div>
@@ -496,7 +496,7 @@
           {/if}
         </div>
 
-        <div class="mt-5 flex flex-col gap-2 border-t border-white/8 pt-5 sm:flex-row">
+        <div class="modal-action-row mt-5 flex flex-col gap-2 border-t border-white/8 pt-5 sm:flex-row">
           <button on:click={() => (selectedMission = null)} class="app-button app-button-secondary flex-1 px-4 py-3 text-sm">
             취소
           </button>

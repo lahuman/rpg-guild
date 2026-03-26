@@ -1,6 +1,6 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { onDestroy } from "svelte";
+  import { onDestroy, tick } from "svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
   import { JOB_ICONS, createCharacterForm, notifyError, requireRouteParam } from "$lib";
@@ -41,6 +41,7 @@
   let shoppingChar: GuildCharacter | null = null;
   let showShopManager = false;
   let newChar: Partial<GuildCharacter> = createCharacterForm();
+  let shopModalBody: HTMLDivElement | null = null;
 
   function getRankStyle(level = 1) {
     if (level >= 30) {
@@ -118,6 +119,12 @@
     } catch (error) {
       notifyError(error, "아이템 구매에 실패했습니다.");
     }
+  }
+
+  async function toggleShopManagerMode() {
+    showShopManager = !showShopManager;
+    await tick();
+    shopModalBody?.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   onDestroy(() => {
@@ -199,7 +206,7 @@
         </div>
       </div>
 
-      <div class="mt-5 flex justify-end gap-2">
+      <div class="mt-5 flex flex-col-reverse gap-2 sm:flex-row sm:justify-end">
         <button on:click={() => (isCreating = false)} class="app-button app-button-secondary px-4 py-3 text-sm">
           취소
         </button>
@@ -222,8 +229,8 @@
         {@const style = getRankStyle(char.level)}
         {@const hasCheckedInToday = char.lastCheckInDate === today}
         {@const gradeInfo = getGradeInfo(char.grade)}
-        <article class={`app-card app-ledger-panel app-ledger-lines flex flex-col p-5 md:p-6 transition hover:-translate-y-1 ${style.border} ${style.glow}`}>
-          <div class="flex items-start justify-between gap-4">
+        <article class={`member-card app-card app-ledger-panel app-ledger-lines flex flex-col p-5 md:p-6 transition hover:-translate-y-1 ${style.border} ${style.glow}`}>
+          <div class="member-card-head flex items-start justify-between gap-4">
             <div>
               <div class={`app-stitch-tag ${style.badge}`}>
                 {JOB_ICONS[char.jobClass] || "❓"} {char.jobClass}
@@ -260,7 +267,7 @@
             </p>
           </div>
 
-          <div class="mt-5 grid gap-3 grid-cols-2">
+          <div class="member-card-stats mt-5 grid grid-cols-2 gap-3">
             <div class="rounded-2xl border border-white/10 bg-white/4 px-4 py-3">
               <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Gold</div>
               <div class="mt-2 flex items-center gap-2 text-2xl font-bold text-amber-200">
@@ -323,8 +330,8 @@
   {/if}
 
   {#if editingChar}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md">
-      <div class="app-modal app-modal-scroll w-full max-w-lg p-5 md:p-7">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-4 backdrop-blur-md">
+      <div class="member-edit-modal app-modal app-modal-scroll w-full max-w-lg p-4 sm:p-5 md:p-7">
         <div class="flex items-center justify-between gap-4 border-b border-white/8 pb-5">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Edit Character</div>
@@ -363,7 +370,7 @@
           </div>
         </div>
 
-        <div class="mt-5 flex justify-end gap-2 border-t border-white/8 pt-5">
+        <div class="modal-action-row mt-5 flex justify-end gap-2 border-t border-white/8 pt-5">
           <button on:click={() => (editingChar = null)} class="app-button app-button-secondary px-4 py-3 text-sm">
             취소
           </button>
@@ -376,8 +383,8 @@
   {/if}
 
   {#if shoppingChar}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-4 backdrop-blur-md">
-      <div class="app-modal app-modal-scroll w-full max-w-4xl p-5 md:p-7">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 sm:p-4 backdrop-blur-md">
+      <div bind:this={shopModalBody} class="shop-modal app-modal app-modal-scroll w-full max-w-4xl p-4 sm:p-5 md:p-7">
         <div class="flex flex-col gap-4 border-b border-white/8 pb-5 md:flex-row md:items-start md:justify-between">
           <div>
             <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Gold Shop</div>
@@ -385,16 +392,19 @@
             <p class="mt-2 text-sm text-slate-400">
               현재 보유 골드 <span class="font-semibold text-amber-200">{shoppingChar.currentGold?.toLocaleString() || 0} G</span>
             </p>
+            <p class="mt-2 text-xs uppercase tracking-[0.16em] text-cyan-200/80">
+              {showShopManager ? "현재 모드: 상품 관리" : "현재 모드: 구매 목록"}
+            </p>
           </div>
 
-          <div class="flex gap-2">
+          <div class="modal-action-row flex gap-2">
             <button
-              on:click={() => (showShopManager = !showShopManager)}
+              on:click={toggleShopManagerMode}
               class="app-button app-button-secondary px-4 py-3 text-sm"
             >
-              {showShopManager ? "구매 모드" : "상품 관리"}
+              {showShopManager ? "구매 목록 보기" : "상품 관리 열기"}
             </button>
-            <button on:click={() => (shoppingChar = null)} class="app-button app-button-secondary px-4 py-3 text-sm">
+            <button on:click={() => { shoppingChar = null; showShopManager = false; }} class="app-button app-button-secondary px-4 py-3 text-sm">
               닫기
             </button>
           </div>
@@ -409,7 +419,7 @@
             등록된 상품이 없습니다. 상단의 `상품 관리`에서 아이템을 추가하세요.
           </div>
         {:else}
-          <div class="mt-5 grid gap-3 md:grid-cols-2">
+          <div class="shop-grid mt-5 grid gap-3 md:grid-cols-2">
             {#each shopItems as item (item.id)}
               {@const canAfford = (shoppingChar.currentGold || 0) >= item.cost}
               <button
@@ -417,13 +427,13 @@
                 disabled={!canAfford}
                 class={`rounded-[1.2rem] border p-4 text-left transition ${canAfford ? "border-white/10 bg-white/4 hover:bg-white/6" : "border-white/8 bg-white/4 opacity-45"}`}
               >
-                <div class="flex items-start justify-between gap-4">
-                  <div class="flex items-center gap-3">
+                <div class="shop-item-card flex items-start justify-between gap-4">
+                  <div class="flex min-w-0 items-center gap-3">
                     <div class="flex h-12 w-12 items-center justify-center rounded-2xl border border-white/8 bg-slate-950/40 text-2xl">
                       {item.icon}
                     </div>
-                    <div>
-                      <div class="flex items-center gap-2 font-semibold text-white">
+                    <div class="min-w-0">
+                      <div class="flex flex-wrap items-center gap-2 font-semibold text-white">
                         {item.name}
                         {#if item.isOneTime}
                           <span class="rounded-full bg-rose-300/12 px-2 py-0.5 text-[11px] text-rose-200">1회용</span>

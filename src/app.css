@@ -50,6 +50,8 @@ body {
   color: var(--text-strong);
   background: transparent;
   -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
+  overscroll-behavior-y: contain;
 }
 
 #svelte {
@@ -287,6 +289,8 @@ body {
 .app-modal-scroll {
   max-height: min(88vh, 52rem);
   overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
 }
 
 .app-hud {
@@ -399,7 +403,10 @@ body {
   gap: 0.65rem;
   border-radius: 999px;
   padding: 0.95rem 1.25rem;
+  min-height: 2.75rem;
   font-weight: 700;
+  touch-action: manipulation;
+  user-select: none;
   transition:
     transform 180ms ease,
     background-color 180ms ease,
@@ -798,7 +805,10 @@ body {
   background: rgba(3, 7, 18, 0.5);
   color: var(--text-strong);
   padding: 0.95rem 1rem;
+  font-size: 1rem;
+  line-height: 1.4;
   outline: none;
+  -webkit-appearance: none;
   transition:
     border-color 180ms ease,
     box-shadow 180ms ease,
@@ -809,6 +819,15 @@ body {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 0.5rem;
+}
+
+.modal-action-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.modal-action-row > * {
+  min-height: 2.9rem;
 }
 
 .app-input::placeholder,
@@ -1151,9 +1170,34 @@ body {
     width: min(100% - 1rem, 1200px);
   }
 
+  .app-shell::before {
+    top: 4rem;
+    left: -6rem;
+    width: 12rem;
+    height: 12rem;
+  }
+
+  .app-shell::after {
+    top: 12rem;
+    right: -5rem;
+    width: 14rem;
+    height: 14rem;
+  }
+
   .app-topbar-inner {
     padding-left: 0.15rem;
     padding-right: 0.15rem;
+  }
+
+  .app-topbar-inner::after {
+    left: 0.35rem;
+    right: 0.35rem;
+  }
+
+  .app-topbar-mark {
+    height: 2.6rem;
+    width: 2.6rem;
+    border-radius: 0.85rem;
   }
 
   .app-panel,
@@ -1164,6 +1208,7 @@ body {
 
   .app-button {
     padding: 0.9rem 1rem;
+    min-height: 2.9rem;
   }
 
   .app-hero,
@@ -1174,12 +1219,20 @@ body {
     border-radius: 1.4rem;
   }
 
+  .app-hero::before,
+  .app-workspace::before,
+  .app-hero::after,
+  .app-workspace::after {
+    filter: blur(42px);
+  }
+
   .app-modal {
     padding: 1rem;
   }
 
   .app-modal-scroll {
     max-height: min(90vh, 100%);
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
   .app-hud,
@@ -1192,6 +1245,11 @@ body {
   .app-ledger-panel,
   .app-log-card {
     border-radius: 1rem;
+  }
+
+  .app-ledger-panel::before,
+  .app-card::after {
+    inset: 0.65rem;
   }
 
   .app-command-strip {
@@ -1207,6 +1265,11 @@ body {
     padding: 0.8rem 0.65rem;
   }
 
+  .app-rank-emblem {
+    min-width: 4.5rem;
+    padding: 0.75rem 0.7rem;
+  }
+
   .app-rank-pill,
   .app-stitch-tag,
   .app-log-pill {
@@ -1218,6 +1281,11 @@ body {
   .app-trend-col {
     min-height: 8.6rem;
     gap: 0.45rem;
+  }
+
+  .app-trend-value,
+  .app-trend-label {
+    font-size: 0.68rem;
   }
 
   .app-trend-track {
@@ -1233,6 +1301,11 @@ body {
   .app-calendar-day {
     min-height: 4.8rem;
     padding: 0.55rem 0.2rem;
+  }
+
+  .app-calendar-day .text-\[11px\] {
+    font-size: 0.6rem;
+    line-height: 1.2;
   }
 
   .app-calendar-day .text-sm {
@@ -1261,8 +1334,20 @@ body {
     font-size: 0.72rem;
   }
 
+  .app-brass-coin,
+  .app-seal {
+    min-width: 2.75rem;
+    height: 2.75rem;
+  }
+
   .app-textarea {
     min-height: 96px;
+  }
+
+  .app-input,
+  .app-textarea,
+  .app-select {
+    font-size: 16px;
   }
 
   .section-title {
@@ -1271,6 +1356,11 @@ body {
 
   .touch-grid-2 {
     grid-template-columns: 1fr;
+  }
+
+  .app-filter-chip {
+    flex: 1 1 calc(50% - 0.5rem);
+    min-width: 0;
   }
 
   .guild-tabs {
@@ -1287,6 +1377,291 @@ body {
   .guild-tabs a {
     white-space: nowrap;
     padding: 0.78rem 0.92rem;
+  }
+}
+
+@media (max-width: 430px) {
+  .page-wrap {
+    width: min(100% - 0.75rem, 1200px);
+  }
+
+  .app-topbar-inner {
+    gap: 0.6rem;
+  }
+
+  .app-topbar-mark {
+    height: 2.35rem;
+    width: 2.35rem;
+  }
+
+  .app-button {
+    gap: 0.45rem;
+    padding: 0.82rem 0.9rem;
+    font-size: 0.82rem;
+    min-height: 3rem;
+  }
+
+  .app-command-button {
+    letter-spacing: 0.08em;
+  }
+
+  .app-metal-stat {
+    padding: 0.9rem 0.95rem;
+  }
+
+  .app-metal-stat .text-3xl,
+  .logs-summary-grid .text-3xl,
+  .guild-stat-grid .text-2xl {
+    font-size: 1.55rem;
+    line-height: 1.15;
+  }
+
+  .landing-hero-title {
+    font-size: 2.05rem;
+  }
+
+  .guild-hero-title,
+  .logs-hero-title {
+    font-size: 1.8rem;
+    line-height: 1.05;
+  }
+
+  .landing-code-input {
+    font-size: 1rem;
+    letter-spacing: 0.12em;
+    padding-left: 0.7rem;
+    padding-right: 0.7rem;
+  }
+
+  .guild-stat-grid,
+  .logs-summary-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .logs-title-row {
+    align-items: flex-start;
+  }
+
+  .logs-view-toggle {
+    grid-template-columns: 1fr;
+  }
+
+  .logs-week-grid,
+  .logs-calendar-head,
+  .logs-calendar-grid {
+    gap: 0.25rem;
+  }
+
+  .member-card-head {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.9rem;
+  }
+
+  .member-card-stats {
+    grid-template-columns: 1fr;
+  }
+
+  .log-entry {
+    padding: 0.8rem 0.85rem;
+  }
+
+  .log-entry .app-stitch-tag {
+    align-self: stretch;
+    justify-content: center;
+  }
+
+  .day-detail-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .modal-action-row {
+    flex-direction: column-reverse;
+  }
+
+  .modal-action-row > * {
+    width: 100%;
+  }
+
+  .guild-tabs a,
+  .app-filter-chip {
+    min-height: 2.75rem;
+  }
+
+  .shop-item-card {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .app-calendar-day {
+    min-height: 4.15rem;
+    border-radius: 0.85rem;
+    padding: 0.45rem 0.1rem;
+  }
+
+  .app-trend-col {
+    min-height: 7.8rem;
+  }
+
+  .app-trend-track {
+    height: 4.65rem;
+    border-radius: 0.8rem;
+    padding: 0.3rem;
+  }
+
+  .app-filter-shell {
+    padding: 0.8rem 0.85rem;
+  }
+
+  .app-filter-chip {
+    padding: 0.66rem 0.8rem;
+    font-size: 0.76rem;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-button {
+    font-size: 0.78rem;
+  }
+
+  .app-brass-coin,
+  .app-seal {
+    min-width: 2.45rem;
+    height: 2.45rem;
+  }
+
+  .app-input,
+  .app-textarea,
+  .app-select {
+    padding: 0.9rem 0.9rem;
+  }
+
+  .landing-hero-title {
+    font-size: 1.82rem;
+  }
+
+  .guild-hero-title,
+  .logs-hero-title {
+    font-size: 1.6rem;
+  }
+
+  .landing-code-input {
+    font-size: 0.92rem;
+    letter-spacing: 0.08em;
+  }
+
+  .app-stitch-tag,
+  .app-rank-pill,
+  .app-log-pill,
+  .eyebrow {
+    letter-spacing: 0.04em;
+  }
+
+  .dashboard-action-grid .text-lg,
+  .logs-summary-grid .text-lg,
+  .guild-stat-grid .text-sm {
+    line-height: 1.3;
+  }
+
+  .member-card {
+    padding: 1rem 0.95rem;
+  }
+
+  .member-card .text-2xl,
+  .shop-grid .text-2xl,
+  .calendar-panel .text-2xl,
+  .day-detail-panel .text-2xl {
+    font-size: 1.28rem;
+  }
+
+  .member-card .text-sm,
+  .log-entry .text-sm,
+  .settings-modal .text-sm,
+  .shop-modal .text-sm,
+  .member-edit-modal .text-sm {
+    line-height: 1.45;
+  }
+
+  .app-calendar-day {
+    min-height: 3.85rem;
+    padding: 0.38rem 0.05rem;
+  }
+
+  .app-calendar-day .text-\[11px\] {
+    font-size: 0.55rem;
+  }
+
+  .logs-calendar-head {
+    font-size: 0.62rem;
+    letter-spacing: 0.02em;
+  }
+
+  .logs-week-grid .app-trend-value,
+  .logs-week-grid .app-trend-label {
+    font-size: 0.62rem;
+  }
+}
+
+@media (max-width: 360px) {
+  .page-wrap {
+    width: min(100% - 0.5rem, 1200px);
+  }
+
+  .app-topbar-inner {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .app-panel,
+  .app-panel-strong,
+  .app-card,
+  .app-hero,
+  .app-workspace,
+  .app-modal {
+    border-radius: 1.15rem;
+  }
+
+  .landing-hero-title {
+    font-size: 1.68rem;
+  }
+
+  .guild-hero-title,
+  .logs-hero-title {
+    font-size: 1.45rem;
+  }
+
+  .landing-code-input {
+    font-size: 0.86rem;
+    letter-spacing: 0.04em;
+  }
+
+  .app-button {
+    padding: 0.78rem 0.82rem;
+    min-height: 2.85rem;
+  }
+
+  .member-card,
+  .settings-modal,
+  .member-edit-modal,
+  .shop-modal {
+    padding: 0.9rem;
+  }
+
+  .logs-week-grid,
+  .logs-calendar-head,
+  .logs-calendar-grid {
+    gap: 0.2rem;
+  }
+
+  .app-trend-track {
+    height: 4rem;
+    padding: 0.25rem;
+  }
+
+  .app-calendar-day {
+    min-height: 3.55rem;
   }
 }
 

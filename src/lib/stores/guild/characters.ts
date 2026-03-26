@@ -104,7 +104,7 @@ export function createCharacterActions() {
 
             await runTransaction(db, async (transaction) => {
                 const charDoc = await transaction.get(charRef);
-                if (!charDoc.exists()) throw new Error('Character not found');
+                if (!charDoc.exists()) throw new Error('캐릭터가 존재하지 않습니다.');
 
                 const data = charDoc.data() as GuildCharacter;
                 if (data.lastMiniGameDate === today) throw new Error('이미 오늘 등급전에 참여했습니다.');
@@ -124,7 +124,11 @@ export function createCharacterActions() {
                 }
 
                 const nextGrade = GRADE_ORDER[nextGradeIndex];
-                const newGold = (data.currentGold || 0) + rewardGold;
+                const currentGradeInfo = getGradeInfo(currentGrade);
+                const nextGradeInfo = getGradeInfo(nextGrade);
+                const characterName = data.name?.trim() || '이름 없는 캐릭터';
+                const currentGold = typeof data.currentGold === 'number' ? data.currentGold : 0;
+                const newGold = currentGold + rewardGold;
 
                 transaction.update(charRef, {
                     grade: nextGrade,
@@ -134,12 +138,12 @@ export function createCharacterActions() {
 
                 transaction.set(gradeLogRef, {
                     characterId: charId,
-                    characterName: data.name,
+                    characterName,
                     previousGrade: currentGrade,
-                    previousGradeLabel: getGradeInfo(currentGrade).label,
+                    previousGradeLabel: currentGradeInfo.label,
                     nextGrade,
-                    nextGradeLabel: getGradeInfo(nextGrade).label,
-                    challengeTitle: getGradeChallenge(currentGrade).title,
+                    nextGradeLabel: nextGradeInfo.label,
+                    challengeTitle: currentGradeInfo.challenge.title,
                     result,
                     rewardGold,
                     penaltySteps,
