@@ -4,7 +4,7 @@
   import { onDestroy } from "svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
-  import { confirmAction, notify, notifyError, requireRouteParam, toDateOrNull } from "$lib";
+  import { confirmAction, lockBodyScroll, notify, notifyError, requireRouteParam, toDateOrNull } from "$lib";
   import { getGradeInfo, guildStore, isMaxGrade, type GuildCharacter } from "$lib/stores/guildStore";
   import { userStore } from "$lib/stores/userStore";
   import {
@@ -53,6 +53,17 @@
   let isSavingSettings = false;
   let newBoxChance = 0.2;
   let newMaxBonusGold = 36;
+  let releaseBodyScrollLock: (() => void) | null = null;
+
+  $: hasOpenModal = showShopManager || isEditingSettings || Boolean(selectedCharForGame);
+  $: {
+    if (hasOpenModal && !releaseBodyScrollLock) {
+      releaseBodyScrollLock = lockBodyScroll();
+    } else if (!hasOpenModal && releaseBodyScrollLock) {
+      releaseBodyScrollLock();
+      releaseBodyScrollLock = null;
+    }
+  }
 
   function toggleShopManagerPanel() {
     showShopManager = !showShopManager;
@@ -153,6 +164,7 @@
   }
 
   onDestroy(() => {
+    releaseBodyScrollLock?.();
     unsubscribe();
   });
 </script>
@@ -389,7 +401,7 @@
                 </div>
               </div>
 
-              <div class="w-full shrink-0 text-left sm:min-w-[5.5rem] sm:text-right">
+              <div class="w-full shrink-0 text-left sm:w-auto sm:min-w-[5.5rem] sm:text-right">
                 <div class="text-[11px] uppercase tracking-[0.2em] text-slate-500">Status</div>
                 <div class="mt-2 text-sm font-semibold text-amber-200">{character.currentGold || 0} G</div>
                 <div class={`app-stitch-tag mt-2 text-[11px] ${isMaxGrade(character.grade) ? "text-amber-100" : "text-cyan-100"}`}>
@@ -429,7 +441,7 @@
 
   {#if isEditingSettings}
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-3 sm:p-4 backdrop-blur-md">
-      <div class="settings-modal app-modal app-ledger-panel w-full max-w-lg p-4 sm:p-6 md:p-7">
+      <div class="settings-modal app-modal app-ledger-panel app-modal-scroll w-full max-w-lg p-4 sm:p-6 md:p-7">
         <div class="border-b border-white/8 pb-5">
           <div class="text-sm uppercase tracking-[0.18em] text-slate-500">Reward Rules</div>
           <h3 class="mt-2 text-2xl font-semibold text-white">길드 보상 설정</h3>

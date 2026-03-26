@@ -3,7 +3,7 @@
   import { onDestroy } from "svelte";
   import { quintOut } from "svelte/easing";
   import { fade, scale } from "svelte/transition";
-  import { JOB_ICONS, createMissionForm, notifyError, requireRouteParam } from "$lib";
+  import { JOB_ICONS, createMissionForm, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     completeMissionAction,
     deleteMissionAction,
@@ -55,6 +55,17 @@
   let showChestModal = false;
   let chestOpened = false;
   let chestBonus = 0;
+  let releaseBodyScrollLock: (() => void) | null = null;
+
+  $: hasOpenModal = Boolean(selectedMission || showChestModal);
+  $: {
+    if (hasOpenModal && !releaseBodyScrollLock) {
+      releaseBodyScrollLock = lockBodyScroll();
+    } else if (!hasOpenModal && releaseBodyScrollLock) {
+      releaseBodyScrollLock();
+      releaseBodyScrollLock = null;
+    }
+  }
 
   function resetForm() {
     const resetState = resetMissionFormAction();
@@ -166,6 +177,7 @@
   }
 
   onDestroy(() => {
+    releaseBodyScrollLock?.();
     unsubMissions();
     unsubStatus();
     unsubGuild();

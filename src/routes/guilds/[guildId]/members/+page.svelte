@@ -3,7 +3,7 @@
   import { onDestroy, tick } from "svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
-  import { JOB_ICONS, createCharacterForm, notifyError, requireRouteParam } from "$lib";
+  import { JOB_ICONS, createCharacterForm, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     checkInCharacterAction,
     createCharacterAction,
@@ -42,6 +42,17 @@
   let showShopManager = false;
   let newChar: Partial<GuildCharacter> = createCharacterForm();
   let shopModalBody: HTMLDivElement | null = null;
+  let releaseBodyScrollLock: (() => void) | null = null;
+
+  $: hasOpenModal = Boolean(editingChar || shoppingChar || selectedCharForGame);
+  $: {
+    if (hasOpenModal && !releaseBodyScrollLock) {
+      releaseBodyScrollLock = lockBodyScroll();
+    } else if (!hasOpenModal && releaseBodyScrollLock) {
+      releaseBodyScrollLock();
+      releaseBodyScrollLock = null;
+    }
+  }
 
   function getRankStyle(level = 1) {
     if (level >= 30) {
@@ -128,6 +139,7 @@
   }
 
   onDestroy(() => {
+    releaseBodyScrollLock?.();
     if (unsubscribeGuild) unsubscribeGuild();
     if (unsubscribeItems) unsubscribeItems();
   });

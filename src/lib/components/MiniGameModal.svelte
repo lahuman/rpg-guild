@@ -1,7 +1,7 @@
 <script lang="ts">
-  import { createEventDispatcher } from "svelte";
+  import { createEventDispatcher, onDestroy } from "svelte";
   import { Sparkles, Trophy, X } from "lucide-svelte";
-  import { getErrorMessage } from "$lib";
+  import { getErrorMessage, lockBodyScroll } from "$lib";
   import {
     GRADE_ORDER,
     getGradeChallenge,
@@ -20,6 +20,7 @@
   export let characterGrade: GuildCharacter["grade"];
 
   const dispatch = createEventDispatcher();
+  const releaseBodyScrollLock = lockBodyScroll();
   const runeSet = ["✦", "✧", "✪", "✹", "✺", "❖", "⬢", "⬡"];
 
   let gameStep: "intro" | "playing" | "result" | "max" = "intro";
@@ -243,39 +244,44 @@
       isSubmitting = false;
     }
   }
+
+  onDestroy(() => {
+    releaseBodyScrollLock();
+  });
 </script>
 
-<div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/80 p-4 backdrop-blur-md">
-  <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl overflow-hidden">
-    <div class="flex items-center justify-between border-b border-white/8 px-6 py-5">
-      <div>
-        <div class="app-stitch-tag">Grade Match</div>
-        <h3 class="mt-2 text-2xl font-semibold text-white">{characterName}의 등급전</h3>
-        <p class="mt-2 text-sm text-slate-400">
-          현재 등급 {gradeInfo.icon} {gradeInfo.label}
-          {#if !isFinalGrade}
-            <span class="mx-2 text-slate-600">→</span>
-            목표 {nextGradeInfo.icon} {nextGradeInfo.label}
-          {/if}
-        </p>
-      </div>
-      <button on:click={() => dispatch("close")} class="app-brass-coin p-2 text-slate-400 transition hover:text-white">
-        <X size={16} />
-      </button>
-    </div>
-
-    <div class="px-6 py-6">
-      {#if gameStep === "max"}
-        <div class="py-10 text-center">
-          <div class="mb-5 text-6xl">🔱</div>
-          <h4 class="text-3xl font-black text-indigo-200">{gradeInfo.label}</h4>
-          <p class="mx-auto mt-4 max-w-lg text-sm leading-6 text-slate-400">
-            이미 20단계 최고 등급에 도달했습니다. 더 이상 승급 시험은 없습니다.
+<div class="fixed inset-0 z-50 overflow-y-auto bg-slate-950/80 p-3 sm:p-4 backdrop-blur-md">
+  <div class="flex min-h-full items-start justify-center py-3 sm:items-center sm:py-4">
+    <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl overflow-x-hidden overflow-y-auto">
+      <div class="flex items-center justify-between border-b border-white/8 px-6 py-5">
+        <div>
+          <div class="app-stitch-tag">Grade Match</div>
+          <h3 class="mt-2 text-2xl font-semibold text-white">{characterName}의 등급전</h3>
+          <p class="mt-2 text-sm text-slate-400">
+            현재 등급 {gradeInfo.icon} {gradeInfo.label}
+            {#if !isFinalGrade}
+              <span class="mx-2 text-slate-600">→</span>
+              목표 {nextGradeInfo.icon} {nextGradeInfo.label}
+            {/if}
           </p>
-          <button on:click={() => dispatch("close")} class="app-button app-button-primary mt-8 px-6 py-3">
-            확인
-          </button>
         </div>
+        <button on:click={() => dispatch("close")} class="app-brass-coin p-2 text-slate-400 transition hover:text-white">
+          <X size={16} />
+        </button>
+      </div>
+
+      <div class="px-6 py-6">
+        {#if gameStep === "max"}
+          <div class="py-10 text-center">
+            <div class="mb-5 text-6xl">🔱</div>
+            <h4 class="text-3xl font-black text-indigo-200">{gradeInfo.label}</h4>
+            <p class="mx-auto mt-4 max-w-lg text-sm leading-6 text-slate-400">
+              이미 20단계 최고 등급에 도달했습니다. 더 이상 승급 시험은 없습니다.
+            </p>
+            <button on:click={() => dispatch("close")} class="app-button app-button-primary mt-8 px-6 py-3">
+              확인
+            </button>
+          </div>
       {:else if gameStep === "intro"}
         <div class="app-ledger-panel app-ledger-lines mb-6 px-5 py-4">
           <div class="flex items-center gap-2 text-white">
@@ -428,6 +434,7 @@
           </button>
         </div>
       {/if}
+    </div>
     </div>
   </div>
 </div>
