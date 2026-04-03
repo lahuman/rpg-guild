@@ -183,6 +183,55 @@ export function createCharacterActions() {
                     currentGold: currentGold - cost
                 });
             });
+        },
+
+        async transferGold(
+            guildId: string,
+            fromId: string,
+            toId: string,
+            amount: number,
+            reason: string
+        ) {
+            const currentUser = requireSignedInUser();
+            const fromRef = doc(db, `guilds/${guildId}/characters`, fromId);
+            const toRef = doc(db, `guilds/${guildId}/characters`, toId);
+            const logRef = doc(collection(db, `guilds/${guildId}/transfer_logs`));
+
+            await runTransaction(db, async (transaction) => {
+                const fromDoc = await transaction.get(fromRef);
+                const toDoc = await transaction.get(toRef);
+
+                if (!fromDoc.exists()) throw new Error('보내는 캐릭터가 존재하지 않습니다.');
+                if (!toDoc.exists()) throw new Error('받는 캐릭터가 존재하지 않습니다.');
+
+                const fromData = fromDoc.data();
+                const toData = toDoc.data();
+
+                if (fromId === toId) throw new Error('자신에게는 보낼 수 없습니다.');
+                if (amount <= 0) throw new Error('보낼 금액은 0보다 커야 합니다.');
+                if ((fromData.currentGold || 0) < amount) {
+                    throw new Error(`골드가 부족합니다! (보유: ${fromData.currentGold || 0} G)`);
+                }
+
+                transaction.update(fromRef, {
+                    currentGold: (fromData.currentGold || 0) - amount
+                });
+
+                transaction.update(toRef, {
+                    currentGold: (toData.currentGold || 0) + amount
+                });
+
+                transaction.set(logRef, {
+                    fromId,
+                    fromName: fromData.name,
+                    toId,
+                    toName: toData.name,
+                    amount,
+                    reason,
+                    transferredAt: serverTimestamp(),
+                    transferredByUserId: currentUser.uid
+                });
+            });
         }
     };
 }

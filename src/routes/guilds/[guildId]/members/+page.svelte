@@ -3,6 +3,7 @@
   import { onDestroy, tick } from "svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
+  import PointTransferModal from "$lib/components/PointTransferModal.svelte";
   import { JOB_ICONS, createCharacterForm, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     checkInCharacterAction,
@@ -18,6 +19,7 @@
     Coins,
     Crown,
     Pencil,
+    Send,
     ShoppingBag,
     Sparkles,
     Trash2,
@@ -38,13 +40,14 @@
   let isCreating = false;
   let editingChar: GuildCharacter | null = null;
   let selectedCharForGame: GuildCharacter | null = null;
+  let selectedCharForTransfer: GuildCharacter | null = null;
   let shoppingChar: GuildCharacter | null = null;
   let showShopManager = false;
   let newChar: Partial<GuildCharacter> = createCharacterForm();
   let shopModalBody: HTMLDivElement | null = null;
   let releaseBodyScrollLock: (() => void) | null = null;
 
-  $: hasOpenModal = Boolean(editingChar || shoppingChar || selectedCharForGame);
+  $: hasOpenModal = Boolean(editingChar || shoppingChar || selectedCharForGame || selectedCharForTransfer);
   $: {
     if (hasOpenModal && !releaseBodyScrollLock) {
       releaseBodyScrollLock = lockBodyScroll();
@@ -314,7 +317,15 @@
                 class="app-button border border-amber-300/20 bg-amber-300/10 px-4 py-3 text-sm text-amber-100"
               >
                 <ShoppingBag size={16} />
-                상점 이용
+                상점
+              </button>
+
+              <button
+                on:click={() => (selectedCharForTransfer = char)}
+                class="app-button border border-cyan-300/20 bg-cyan-300/10 px-4 py-3 text-sm text-cyan-100"
+              >
+                <Send size={16} />
+                양도
               </button>
             </div>
 
@@ -476,6 +487,15 @@
       characterName={selectedCharForGame.name}
       characterGrade={selectedCharForGame.grade}
       on:close={() => (selectedCharForGame = null)}
+    />
+  {/if}
+
+  {#if selectedCharForTransfer}
+    <PointTransferModal
+      guildId={guildId}
+      fromCharacter={selectedCharForTransfer}
+      allCharacters={characters}
+      on:close={() => (selectedCharForTransfer = null)}
     />
   {/if}
 </div>

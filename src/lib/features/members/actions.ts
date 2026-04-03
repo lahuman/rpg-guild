@@ -118,6 +118,36 @@ export async function purchaseShopItemAction(guildId: string, shoppingChar: Guil
     }
 }
 
+export async function transferGoldAction(
+    guildId: string,
+    fromId: string,
+    toId: string,
+    amount: number,
+    reason: string
+) {
+    if (!toId) {
+        notify('받는 캐릭터를 선택해주세요.');
+        return false;
+    }
+    if (amount <= 0) {
+        notify('양도할 금액을 입력해주세요.');
+        return false;
+    }
+    if (!reason.trim()) {
+        notify('양도 사유를 입력해주세요.');
+        return false;
+    }
+
+    try {
+        await guildStore.transferGold(guildId, fromId, toId, amount, reason);
+        notify('골드 양도가 완료되었습니다!');
+        return true;
+    } catch (e: any) {
+        notifyError(e.message || '양도 중 오류가 발생했습니다.');
+        return false;
+    }
+}
+
 export function openShopItemModal(item?: ShopItem) {
     if (item) {
         return {

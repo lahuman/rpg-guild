@@ -50,6 +50,11 @@ service cloud.firestore {
         allow read, create: if inGuild(guildId);
         allow update, delete: if false;
       }
+
+      match /transfer_logs/{logId} {
+        allow read, create: if inGuild(guildId);
+        allow update, delete: if false;
+      }
     }
   }
 }

@@ -3,7 +3,7 @@
   import { onMount } from "svelte";
   import { requireRouteParam } from "$lib";
   import { logStore } from "$lib/stores/logStore";
-  import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Coins, ScrollText, ShoppingBag, Shield, Sparkles, Users } from "lucide-svelte";
+  import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Coins, ScrollText, Send, ShoppingBag, Shield, Sparkles, Users } from "lucide-svelte";
 
   const guildId = requireRouteParam($page.params.guildId, "guildId");
 
@@ -12,7 +12,7 @@
   let currentLimit = 50;
   let viewMode: "timeline" | "calendar" = "timeline";
   let selectedCharacter = "all";
-  let selectedType: "all" | "mission" | "grade" | "usage" = "all";
+  let selectedType: "all" | "mission" | "grade" | "usage" | "transfer" = "all";
   let searchQuery = "";
   let selectedDate = "";
   let calendarMonth = new Date(new Date().getFullYear(), new Date().getMonth(), 1);
@@ -69,7 +69,7 @@
     date: Date,
     logs: Array<{
       dateStr: string;
-      type: "mission" | "usage" | "grade";
+      type: "mission" | "usage" | "grade" | "transfer";
       title: string;
       names: string[];
       amount: number;
@@ -138,12 +138,14 @@
   $: missionLogs = filteredLogs.filter((log) => log.type === "mission").length;
   $: gradeLogs = filteredLogs.filter((log) => log.type === "grade").length;
   $: usageLogs = filteredLogs.filter((log) => log.type === "usage").length;
+  $: transferLogs = filteredLogs.filter((log) => log.type === "transfer").length;
   $: activeDaysInMonth = new Set(monthLogs.map((log) => log.dateStr)).size;
   $: selectedDayLabel = selectedDate ? formatDate(selectedDate) : "";
   $: monthMissionLogs = monthLogs.filter((log) => log.type === "mission").length;
   $: monthGradeLogs = monthLogs.filter((log) => log.type === "grade").length;
   $: monthUsageLogs = monthLogs.filter((log) => log.type === "usage").length;
-  $: monthMaxTypeCount = Math.max(monthMissionLogs, monthGradeLogs, monthUsageLogs, 1);
+  $: monthTransferLogs = monthLogs.filter((log) => log.type === "transfer").length;
+  $: monthMaxTypeCount = Math.max(monthMissionLogs, monthGradeLogs, monthUsageLogs, monthTransferLogs, 1);
   $: weeklyTrend = Array.from({ length: 7 }, (_, index) => {
     const date = new Date();
     date.setHours(0, 0, 0, 0);
@@ -185,7 +187,7 @@
         </div>
       </div>
 
-      <div class="logs-summary-grid grid gap-3 grid-cols-2 xl:grid-cols-4">
+      <div class="logs-summary-grid grid gap-3 grid-cols-2 xl:grid-cols-5">
         <div class="app-metal-stat min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Entries</div>
           <div class="mt-2 text-3xl font-bold text-white">{totalLogs}</div>
@@ -201,6 +203,10 @@
         <div class="app-metal-stat app-metal-stat-rose min-w-0">
           <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Usage</div>
           <div class="mt-2 text-3xl font-bold text-rose-200">{usageLogs}</div>
+        </div>
+        <div class="app-metal-stat min-w-0">
+          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Transfer</div>
+          <div class="mt-2 text-3xl font-bold text-amber-200">{transferLogs}</div>
         </div>
       </div>
     </div>
@@ -236,6 +242,9 @@
           </button>
           <button on:click={() => (selectedType = "usage")} class={`app-filter-chip ${selectedType === "usage" ? "app-filter-chip-active app-filter-chip-rose" : ""}`}>
             사용
+          </button>
+          <button on:click={() => (selectedType = "transfer")} class={`app-filter-chip ${selectedType === "transfer" ? "app-filter-chip-active app-filter-chip-amber" : ""}`}>
+            양도
           </button>
         </div>
 
@@ -322,34 +331,43 @@
 
           <div class="space-y-3">
             {#each group.logs as log}
-              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
+              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : log.type === "transfer" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div class="flex min-w-0 items-start gap-3">
-                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
+                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
                       {#if log.type === "mission"}
                         <Shield size={20} />
                       {:else if log.type === "grade"}
                         <Sparkles size={20} />
+                      {:else if log.type === "transfer"}
+                        <Send size={20} />
                       {:else}
                         <ShoppingBag size={20} />
                       {/if}
                     </div>
 
                     <div class="min-w-0">
-                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
-                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : "Usage"}
+                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : log.type === "transfer" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
+                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : log.type === "transfer" ? "Transfer" : "Usage"}
                       </div>
                       <div class="font-semibold text-white">{log.title}</div>
                       <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
-                        <span class="text-slate-300">{log.names.join(", ")}</span>
-                        {log.type === "mission" ? " 수행" : log.type === "grade" ? " 등급전" : " 구매"}
+                        {#if log.type === "transfer"}
+                          <span class="text-slate-300">{log.names[0]}</span>
+                          <span class="mx-1 text-slate-500">→</span>
+                          <span class="text-slate-300">{log.names[1]}</span>
+                          <span> 골드 양도</span>
+                        {:else}
+                          <span class="text-slate-300">{log.names.join(", ")}</span>
+                          {log.type === "mission" ? " 수행" : log.type === "grade" ? " 등급전" : " 구매"}
+                        {/if}
                         <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
                         <span class="block sm:inline">{log.timeStr}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
+                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
                     <Coins size={15} />
                     {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
                   </div>
@@ -473,33 +491,42 @@
         {:else}
           <div class="mt-5 space-y-3">
             {#each selectedDateLogs as log}
-              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : "app-log-card-usage"}`}>
+              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : log.type === "transfer" ? "app-log-card-grade" : "app-log-card-usage"}`}>
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div class="flex min-w-0 items-start gap-3">
-                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
+                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
                       {#if log.type === "mission"}
                         <Shield size={20} />
                       {:else if log.type === "grade"}
                         <Sparkles size={20} />
+                      {:else if log.type === "transfer"}
+                        <Send size={20} />
                       {:else}
                         <ShoppingBag size={20} />
                       {/if}
                     </div>
 
                     <div class="min-w-0">
-                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
-                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : "Usage"}
+                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : log.type === "transfer" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
+                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : log.type === "transfer" ? "Transfer" : "Usage"}
                       </div>
                       <div class="font-semibold text-white">{log.title}</div>
                       <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
-                        <span class="text-slate-300">{log.names.join(", ")}</span>
+                        {#if log.type === "transfer"}
+                          <span class="text-slate-300">{log.names[0]}</span>
+                          <span class="mx-1 text-slate-500">→</span>
+                          <span class="text-slate-300">{log.names[1]}</span>
+                          <span> 골드 양도</span>
+                        {:else}
+                          <span class="text-slate-300">{log.names.join(", ")}</span>
+                        {/if}
                         <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
                         <span class="block sm:inline">{log.timeStr}</span>
                       </div>
                     </div>
                   </div>
 
-                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : "text-rose-100"}`}>
+                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
                     <Coins size={15} />
                     {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
                   </div>

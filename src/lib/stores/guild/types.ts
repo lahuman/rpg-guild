@@ -61,6 +61,17 @@ export interface UsageLog {
     usedByUserId: string;
 }
 
+export interface TransferLog {
+    fromId: string;
+    fromName: string;
+    toId: string;
+    toName: string;
+    amount: number;
+    reason: string;
+    transferredAt: FirestoreTimestampLike | Date | null;
+    transferredByUserId: string;
+}
+
 export interface Guild {
     id?: string;
     name: string;
