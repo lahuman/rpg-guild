@@ -1,2 +1,1126 @@
-@import 'tailwindcss';
-@plugin '@tailwindcss/typography';
+@import "tailwindcss";
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=Oswald:wght@500&display=swap');
+
+/* ============================================================
+   NIKE DESIGN SYSTEM — Ralph's RPG Guild
+   Inspired by Nike Podium CDS (Core Design System)
+   ============================================================ */
+
+:root {
+  /* ---- Typography ---- */
+  --font-display: "Oswald", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+
+  /* ---- Color: Nike Black & White ---- */
+  --black: #111111;
+  --white: #ffffff;
+
+  /* ---- Color: Surface & Background ---- */
+  --snow: #fafafa;                  /* --podium-cds-color-grey-50 */
+  --grey-100: #f5f5f5;              /* --podium-cds-color-grey-100 */
+  --grey-200: #e5e5e5;              /* --podium-cds-color-grey-200 */
+  --grey-300: #cacacb;              /* --podium-cds-color-grey-300 — border-secondary */
+  --grey-500: #707072;              /* --podium-cds-color-grey-500 — text-secondary / hover */
+  --grey-700: #39393b;              /* --podium-cds-color-grey-700 — dark hover */
+  --grey-800: #28282a;              /* --podium-cds-color-grey-800 — dark surface */
+  --grey-900: #1f1f21;              /* --podium-cds-color-grey-900 — deep charcoal */
+
+  /* ---- Color: Text ---- */
+  --text-primary: #111111;          /* --podium-cds-color-text-primary */
+  --text-secondary: #707072;        /* --podium-cds-color-text-secondary */
+  --text-disabled: #9e9ea0;         /* --podium-cds-color-text-disabled */
+  --text-disabled-inverse: #4b4b4d; /* --podium-cds-color-text-disabled-inverse */
+
+  /* ---- Color: Border ---- */
+  --border-primary: #707072;
+  --border-secondary: #cacacb;
+  --border-active: #111111;
+  --border-disabled: #cacacb;
+
+  /* ---- Color: Semantic / Accent ---- */
+  --red: #d30005;                   /* --podium-cds-color-red-600 — error / sale / urgent */
+  --red-500: #ee0005;               /* red-500 */
+  --orange-badge: #d33918;          /* --podium-cds-color-text-badge */
+  --orange-flash: #ff5000;          /* --podium-cds-color-orange-400 */
+  --green: #007d48;                 /* --podium-cds-color-green-600 — success */
+  --green-inverse: #1eaa52;         /* --podium-cds-color-green-500 — success on dark */
+  --blue: #1151ff;                  /* --podium-cds-color-blue-500 — link */
+  --blue-inverse: #1190ff;          /* --podium-cds-color-blue-400 — link on dark */
+  --yellow-warn: #fedf35;           /* --podium-cds-color-yellow-200 — warning bg */
+  --focus-ring: rgba(39, 93, 197, 1);
+
+  /* ---- Color: Nike Accent Ramp (for RPG rank badges) ---- */
+  /* 20 ranks mapped to 8 Nike color ramp steps */
+  --accent-red-light: #ffe5e5;
+  --accent-red-dark: #530300;
+  --accent-orange-light: #ffe2d6;
+  --accent-orange-dark: #3e1009;
+  --accent-green-light: #dfffb9;
+  --accent-green-dark: #003c2a;
+  --accent-teal-light: #d4fffb;
+  --accent-teal-dark: #043441;
+  --accent-blue-light: #d6eeff;
+  --accent-blue-dark: #020664;
+  --accent-purple-light: #e4e1fc;
+  --accent-purple-dark: #1c0060;
+  --accent-pink-light: #ffe1f3;
+  --accent-pink-dark: #4c012d;
+
+  /* ---- Spacing (8px grid) ---- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-7: 32px;
+  --space-8: 48px;
+  --space-9: 64px;
+  --space-10: 80px;
+
+  /* ---- Border Radius ---- */
+  --radius-0: 0px;                  /* product images — sharp */
+  --radius-sm: 8px;                 /* form inputs */
+  --radius-md: 18px;                /* small interactive */
+  --radius-lg: 20px;                /* containers / cards */
+  --radius-search: 24px;            /* search inputs */
+  --radius-pill: 30px;              /* buttons / pills */
+  --radius-full: 999px;             /* full circle */
+
+  /* ---- Elevation (Nike: flat — no shadows) ---- */
+  --elevation-flat: none;
+  --elevation-divider: 0px -1px 0px 0px var(--grey-200) inset;
+  --elevation-focus: 0 0 0 2px var(--focus-ring);
+
+  /* ---- Transitions ---- */
+  --transition: 200ms ease;
+}
+
+/* ============================================================
+   BASE RESET
+   ============================================================ */
+
+html {
+  scroll-behavior: smooth;
+  background: var(--white);
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100vh;
+  color: var(--text-primary);
+  background: var(--white);
+  -webkit-tap-highlight-color: transparent;
+  overflow-x: clip;
+  overscroll-behavior-y: contain;
+}
+
+#svelte {
+  min-height: 100vh;
+}
+
+::selection {
+  background: rgba(17, 81, 255, 0.15);
+  color: var(--text-primary);
+}
+
+:focus-visible {
+  outline: none;
+  box-shadow: var(--elevation-focus);
+}
+
+/* ============================================================
+   LAYOUT SHELL
+   ============================================================ */
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+  padding-left: 10px;
+  padding-right: 10px;
+}
+
+.page-wrap {
+  width: min(1200px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+/* ============================================================
+   NIKE TYPOGRAPHY UTILITIES
+   ============================================================ */
+
+/* Display headlines — Oswald 500, uppercase, tight line-height */
+.text-display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 0.90;
+  letter-spacing: 0;
+}
+
+/* Section headings */
+.text-heading {
+  font-family: var(--font-body);
+  font-weight: 500;
+  line-height: 1.20;
+}
+
+/* Body / UI text */
+.text-body {
+  font-family: var(--font-body);
+  font-weight: 400;
+  line-height: 1.75;
+}
+
+.text-body-medium {
+  font-family: var(--font-body);
+  font-weight: 500;
+  line-height: 1.75;
+}
+
+/* ============================================================
+   NIKE BUTTON SYSTEM
+   ============================================================ */
+
+.app-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 12px 24px;
+  min-height: 44px;
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.50;
+  touch-action: manipulation;
+  user-select: none;
+  cursor: pointer;
+  border: none;
+  transition:
+    background-color var(--transition),
+    color var(--transition),
+    border-color var(--transition),
+    opacity var(--transition);
+}
+
+.app-button:active {
+  transform: scale(0.98);
+}
+
+.app-button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.app-button-primary {
+  background: var(--black);
+  color: var(--white);
+}
+
+.app-button-primary:hover:not(:disabled) {
+  background: var(--grey-500);
+}
+
+.app-button-primary:focus-visible {
+  box-shadow: var(--elevation-focus);
+}
+
+/* Primary on dark background */
+.app-button-primary-inverse {
+  background: var(--white);
+  color: var(--black);
+}
+
+.app-button-primary-inverse:hover:not(:disabled) {
+  background: var(--grey-300);
+}
+
+.app-button-primary-inverse:focus-visible {
+  box-shadow: var(--elevation-focus);
+}
+
+/* Secondary outlined */
+.app-button-secondary {
+  background: transparent;
+  color: var(--black);
+  border: 1.5px solid var(--grey-300);
+  padding: 11px 23px;
+}
+
+.app-button-secondary:hover:not(:disabled) {
+  border-color: var(--grey-500);
+  background: var(--grey-200);
+}
+
+.app-button-secondary:focus-visible {
+  box-shadow: var(--elevation-focus);
+}
+
+/* Secondary on dark */
+.app-button-secondary-inverse {
+  background: transparent;
+  color: var(--white);
+  border: 1.5px solid rgba(255, 255, 255, 0.3);
+}
+
+.app-button-secondary-inverse:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.5);
+}
+
+.app-button-secondary-inverse:focus-visible {
+  box-shadow: var(--elevation-focus);
+}
+
+/* Disabled button */
+.app-button-disabled {
+  background: var(--grey-200);
+  color: var(--text-disabled);
+  cursor: not-allowed;
+}
+
+/* Icon button */
+.app-button-icon {
+  background: var(--grey-100);
+  border-radius: var(--radius-md);
+  padding: 6px;
+  min-height: 36px;
+  min-width: 36px;
+}
+
+.app-button-icon:hover:not(:disabled) {
+  background: var(--grey-500);
+  color: var(--white);
+}
+
+/* ============================================================
+   NIKE CARD / PANEL SYSTEM
+   ============================================================ */
+
+/* Standard card — flat, no shadow */
+.app-card {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--grey-300);
+  background: var(--white);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.app-card:hover {
+  /* Nike: no lift, no shadow — text underline if needed */
+}
+
+/* Strong panel */
+.app-panel {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--grey-300);
+  background: var(--white);
+  width: 100%;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Hero section — flat, optional bg tint */
+.app-hero {
+  position: relative;
+  border-radius: var(--radius-lg);
+  background: var(--grey-100);
+  /* Nike: hero photography would be full-bleed here */
+}
+
+/* Modal — slightly softer radius, flat white */
+.app-modal {
+  border-radius: var(--radius-lg);
+  background: var(--white);
+  /* No box-shadow — flat elevation */
+}
+
+.app-modal-scroll {
+  max-height: min(88vh, 52rem);
+  overflow: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* ============================================================
+   NIKE INPUT / FORM SYSTEM
+   ============================================================ */
+
+.app-input,
+.app-textarea,
+.app-select {
+  width: 100%;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-secondary);
+  background: var(--grey-100);
+  color: var(--text-primary);
+  padding: 14px 16px;
+  font-family: var(--font-body);
+  font-size: 1rem;
+  line-height: 1.4;
+  outline: none;
+  -webkit-appearance: none;
+  transition: border-color var(--transition), box-shadow var(--transition), background-color var(--transition);
+}
+
+.app-input::placeholder,
+.app-textarea::placeholder {
+  color: var(--text-secondary);
+}
+
+.app-input:focus,
+.app-textarea:focus,
+.app-select:focus {
+  border-color: var(--black);
+  box-shadow: var(--elevation-focus);
+}
+
+.app-input:focus-visible,
+.app-textarea:focus-visible,
+.app-select:focus-visible {
+  border-color: var(--black);
+  box-shadow: var(--elevation-focus);
+}
+
+/* Error state */
+.app-input-error {
+  border-color: var(--red) !important;
+}
+
+.app-input-error:focus,
+.app-input-error:focus-visible {
+  box-shadow: 0 0 0 2px rgba(211, 0, 5, 0.2) !important;
+}
+
+.app-textarea {
+  min-height: 120px;
+}
+
+/* ============================================================
+   NIKE NAVIGATION
+   ============================================================ */
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  border-bottom: 1px solid var(--grey-300);
+  background: var(--white);
+}
+
+.app-topbar-inner {
+  display: flex;
+  align-items: center;
+  height: 60px;
+}
+
+/* Category nav links */
+.app-nav-link {
+  font-family: var(--font-body);
+  font-weight: 500;
+  font-size: 1rem;
+  line-height: 1.75;
+  color: var(--text-primary);
+  transition: color var(--transition);
+  text-decoration: none;
+}
+
+.app-nav-link:hover {
+  color: var(--text-secondary);
+}
+
+/* Mobile nav */
+.mobile-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  z-index: 50;
+  border-top: 1px solid var(--grey-300);
+  background: var(--white);
+  backdrop-filter: blur(12px);
+}
+
+.app-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 8px 12px;
+  min-height: 44px;
+  min-width: 44px;
+  color: var(--text-secondary);
+  transition: color var(--transition);
+  cursor: pointer;
+  background: none;
+  border: none;
+}
+
+.app-nav-item:hover {
+  color: var(--text-primary);
+}
+
+.app-nav-item.active {
+  color: var(--text-primary);
+}
+
+/* Active nav indicator */
+.app-nav-indicator {
+  width: 24px;
+  height: 2px;
+  border-radius: 999px;
+  background: var(--black);
+}
+
+/* ============================================================
+   NIKE BADGE / TAG SYSTEM
+   ============================================================ */
+
+.app-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-1);
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--grey-300);
+  background: var(--grey-100);
+  color: var(--text-primary);
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Sale / urgent badge */
+.app-badge-sale {
+  background: var(--red);
+  color: var(--white);
+  border-color: var(--red);
+}
+
+/* ============================================================
+   NIKE RANK BADGE — Accent color ramp
+   ============================================================ */
+
+/* Pill-style rank badge with Nike accent color */
+.app-rank-pill {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+}
+
+/* Rank accent colors — only these 8 Nike ramp colors */
+
+.rank-accent-red      { background: var(--red); color: var(--white); }
+.rank-accent-orange   { background: var(--orange-badge); color: var(--white); }
+.rank-accent-yellow   { background: #fca600; color: var(--black); }
+.rank-accent-green    { background: var(--green); color: var(--white); }
+.rank-accent-teal     { background: #008e98; color: var(--white); }
+.rank-accent-blue     { background: var(--blue); color: var(--white); }
+.rank-accent-purple   { background: #6e0ff6; color: var(--white); }
+.rank-accent-pink     { background: #ed1aa0; color: var(--white); }
+
+/* ============================================================
+   NIKE TOAST / NOTIFICATION SYSTEM
+   ============================================================ */
+
+.app-toast {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--grey-300);
+  background: var(--white);
+  padding: 16px 20px;
+  display: flex;
+  align-items: flex-start;
+  gap: var(--space-3);
+  box-shadow: none; /* flat */
+}
+
+.app-toast-success {
+  border-left: 4px solid var(--green);
+}
+
+.app-toast-error {
+  border-left: 4px solid var(--red);
+}
+
+.app-toast-info {
+  border-left: 4px solid var(--blue);
+}
+
+.app-toast-warning {
+  border-left: 4px solid #fca600;
+}
+
+/* ============================================================
+   NIKE LOG / LIST SYSTEM
+   ============================================================ */
+
+.app-log-card {
+  position: relative;
+  padding-left: var(--space-4);
+  border-bottom: var(--elevation-divider);
+}
+
+.app-log-card::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 1rem;
+  bottom: 1rem;
+  width: 3px;
+  border-radius: 999px;
+  background: var(--grey-300);
+}
+
+.app-log-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 4px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  border: none;
+}
+
+/* ============================================================
+   NIKE GRID — tight product grid aesthetic
+   ============================================================ */
+
+.shop-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  gap: var(--space-3); /* tight — 12px */
+}
+
+.stagger-grid {
+  display: grid;
+  gap: var(--space-5);
+}
+
+/* ============================================================
+   NIKE SECTION TITLE  (Oswald uppercase display)
+   ============================================================ */
+
+.section-title {
+  font-family: var(--font-display);
+  font-weight: 500;
+  text-transform: uppercase;
+  line-height: 0.90;
+}
+
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: 6px 12px;
+  border-radius: var(--radius-pill);
+  background: var(--grey-100);
+  color: var(--text-secondary);
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+/* ============================================================
+   NIKE STAT / METRIC DISPLAY
+   ============================================================ */
+
+.app-stat {
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--grey-300);
+  background: var(--grey-100);
+  padding: var(--space-5);
+  transition: background-color var(--transition);
+}
+
+.app-stat:hover {
+  background: var(--grey-200);
+}
+
+.app-metal-stat {
+  border-left: 3px solid var(--text-secondary);
+  border-top: 1px solid var(--grey-300);
+  border-right: 1px solid var(--grey-300);
+  border-bottom: 1px solid var(--grey-300);
+  border-radius: var(--radius-md);
+  background: var(--grey-100);
+  padding: var(--space-4);
+}
+
+/* ============================================================
+   NIKE COMMAND STRIP / SECTION DIVIDER
+   ============================================================ */
+
+.app-command-strip {
+  padding-left: var(--space-3);
+  border-left: 3px solid var(--black);
+}
+
+/* ============================================================
+   NIKE TABS
+   ============================================================ */
+
+.guild-tabs a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  border-radius: var(--radius-pill);
+  padding: 10px 16px;
+  color: var(--text-secondary);
+  font-weight: 500;
+  font-size: 0.875rem;
+  transition: color var(--transition), background-color var(--transition), border-color var(--transition);
+  text-decoration: none;
+  border: 1px solid transparent;
+}
+
+.guild-tabs a:hover {
+  background: var(--grey-100);
+  color: var(--text-primary);
+}
+
+.guild-tabs a.active {
+  background: var(--black);
+  color: var(--white);
+}
+
+/* ============================================================
+   NIKE FILTER CHIPS
+   ============================================================ */
+
+.app-filter-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--radius-pill);
+  border: 1px solid var(--grey-300);
+  background: var(--grey-100);
+  color: var(--text-secondary);
+  padding: 8px 16px;
+  font-size: 0.875rem;
+  font-weight: 500;
+  transition: background-color var(--transition), border-color var(--transition), color var(--transition);
+  cursor: pointer;
+}
+
+.app-filter-chip:hover {
+  background: var(--grey-200);
+  color: var(--text-primary);
+}
+
+.app-filter-chip-active {
+  background: var(--black);
+  color: var(--white);
+  border-color: var(--black);
+}
+
+/* ============================================================
+   NIKE CALENDAR / GRID
+   ============================================================ */
+
+.app-calendar-day {
+  min-height: 80px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--grey-300);
+  background: var(--grey-100);
+  padding: var(--space-3) var(--space-2);
+  text-align: center;
+  color: var(--text-primary);
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.app-calendar-day:hover {
+  background: var(--grey-200);
+  border-color: var(--grey-500);
+}
+
+.app-calendar-day-muted {
+  opacity: 0.4;
+}
+
+.app-calendar-day-active {
+  border-color: var(--green);
+  background: var(--accent-green-light);
+}
+
+.app-calendar-day-selected {
+  border-color: var(--black);
+  background: var(--grey-200);
+}
+
+/* ============================================================
+   NIKE TREND / CHART
+   ============================================================ */
+
+.app-chart-track {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--grey-200);
+}
+
+.app-chart-fill {
+  height: 100%;
+  border-radius: 999px;
+}
+
+.app-trend-track {
+  display: flex;
+  height: 80px;
+  width: 100%;
+  align-items: end;
+  justify-content: center;
+  border-radius: var(--radius-sm);
+  background: var(--grey-100);
+  border: 1px solid var(--grey-300);
+  padding: var(--space-2);
+  gap: 4px;
+}
+
+.app-trend-bar {
+  width: 100%;
+  border-radius: 999px;
+  background: var(--black);
+}
+
+/* ============================================================
+   NIKE MISC UTILITIES
+   ============================================================ */
+
+.app-reading-copy {
+  max-width: 62ch;
+  text-wrap: pretty;
+}
+
+.text-muted {
+  color: var(--text-secondary);
+}
+
+/* Action tile — still flat */
+.app-action-tile {
+  position: relative;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--grey-300);
+  background: var(--grey-100);
+  padding: var(--space-5);
+  transition: background-color var(--transition), border-color var(--transition);
+}
+
+.app-action-tile:hover {
+  background: var(--grey-200);
+  border-color: var(--grey-500);
+}
+
+.app-action-tile:focus-visible {
+  box-shadow: var(--elevation-focus);
+}
+
+/* ============================================================
+   ANIMATION — minimal to none (Nike style)
+   ============================================================ */
+
+.reveal-rise {
+  animation: reveal-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+
+.stagger-grid > * {
+  animation: reveal-rise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+}
+.stagger-grid > *:nth-child(1) { animation-delay: 40ms; }
+.stagger-grid > *:nth-child(2) { animation-delay: 100ms; }
+.stagger-grid > *:nth-child(3) { animation-delay: 160ms; }
+.stagger-grid > *:nth-child(4) { animation-delay: 220ms; }
+.stagger-grid > *:nth-child(5) { animation-delay: 280ms; }
+.stagger-grid > *:nth-child(6) { animation-delay: 340ms; }
+
+@keyframes reveal-rise {
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   PROMOTIONAL BANNER (Nike style)
+   ============================================================ */
+
+.promo-banner {
+  background: var(--black);
+  color: var(--white);
+  text-align: center;
+  padding: 8px 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  letter-spacing: 0.05em;
+}
+
+/* ============================================================
+   RESPONSIVE
+   ============================================================ */
+
+@media (max-width: 768px) {
+  .page-wrap {
+    width: min(100% - 2rem, 1200px);
+  }
+
+  .app-modal,
+  .app-card,
+  .app-panel,
+  .app-hero {
+    border-radius: var(--radius-md);
+  }
+
+  .app-modal-scroll {
+    max-height: min(90vh, 100%);
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+  }
+
+  .touch-grid-2 {
+    grid-template-columns: 1fr;
+  }
+
+  .guild-tabs {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    padding-bottom: 4px;
+    scrollbar-width: none;
+  }
+
+  .guild-tabs::-webkit-scrollbar {
+    display: none;
+  }
+
+  .guild-tabs a {
+    white-space: nowrap;
+  }
+
+  .app-calendar-day {
+    min-height: 60px;
+    padding: var(--space-2) var(--space-1);
+  }
+
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: var(--space-2);
+  }
+
+  .modal-action-row {
+    flex-direction: column-reverse;
+  }
+
+  .modal-action-row > * {
+    width: 100%;
+  }
+}
+
+@media (max-width: 430px) {
+  .page-wrap {
+    width: min(100% - 1.5rem, 1200px);
+  }
+
+  .app-input,
+  .app-textarea,
+  .app-select {
+    font-size: 16px; /* prevent iOS zoom */
+  }
+
+  .app-calendar-day {
+    min-height: 50px;
+    border-radius: var(--radius-0);
+  }
+
+  .shop-grid {
+    gap: var(--space-2);
+  }
+}
+
+/* ============================================================
+   /* ============================================================
+ACTION TILE & STAT CARD VARIANTS
+============================================================ */
+
+.app-coin-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  border-radius: 50%;
+  background: var(--grey-100);
+  color: var(--text-secondary);
+  flex-shrink: 0;
+}
+
+.danger-tile {
+  border-left: 3px solid var(--red);
+  color: var(--red);
+}
+
+.danger-tile .app-label {
+  color: var(--red);
+}
+
+.app-stat-card {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+  background: var(--white);
+  padding: var(--space-4);
+}
+
+/* ============================================================
+/* ============================================================
+MISSION PAGE
+============================================================ */
+
+.app-info-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  border: none;
+  border-left: 3px solid var(--grey-300);
+  background: transparent;
+  padding: 0.75rem 1rem;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: var(--text-secondary);
+}
+
+.mission-type-btn {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+  background: var(--white);
+  padding: 0.75rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.mission-type-btn.active {
+  border-color: var(--black);
+  background: var(--grey-100);
+}
+
+.quest-card {
+  transition: transform 0.2s ease;
+}
+
+.quest-card:hover {
+  transform: translateY(-2px);
+}
+
+.quest-card-done {
+  opacity: 0.55;
+  filter: grayscale(0.4);
+}
+
+.char-select-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+  background: var(--white);
+  padding: 0.875rem 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.15s, background 0.15s;
+}
+
+.char-select-btn.selected {
+  border-color: var(--black);
+  background: var(--grey-100);
+}
+
+.char-select-btn.done {
+  opacity: 0.5;
+  cursor: default;
+}
+
+/* ============================================================
+/* ============================================================
+LOGS PAGE
+============================================================ */
+
+.app-tabs-bar {
+  border-radius: var(--radius-md);
+  background: var(--grey-100);
+}
+
+/* ============================================================
+REDUCED MOTION
+  .app-action-tile,
+  .guild-tabs a,
+  .reveal-rise,
+  .stagger-grid > * {
+    animation: none !important;
+    transition: none !important;
+  }
+/* ============================================================
+CHARACTER CARD
+============================================================ */
+
+.character-card {
+  border-left: 3px solid var(--grey-300);
+  transition: border-left-color 0.2s ease;
+}
+
+.character-card.rank-accent-red    { border-left-color: #d30005; }
+.character-card.rank-accent-orange { border-left-color: #d33918; }
+.character-card.rank-accent-yellow { border-left-color: #fca600; }
+.character-card.rank-accent-green  { border-left-color: #007d48; }
+.character-card.rank-accent-teal   { border-left-color: #008e98; }
+.character-card.rank-accent-blue   { border-left-color: #1151ff; }
+.character-card.rank-accent-purple { border-left-color: #6e0ff6; }
+.character-card.rank-accent-pink   { border-left-color: #ed1aa0; }
+
+.app-stat-box {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-secondary);
+  background: var(--white);
+  padding: var(--space-3);
+}
+
+.app-icon-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--border-secondary);
+  background: var(--grey-100);
+  color: var(--text-secondary);
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  cursor: pointer;
+}
+
+.app-icon-btn:hover {
+  background: var(--grey-300);
+  color: var(--black);
+  border-color: var(--grey-500);
+}
+
+}

@@ -39,7 +39,6 @@
   function formatDate(dateStr: string) {
     const today = new Date().toISOString().split("T")[0];
     const yesterday = new Date(Date.now() - 86400000).toISOString().split("T")[0];
-
     if (dateStr === today) return "오늘";
     if (dateStr === yesterday) return "어제";
     return dateStr;
@@ -67,14 +66,7 @@
 
   function buildCalendarDays(
     date: Date,
-    logs: Array<{
-      dateStr: string;
-      type: "mission" | "usage" | "grade" | "transfer";
-      title: string;
-      names: string[];
-      amount: number;
-      timeStr: string;
-    }>
+    logs: Array<{ dateStr: string; type: "mission" | "usage" | "grade" | "transfer"; title: string; names: string[]; amount: number; timeStr: string }>
   ) {
     const startOfMonth = new Date(date.getFullYear(), date.getMonth(), 1);
     const endOfMonth = new Date(date.getFullYear(), date.getMonth() + 1, 0);
@@ -102,24 +94,20 @@
   $: groupedLogs = $logStore;
   $: allLogs = groupedLogs.flatMap((group) => group.logs);
   $: characterOptions = Array.from(new Set(allLogs.flatMap((log) => log.names))).sort((a, b) => a.localeCompare(b, "ko"));
-  $: filteredLogs =
-    allLogs.filter((log) => {
-      const matchesCharacter = selectedCharacter === "all" || log.names.includes(selectedCharacter);
-      const matchesType = selectedType === "all" || log.type === selectedType;
-      const keyword = searchQuery.trim().toLowerCase();
-      const haystack = `${log.title} ${log.names.join(" ")}`.toLowerCase();
-      const matchesSearch = !keyword || haystack.includes(keyword);
-      return matchesCharacter && matchesType && matchesSearch;
-    });
+  $: filteredLogs = allLogs.filter((log) => {
+    const matchesCharacter = selectedCharacter === "all" || log.names.includes(selectedCharacter);
+    const matchesType = selectedType === "all" || log.type === selectedType;
+    const keyword = searchQuery.trim().toLowerCase();
+    const haystack = `${log.title} ${log.names.join(" ")}`.toLowerCase();
+    return matchesCharacter && matchesType && (!keyword || haystack.includes(keyword));
+  });
   $: filteredGroups = filteredLogs.reduce<typeof groupedLogs>((groups, log) => {
     const lastGroup = groups[groups.length - 1];
-
     if (lastGroup && lastGroup.date === log.dateStr) {
       lastGroup.logs.push(log);
-      return groups;
+    } else {
+      groups.push({ date: log.dateStr, logs: [log] });
     }
-
-    groups.push({ date: log.dateStr, logs: [log] });
     return groups;
   }, []);
   $: if (selectedDate && !filteredLogs.some((log) => log.dateStr === selectedDate)) {
@@ -128,10 +116,7 @@
   $: calendarDays = buildCalendarDays(calendarMonth, filteredLogs);
   $: monthLogs = filteredLogs.filter((log) => {
     const logDate = new Date(`${log.dateStr}T00:00:00`);
-    return (
-      logDate.getFullYear() === calendarMonth.getFullYear() &&
-      logDate.getMonth() === calendarMonth.getMonth()
-    );
+    return logDate.getFullYear() === calendarMonth.getFullYear() && logDate.getMonth() === calendarMonth.getMonth();
   });
   $: selectedDateLogs = selectedDate ? filteredLogs.filter((log) => log.dateStr === selectedDate) : [];
   $: totalLogs = filteredLogs.length;
@@ -156,32 +141,31 @@
       String(date.getDate()).padStart(2, "0")
     ].join("-");
     const count = filteredLogs.filter((log) => log.dateStr === dateStr).length;
-
-    return {
-      dateStr,
-      label: formatShortDayLabel(dateStr),
-      count
-    };
+    return { dateStr, label: formatShortDayLabel(dateStr), count };
   });
   $: weeklyTrendMax = Math.max(...weeklyTrend.map((day) => day.count), 1);
+
+  function logAccentClass(type: string) {
+    if (type === "mission") return "text-[var(--blue)]";
+    if (type === "grade") return "text-[var(--orange-badge)]";
+    if (type === "transfer") return "text-[var(--orange-badge)]";
+    return "text-[var(--red)]";
+  }
 </script>
 
 <div class="space-y-5 pb-20">
-  <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
+  <section class="app-panel reveal-rise px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="app-command-strip">
         <div class="eyebrow">History Report</div>
         <div class="logs-title-row mt-4 flex items-center gap-3">
-          <a
-            href={`/guilds/${guildId}`}
-            class="flex h-11 w-11 items-center justify-center rounded-full border border-white/10 bg-white/5 text-slate-300 transition hover:bg-white/10 hover:text-white"
-          >
+          <a href={`/guilds/${guildId}`} class="app-icon-btn">
             <ArrowLeft size={18} />
           </a>
           <div>
-            <h1 class="logs-hero-title section-title text-3xl text-white md:text-4xl">길드 활동 기록</h1>
-            <p class="app-reading-copy mt-2 text-sm leading-6 text-slate-400 md:text-base">
-              특정 멤버 기준으로 모아보거나, 달력 기준으로 활동 밀도를 확인할 수 있습니다.
+            <h1 class="logs-hero-title section-title text-3xl md:text-4xl">길드 활동 기록</h1>
+            <p class="app-reading-copy mt-2 text-sm leading-6 md:text-base">
+              특정 멤버 기준으로 모아보거나, 달력 기준으로 활동 밀도를 확인하세요.
             </p>
           </div>
         </div>
@@ -189,40 +173,40 @@
 
       <div class="logs-summary-grid grid gap-3 grid-cols-2 xl:grid-cols-5">
         <div class="app-metal-stat min-w-0">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Entries</div>
-          <div class="mt-2 text-3xl font-bold text-white">{totalLogs}</div>
+          <div class="app-label">Entries</div>
+          <div class="mt-2 text-3xl font-bold">{totalLogs}</div>
         </div>
         <div class="app-metal-stat app-metal-stat-cyan min-w-0">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Mission</div>
-          <div class="mt-2 text-3xl font-bold text-cyan-200">{missionLogs}</div>
+          <div class="app-label">Mission</div>
+          <div class="mt-2 text-3xl font-bold text-[var(--blue)]">{missionLogs}</div>
         </div>
         <div class="app-metal-stat min-w-0">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Grade</div>
-          <div class="mt-2 text-3xl font-bold text-amber-200">{gradeLogs}</div>
+          <div class="app-label">Grade</div>
+          <div class="mt-2 text-3xl font-bold text-[var(--orange-badge)]">{gradeLogs}</div>
         </div>
         <div class="app-metal-stat app-metal-stat-rose min-w-0">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Usage</div>
-          <div class="mt-2 text-3xl font-bold text-rose-200">{usageLogs}</div>
+          <div class="app-label">Usage</div>
+          <div class="mt-2 text-3xl font-bold text-[var(--red)]">{usageLogs}</div>
         </div>
         <div class="app-metal-stat min-w-0">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Transfer</div>
-          <div class="mt-2 text-3xl font-bold text-amber-200">{transferLogs}</div>
+          <div class="app-label">Transfer</div>
+          <div class="mt-2 text-3xl font-bold text-[var(--orange-badge)]">{transferLogs}</div>
         </div>
       </div>
     </div>
 
     <div class="mt-5 grid gap-3 lg:grid-cols-[1fr_14rem]">
       <div class="space-y-3">
-        <div class="logs-view-toggle app-ledger-panel grid grid-cols-2 gap-2 p-2">
+        <div class="app-tabs-bar grid grid-cols-2 gap-2 p-2">
           <button
-            class={`app-button px-3 py-3 text-sm ${viewMode === "timeline" ? "app-command-button" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${viewMode === "timeline" ? "app-button-primary" : "app-button-secondary"}`}
             on:click={() => (viewMode = "timeline")}
           >
             <ScrollText size={16} />
             타임라인
           </button>
           <button
-            class={`app-button px-3 py-3 text-sm ${viewMode === "calendar" ? "app-command-button" : "text-slate-400"}`}
+            class={`app-button px-3 py-3 text-sm ${viewMode === "calendar" ? "app-button-primary" : "app-button-secondary"}`}
             on:click={() => (viewMode = "calendar")}
           >
             <CalendarDays size={16} />
@@ -231,21 +215,11 @@
         </div>
 
         <div class="flex flex-wrap gap-2">
-          <button on:click={() => (selectedType = "all")} class={`app-filter-chip ${selectedType === "all" ? "app-filter-chip-active" : ""}`}>
-            전체 타입
-          </button>
-          <button on:click={() => (selectedType = "mission")} class={`app-filter-chip ${selectedType === "mission" ? "app-filter-chip-active app-filter-chip-cyan" : ""}`}>
-            미션
-          </button>
-          <button on:click={() => (selectedType = "grade")} class={`app-filter-chip ${selectedType === "grade" ? "app-filter-chip-active app-filter-chip-amber" : ""}`}>
-            등급전
-          </button>
-          <button on:click={() => (selectedType = "usage")} class={`app-filter-chip ${selectedType === "usage" ? "app-filter-chip-active app-filter-chip-rose" : ""}`}>
-            사용
-          </button>
-          <button on:click={() => (selectedType = "transfer")} class={`app-filter-chip ${selectedType === "transfer" ? "app-filter-chip-active app-filter-chip-amber" : ""}`}>
-            양도
-          </button>
+          <button on:click={() => (selectedType = "all")} class={`app-filter-chip ${selectedType === "all" ? "app-filter-chip-active" : ""}`}>전체</button>
+          <button on:click={() => (selectedType = "mission")} class={`app-filter-chip ${selectedType === "mission" ? "app-filter-chip-active" : ""}`}>미션</button>
+          <button on:click={() => (selectedType = "grade")} class={`app-filter-chip ${selectedType === "grade" ? "app-filter-chip-active" : ""}`}>등급전</button>
+          <button on:click={() => (selectedType = "usage")} class={`app-filter-chip ${selectedType === "usage" ? "app-filter-chip-active" : ""}`}>사용</button>
+          <button on:click={() => (selectedType = "transfer")} class={`app-filter-chip ${selectedType === "transfer" ? "app-filter-chip-active" : ""}`}>양도</button>
         </div>
 
         <div class="app-filter-shell">
@@ -255,10 +229,7 @@
       </div>
 
       <label class="app-filter-shell">
-        <span class="app-filter-label">
-          <Users size={14} />
-          멤버 기준
-        </span>
+        <span class="app-filter-label"><Users size={14} /> 멤버 기준</span>
         <select bind:value={selectedCharacter} class="app-select">
           <option value="all">전체 멤버</option>
           {#each characterOptions as name}
@@ -268,33 +239,30 @@
       </label>
     </div>
 
-    <div class="mt-5 flex flex-col items-start justify-between gap-1 rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100 sm:flex-row sm:items-center">
+    <div class="mt-5 app-info-strip">
       <span>System Online</span>
       <span>{totalLogs} Records Indexed</span>
     </div>
-
   </section>
 
   {#if isLoading}
-    <section class="app-card app-ledger-panel py-16 text-center">
-      <div class="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent"></div>
-      <p class="mt-4 text-sm text-slate-400">기록을 불러오는 중입니다.</p>
+    <section class="app-card py-16 text-center">
+      <div class="mx-auto h-9 w-9 animate-spin rounded-full border-2 border-[var(--grey-300)] border-t-[var(--black)]"></div>
+      <p class="mt-4 text-sm">기록을 불러오는 중입니다.</p>
     </section>
   {:else if allLogs.length === 0}
-    <section class="app-card app-ledger-panel px-6 py-16 text-center">
-      <ScrollText size={28} class="mx-auto text-slate-500" />
-      <h2 class="mt-4 text-2xl font-semibold text-white">아직 기록된 활동이 없습니다</h2>
-      <p class="mt-3 text-sm text-slate-400">미션 완료, 등급전, 아이템 사용이 발생하면 여기에 누적됩니다.</p>
+    <section class="app-card px-6 py-16 text-center">
+      <ScrollText size={28} class="mx-auto" />
+      <h2 class="mt-4 text-2xl font-semibold">아직 기록된 활동이 없습니다</h2>
+      <p class="mt-3 text-sm">미션 완료, 등급전, 아이템 사용이 발생하면 여기에 누적됩니다.</p>
     </section>
   {:else if filteredLogs.length === 0}
-    <section class="app-card app-ledger-panel px-6 py-16 text-center">
-      <ScrollText size={28} class="mx-auto text-slate-500" />
-      <h2 class="mt-4 text-2xl font-semibold text-white">조건에 맞는 활동 기록이 없습니다</h2>
-      <p class="mt-3 text-sm text-slate-400">
-        현재 필터:
-        {selectedCharacter === "all" ? " 전체 멤버" : ` ${selectedCharacter}`}
-        ·
-        {selectedType === "all" ? " 전체 타입" : ` ${selectedType}`}
+    <section class="app-card px-6 py-16 text-center">
+      <ScrollText size={28} class="mx-auto" />
+      <h2 class="mt-4 text-2xl font-semibold">조건에 맞는 활동 기록이 없습니다</h2>
+      <p class="mt-3 text-sm">
+        현재 필터: {selectedCharacter === "all" ? "전체 멤버" : selectedCharacter} ·
+        {selectedType === "all" ? "전체 타입" : selectedType}
         {searchQuery.trim() ? ` · 검색어 "${searchQuery.trim()}"` : ""}
       </p>
       <button on:click={resetFilters} class="app-button app-button-secondary mt-6 px-5 py-3 text-sm">
@@ -303,9 +271,9 @@
     </section>
   {:else if viewMode === "timeline"}
     <section class="space-y-5">
-      <article class="app-card app-ledger-panel p-4 md:p-6">
-        <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Weekly Trend</div>
-        <h2 class="mt-2 text-2xl font-semibold text-white">최근 7일 활동 추이</h2>
+      <article class="app-card p-4 md:p-6">
+        <div class="app-label">Weekly Trend</div>
+        <h2 class="mt-2 text-2xl font-semibold">최근 7일 활동 추이</h2>
         <div class="logs-week-grid mt-5 grid grid-cols-7 gap-1.5 md:gap-3">
           {#each weeklyTrend as day}
             <div class="app-trend-col">
@@ -320,131 +288,123 @@
       </article>
 
       <section class="stagger-grid space-y-5">
-      {#each filteredGroups as group}
-        <article class="app-card app-ledger-panel p-4 md:p-6">
-          <div class="mb-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
-            <div class="app-stitch-tag">
-              {formatDate(group.date)}
+        {#each filteredGroups as group}
+          <article class="app-card p-4 md:p-6">
+            <div class="mb-4 flex flex-col items-start gap-2 sm:flex-row sm:items-center sm:gap-3">
+              <div class="app-stitch-tag">{formatDate(group.date)}</div>
+              <div class="text-sm text-[var(--text-secondary)]">{group.date}</div>
             </div>
-            <div class="text-sm text-slate-500">{group.date}</div>
-          </div>
 
-          <div class="space-y-3">
-            {#each group.logs as log}
-              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : log.type === "transfer" ? "app-log-card-grade" : "app-log-card-usage"}`}>
-                <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
-                  <div class="flex min-w-0 items-start gap-3">
-                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
-                      {#if log.type === "mission"}
-                        <Shield size={20} />
-                      {:else if log.type === "grade"}
-                        <Sparkles size={20} />
-                      {:else if log.type === "transfer"}
-                        <Send size={20} />
-                      {:else}
-                        <ShoppingBag size={20} />
-                      {/if}
-                    </div>
-
-                    <div class="min-w-0">
-                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : log.type === "transfer" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
-                        {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : log.type === "transfer" ? "Transfer" : "Usage"}
-                      </div>
-                      <div class="font-semibold text-white">{log.title}</div>
-                      <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
-                        {#if log.type === "transfer"}
-                          <span class="text-slate-300">{log.names[0]}</span>
-                          <span class="mx-1 text-slate-500">→</span>
-                          <span class="text-slate-300">{log.names[1]}</span>
-                          <span> 골드 양도</span>
-                        {:else}
-                          <span class="text-slate-300">{log.names.join(", ")}</span>
-                          {log.type === "mission" ? " 수행" : log.type === "grade" ? " 등급전" : " 구매"}
+            <div class="space-y-3">
+              {#each group.logs as log}
+                <div class="log-entry log-entry-{log.type} p-3.5 transition md:p-4">
+                  <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+                    <div class="flex min-w-0 items-start gap-3">
+                      <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${logAccentClass(log.type)}`}>
+                        {#if log.type === "mission"}<Shield size={20} />
+                        {:else if log.type === "grade"}<Sparkles size={20} />
+                        {:else if log.type === "transfer"}<Send size={20} />
+                        {:else}<ShoppingBag size={20} />
                         {/if}
-                        <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
-                        <span class="block sm:inline">{log.timeStr}</span>
+                      </div>
+                      <div class="min-w-0">
+                        <div class={`log-type-pill log-type-pill-{log.type} mb-2`}>
+                          {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : log.type === "transfer" ? "Transfer" : "Usage"}
+                        </div>
+                        <div class="font-semibold">{log.title}</div>
+                        <div class="app-dense-copy mt-1 text-sm leading-6 text-[var(--text-secondary)]">
+                          {#if log.type === "transfer"}
+                            <span>{log.names[0]}</span>
+                            <span class="mx-1">→</span>
+                            <span>{log.names[1]}</span>
+                            <span> 골드 양도</span>
+                          {:else}
+                            <span>{log.names.join(", ")}</span>
+                            {log.type === "mission" ? " 수행" : log.type === "grade" ? " 등급전" : " 구매"}
+                          {/if}
+                          <span class="mx-2 hidden text-[var(--grey-500)] sm:inline">|</span>
+                          <span class="block sm:inline">{log.timeStr}</span>
+                        </div>
                       </div>
                     </div>
-                  </div>
-
-                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
-                    <Coins size={15} />
-                    {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
+                    <div class={`app-stitch-tag self-start md:self-center ${logAccentClass(log.type)}`}>
+                      <Coins size={15} />
+                      {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
+                    </div>
                   </div>
                 </div>
-              </div>
-            {/each}
-          </div>
-        </article>
-      {/each}
+              {/each}
+            </div>
+          </article>
+        {/each}
       </section>
     </section>
   {:else}
     <section class="grid gap-5 lg:grid-cols-[1.1fr_0.9fr]">
-      <article class="calendar-panel app-card app-ledger-panel p-4 md:p-6">
+      <article class="app-card p-4 md:p-6">
         <div class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Calendar View</div>
-            <h2 class="mt-2 text-2xl font-semibold text-white">{formatMonthLabel(calendarMonth)}</h2>
+            <div class="app-label">Calendar View</div>
+            <h2 class="mt-2 text-2xl font-semibold">{formatMonthLabel(calendarMonth)}</h2>
           </div>
           <div class="flex gap-2 self-end sm:self-auto">
-            <button on:click={() => shiftMonth(-1)} class="app-button app-button-secondary h-11 w-11 !p-0">
+            <button on:click={() => shiftMonth(-1)} class="app-icon-btn">
               <ChevronLeft size={16} />
             </button>
-            <button on:click={() => shiftMonth(1)} class="app-button app-button-secondary h-11 w-11 !p-0">
+            <button on:click={() => shiftMonth(1)} class="app-icon-btn">
               <ChevronRight size={16} />
             </button>
           </div>
         </div>
 
-        <div class="mt-5 grid grid-cols-2 gap-3 md:grid-cols-4">
+        <div class="mt-5 grid gap-3 md:grid-cols-4">
           <div class="app-metal-stat">
-            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Month Logs</div>
-            <div class="mt-2 text-2xl font-bold text-white">{monthLogs.length}</div>
+            <div class="app-label">Month Logs</div>
+            <div class="mt-2 text-2xl font-bold">{monthLogs.length}</div>
           </div>
           <div class="app-metal-stat app-metal-stat-cyan">
-            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Active Days</div>
-            <div class="mt-2 text-2xl font-bold text-cyan-200">{activeDaysInMonth}</div>
+            <div class="app-label">Active Days</div>
+            <div class="mt-2 text-2xl font-bold text-[var(--blue)]">{activeDaysInMonth}</div>
           </div>
           <div class="app-metal-stat">
-            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Focus</div>
-            <div class="mt-2 text-lg font-bold text-amber-200">{selectedCharacter === "all" ? "전체" : selectedCharacter}</div>
+            <div class="app-label">Focus</div>
+            <div class="mt-2 text-lg font-bold">{selectedCharacter === "all" ? "전체" : selectedCharacter}</div>
           </div>
           <div class="app-metal-stat app-metal-stat-rose">
-            <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Selected Day</div>
-            <div class="mt-2 text-lg font-bold text-white">{selectedDate ? selectedDayLabel : "-"}</div>
+            <div class="app-label">Selected Day</div>
+            <div class="mt-2 text-lg font-bold">{selectedDate ? selectedDayLabel : "-"}</div>
           </div>
         </div>
 
-        <div class="app-ledger-panel mt-5 p-4">
-          <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Monthly Stats</div>
-          <h3 class="mt-2 text-lg font-semibold text-white">월별 타입 분포</h3>
+        <div class="app-stat-card mt-5 p-4">
+          <div class="app-label">Monthly Stats</div>
+          <h3 class="mt-2 text-lg font-semibold">월별 타입 분포</h3>
           <div class="mt-4 space-y-3">
             <div class="app-chart-row">
-              <div class="app-chart-label text-cyan-200">미션</div>
+              <div class="app-chart-label text-[var(--blue)]">미션</div>
               <div class="app-chart-track">
-                <div class="app-chart-fill bg-cyan-300/75" style={`width: ${(monthMissionLogs / monthMaxTypeCount) * 100}%`}></div>
+                <div class="app-chart-fill" style={`width: ${(monthMissionLogs / monthMaxTypeCount) * 100}%; background: var(--blue);`}></div>
               </div>
               <div class="app-chart-value">{monthMissionLogs}</div>
             </div>
             <div class="app-chart-row">
-              <div class="app-chart-label text-amber-200">등급전</div>
+              <div class="app-chart-label text-[var(--orange-badge)]">등급전</div>
               <div class="app-chart-track">
-                <div class="app-chart-fill bg-amber-300/75" style={`width: ${(monthGradeLogs / monthMaxTypeCount) * 100}%`}></div>
+                <div class="app-chart-fill" style={`width: ${(monthGradeLogs / monthMaxTypeCount) * 100}%; background: var(--orange-badge);`}></div>
               </div>
               <div class="app-chart-value">{monthGradeLogs}</div>
             </div>
             <div class="app-chart-row">
-              <div class="app-chart-label text-rose-200">사용</div>
+              <div class="app-chart-label text-[var(--red)]">사용</div>
               <div class="app-chart-track">
-                <div class="app-chart-fill bg-rose-300/75" style={`width: ${(monthUsageLogs / monthMaxTypeCount) * 100}%`}></div>
+                <div class="app-chart-fill" style={`width: ${(monthUsageLogs / monthMaxTypeCount) * 100}%; background: var(--red);`}></div>
               </div>
               <div class="app-chart-value">{monthUsageLogs}</div>
             </div>
           </div>
         </div>
 
-        <div class="logs-calendar-head mt-6 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-slate-500 md:gap-2 md:text-xs md:tracking-[0.18em]">
+        <div class="logs-calendar-head mt-6 grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase tracking-[0.12em] text-[var(--text-secondary)] md:gap-2 md:text-xs">
           {#each ["일", "월", "화", "수", "목", "금", "토"] as day}
             <div class="py-2">{day}</div>
           {/each}
@@ -457,21 +417,17 @@
               class={`app-calendar-day ${day.inMonth ? "" : "app-calendar-day-muted"} ${day.count > 0 ? "app-calendar-day-active" : ""} ${selectedDate === day.dateStr ? "app-calendar-day-selected" : ""}`}
             >
               <div class="text-sm font-semibold">{day.dayNumber}</div>
-              <div class="mt-2 text-[11px] text-slate-400">
-                {day.count > 0 ? `${day.count}건` : "-"}
-              </div>
+              <div class="mt-2 text-[11px]">{day.count > 0 ? `${day.count}건` : "-"}</div>
             </button>
           {/each}
         </div>
       </article>
 
-      <article class="day-detail-panel app-card app-ledger-panel p-4 md:p-6">
-        <div class="day-detail-head flex items-center justify-between gap-3">
+      <article class="app-card p-4 md:p-6">
+        <div class="flex items-center justify-between gap-3">
           <div>
-            <div class="text-sm uppercase tracking-[0.18em] text-cyan-300">Day Detail</div>
-            <h2 class="mt-2 text-2xl font-semibold text-white">
-              {selectedDate ? `${selectedDayLabel} 활동` : "날짜를 선택하세요"}
-            </h2>
+            <div class="app-label">Day Detail</div>
+            <h2 class="mt-2 text-2xl font-semibold">{selectedDate ? `${selectedDayLabel} 활동` : "날짜를 선택하세요"}</h2>
           </div>
           {#if selectedDate}
             <button on:click={() => (selectedDate = "")} class="app-button app-button-secondary px-4 py-2 text-sm">
@@ -481,52 +437,46 @@
         </div>
 
         {#if !selectedDate}
-          <div class="mt-8 rounded-[1.25rem] border border-dashed border-white/10 px-4 py-12 text-center text-slate-400">
-            달력에서 날짜를 누르면 해당 날짜의 활동만 모아서 보여줍니다.
+          <div class="mt-8 rounded-[1.25rem] border border-dashed border-[var(--grey-300)] px-4 py-12 text-center text-[var(--text-secondary)]">
+            달력에서 날짜를 누르면 해당 날짜의 활동만 보여줍니다.
           </div>
         {:else if selectedDateLogs.length === 0}
-          <div class="mt-8 rounded-[1.25rem] border border-dashed border-white/10 px-4 py-12 text-center text-slate-400">
+          <div class="mt-8 rounded-[1.25rem] border border-dashed border-[var(--grey-300)] px-4 py-12 text-center text-[var(--text-secondary)]">
             선택한 날짜에는 기록이 없습니다.
           </div>
         {:else}
           <div class="mt-5 space-y-3">
             {#each selectedDateLogs as log}
-              <div class={`log-entry app-ledger-panel app-ledger-lines app-log-card p-3.5 transition hover:bg-white/6 md:p-4 ${log.type === "mission" ? "app-log-card-mission" : log.type === "grade" ? "app-log-card-grade" : log.type === "transfer" ? "app-log-card-grade" : "app-log-card-usage"}`}>
+              <div class="log-entry log-entry-{log.type} p-3.5 transition md:p-4">
                 <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
                   <div class="flex min-w-0 items-start gap-3">
-                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
-                      {#if log.type === "mission"}
-                        <Shield size={20} />
-                      {:else if log.type === "grade"}
-                        <Sparkles size={20} />
-                      {:else if log.type === "transfer"}
-                        <Send size={20} />
-                      {:else}
-                        <ShoppingBag size={20} />
+                    <div class={`app-seal h-11 w-11 shrink-0 md:h-12 md:w-12 ${logAccentClass(log.type)}`}>
+                      {#if log.type === "mission"}<Shield size={20} />
+                      {:else if log.type === "grade"}<Sparkles size={20} />
+                      {:else if log.type === "transfer"}<Send size={20} />
+                      {:else}<ShoppingBag size={20} />
                       {/if}
                     </div>
-
                     <div class="min-w-0">
-                      <div class={`mb-2 ${log.type === "mission" ? "app-log-pill app-log-pill-mission" : log.type === "grade" ? "app-log-pill app-log-pill-grade" : log.type === "transfer" ? "app-log-pill app-log-pill-grade" : "app-log-pill app-log-pill-usage"}`}>
+                      <div class={`log-type-pill log-type-pill-{log.type} mb-2`}>
                         {log.type === "mission" ? "Mission" : log.type === "grade" ? "Grade" : log.type === "transfer" ? "Transfer" : "Usage"}
                       </div>
-                      <div class="font-semibold text-white">{log.title}</div>
-                      <div class="app-dense-copy mt-1 text-sm leading-6 text-slate-400">
+                      <div class="font-semibold">{log.title}</div>
+                      <div class="app-dense-copy mt-1 text-sm leading-6 text-[var(--text-secondary)]">
                         {#if log.type === "transfer"}
-                          <span class="text-slate-300">{log.names[0]}</span>
-                          <span class="mx-1 text-slate-500">→</span>
-                          <span class="text-slate-300">{log.names[1]}</span>
+                          <span>{log.names[0]}</span>
+                          <span class="mx-1">→</span>
+                          <span>{log.names[1]}</span>
                           <span> 골드 양도</span>
                         {:else}
-                          <span class="text-slate-300">{log.names.join(", ")}</span>
+                          <span>{log.names.join(", ")}</span>
                         {/if}
-                        <span class="mx-2 hidden text-slate-600 sm:inline">|</span>
+                        <span class="mx-2 hidden text-[var(--grey-500)] sm:inline">|</span>
                         <span class="block sm:inline">{log.timeStr}</span>
                       </div>
                     </div>
                   </div>
-
-                  <div class={`app-stitch-tag self-start md:self-center ${log.type === "mission" ? "text-cyan-100" : log.type === "grade" ? "text-amber-100" : log.type === "transfer" ? "text-amber-100" : "text-rose-100"}`}>
+                  <div class={`app-stitch-tag self-start md:self-center ${logAccentClass(log.type)}`}>
                     <Coins size={15} />
                     {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
                   </div>
@@ -541,10 +491,38 @@
 
   <button on:click={handleLoadMore} disabled={isLoadingMore} class="app-button app-button-secondary w-full px-4 py-4 text-sm">
     {#if isLoadingMore}
-      <div class="h-4 w-4 animate-spin rounded-full border-2 border-slate-300 border-t-transparent"></div>
+      <div class="h-4 w-4 animate-spin rounded-full border-2 border-[var(--grey-300)] border-t-[var(--black)]"></div>
       불러오는 중...
     {:else}
       지난 기록 더 보기
     {/if}
   </button>
 </div>
+
+<style>
+  .log-entry {
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-secondary);
+    background: var(--white);
+  }
+
+  .log-entry-mission { border-left: 3px solid var(--blue); }
+  .log-entry-grade   { border-left: 3px solid var(--orange-badge); }
+  .log-entry-transfer { border-left: 3px solid var(--orange-badge); }
+  .log-entry-usage   { border-left: 3px solid var(--red); }
+
+  .log-type-pill {
+    display: inline-block;
+    border-radius: 20px;
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+  }
+
+  .log-type-pill-mission   { background: #e8efff; color: var(--blue); }
+  .log-type-pill-grade     { background: #fdf0eb; color: var(--orange-badge); }
+  .log-type-pill-transfer  { background: #fdf0eb; color: var(--orange-badge); }
+  .log-type-pill-usage     { background: #fef2f2; color: var(--red); }
+</style>

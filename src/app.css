@@ -1,53 +1,29 @@
 @import "tailwindcss";
 
+/* ============================================================
+NIKE PODIUM CDS — Global Reset & Base
+Ralph's RPG Guild  ·  Monochromatic Minimal Retail
+============================================================ */
+
 :root {
-  --font-display: "Avenir Next", "Pretendard", "Apple SD Gothic Neo", sans-serif;
-  --font-body: "Avenir Next", "Pretendard", "Apple SD Gothic Neo", sans-serif;
-  --bg-base: #0b1326;
-  --bg-deep: #060e20;
-  --bg-noise:
-    radial-gradient(circle at 18% 18%, rgba(255, 191, 0, 0.08), transparent 0 24%),
-    radial-gradient(circle at 84% 10%, rgba(0, 251, 251, 0.08), transparent 0 22%),
-    linear-gradient(180deg, rgba(255, 255, 255, 0.02), rgba(255, 255, 255, 0));
-  --panel: rgba(23, 31, 51, 0.78);
-  --panel-strong: rgba(19, 27, 46, 0.92);
-  --panel-elevated: rgba(14, 22, 39, 0.96);
-  --line: rgba(156, 143, 120, 0.22);
-  --line-strong: rgba(255, 191, 0, 0.44);
-  --text-strong: #f6f8ff;
-  --text-body: #d4c5ab;
-  --text-muted: #9c8f78;
-  --gold: #ffbf00;
-  --mint: #00fbfb;
-  --sky: #00dddd;
-  --rose: #ffb7ba;
-  --danger: #ff8b90;
-  --success: #76d7bf;
-  --radius-panel: 1.75rem;
-  --shadow-panel: 0 28px 100px rgba(2, 8, 23, 0.5);
-  --glow-amber: 0 0 40px rgba(255, 191, 0, 0.16);
-  --glow-cyan: 0 0 40px rgba(0, 251, 251, 0.12);
-  --stitch-line: rgba(156, 143, 120, 0.16);
-  --leather-hi: rgba(45, 52, 73, 0.32);
-  --leather-lo: rgba(11, 19, 38, 0.76);
+  /* Typography */
+  --font-display: "Oswald", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
 }
 
+/* Nike White base — no dark backgrounds */
 html {
   scroll-behavior: smooth;
-  background:
-    radial-gradient(circle at top left, rgba(0, 251, 251, 0.08), transparent 26%),
-    radial-gradient(circle at top right, rgba(255, 191, 0, 0.1), transparent 24%),
-    linear-gradient(180deg, #0b1326 0%, #0b1326 42%, #060e20 100%);
-  color: var(--text-strong);
+  background: #ffffff;
+  color: #111111;
   font-family: var(--font-body);
-  text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
 
 body {
   min-height: 100vh;
-  color: var(--text-strong);
+  color: #111111;
   background: transparent;
   -webkit-tap-highlight-color: transparent;
   overflow-x: clip;
@@ -59,360 +35,107 @@ body {
 }
 
 ::selection {
-  background: rgba(245, 158, 11, 0.35);
-  color: white;
+  background: rgba(17, 17, 17, 0.12);
 }
 
 :focus-visible {
   outline: none;
-  box-shadow:
-    0 0 0 2px rgba(3, 7, 18, 0.88),
-    0 0 0 4px rgba(103, 232, 249, 0.32);
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111;
 }
 
-.app-shell {
-  position: relative;
-  min-height: 100vh;
-  isolation: isolate;
-}
-
-.app-shell > * {
-  position: relative;
-  z-index: 1;
-}
-
-.app-shell::before,
-.app-shell::after {
-  content: "";
-  position: fixed;
-  inset: auto;
-  pointer-events: none;
-  z-index: -1;
-  filter: blur(80px);
-}
-
-.app-shell::before {
-  top: 6rem;
-  left: -4rem;
-  width: 18rem;
-  height: 18rem;
-  background: rgba(0, 251, 251, 0.08);
-}
-
-.app-shell::after {
-  top: 16rem;
-  right: -3rem;
-  width: 20rem;
-  height: 20rem;
-  background: rgba(255, 191, 0, 0.1);
-}
-
-.page-wrap {
-  width: min(1200px, calc(100% - 2rem));
-  margin: 0 auto;
-}
-
-.mobile-stack {
-  display: flex;
-  flex-direction: column;
-}
-
-.app-topbar {
-  border-bottom: 1px solid rgba(80, 69, 50, 0.28);
-  background:
-    linear-gradient(180deg, rgba(11, 19, 38, 0.92), rgba(11, 19, 38, 0.78)),
-    rgba(11, 19, 38, 0.72);
-  backdrop-filter: blur(18px);
-  box-shadow: 0 10px 30px rgba(2, 8, 23, 0.3);
-}
-
-.app-topbar-inner {
-  position: relative;
-}
-
-.app-topbar-inner::after {
-  content: "";
-  position: absolute;
-  left: 0.75rem;
-  right: 0.75rem;
-  bottom: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgba(255, 191, 0, 0.38), transparent);
-  pointer-events: none;
-}
-
-.app-topbar-mark {
-  display: flex;
-  height: 3rem;
-  width: 3rem;
-  align-items: center;
-  justify-content: center;
-  border-radius: 1rem;
-  border: 1px solid rgba(80, 69, 50, 0.42);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 191, 0, 0.22), transparent 58%),
-    linear-gradient(180deg, rgba(34, 52, 84, 0.7), rgba(19, 27, 46, 0.92));
-  color: #ffbf00;
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.08),
-    inset 0 -10px 20px rgba(6, 14, 32, 0.3),
-    0 0 25px rgba(255, 191, 0, 0.16);
-}
-
-.app-user-chip {
-  border-radius: 999px;
-  border: 1px solid rgba(80, 69, 50, 0.24);
-  background:
-    linear-gradient(180deg, rgba(45, 52, 73, 0.56), rgba(19, 27, 46, 0.72)),
-    rgba(255, 255, 255, 0.03);
-  padding: 0.6rem 0.9rem;
-}
+/* ============================================================
+APP SHELL — sticky nav wrapper
+============================================================ */
 
 .app-panel {
-  background:
-    linear-gradient(180deg, rgba(45, 52, 73, 0.4), rgba(19, 27, 46, 0.22)),
-    var(--panel);
-  border: 1px solid var(--line);
-  box-shadow:
-    0 24px 80px rgba(2, 8, 23, 0.45),
-    inset 0 1px 0 rgba(218, 226, 253, 0.04);
-  backdrop-filter: blur(22px);
+  border-radius: 1.5rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 2rem;
 }
 
 .app-panel-strong {
-  background:
-    linear-gradient(180deg, rgba(49, 57, 77, 0.34), rgba(19, 27, 46, 0.08)),
-    var(--panel-strong);
-  border: 1px solid rgba(80, 69, 50, 0.3);
-  box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(28px);
+  border-radius: 1.5rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 2rem;
 }
+
+/* ============================================================
+APP CARD — primary card component
+============================================================ */
 
 .app-card {
-  position: relative;
-  overflow: hidden;
   border-radius: 1.5rem;
-  background:
-    radial-gradient(circle at top left, var(--leather-hi), transparent 35%),
-    linear-gradient(180deg, rgba(34, 42, 63, 0.9), rgba(11, 19, 38, 0.96));
-  border: 1px solid var(--line);
-  box-shadow: 0 18px 60px rgba(2, 8, 23, 0.32);
-  transition:
-    transform 220ms ease,
-    border-color 220ms ease,
-    box-shadow 220ms ease,
-    background-color 220ms ease,
-    filter 220ms ease;
-}
-
-.app-card::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(255, 243, 221, 0.04), transparent 36%),
-    repeating-linear-gradient(
-      90deg,
-      transparent 0 18px,
-      rgba(218, 226, 253, 0.015) 18px 19px
-    );
-  pointer-events: none;
-}
-
-.app-card::after {
-  content: "";
-  position: absolute;
-  inset: 0.7rem;
-  border-radius: calc(1.5rem - 0.4rem);
-  border: 1px dashed var(--stitch-line);
-  opacity: 0.75;
-  pointer-events: none;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 1.5rem;
+  transition: transform 220ms ease, border-color 220ms ease;
 }
 
 .app-card:hover {
-  border-color: rgba(255, 191, 0, 0.24);
-  box-shadow: 0 24px 72px rgba(2, 8, 23, 0.38);
-  filter: saturate(1.04);
+  transform: translateY(-2px);
+  border-color: #707072;
 }
 
-.app-card:hover::after {
-  border-color: rgba(236, 209, 162, 0.24);
+.app-card::before,
+.app-card::after {
+  display: none;
 }
+
+/* ============================================================
+APP HERO — landing hero section
+============================================================ */
 
 .app-hero {
-  position: relative;
-  background:
-    radial-gradient(circle at top right, rgba(255, 191, 0, 0.12), transparent 30%),
-    linear-gradient(180deg, rgba(45, 52, 73, 0.86), rgba(11, 19, 38, 0.96)),
-    var(--bg-noise);
-  border: 1px solid rgba(80, 69, 50, 0.34);
-  box-shadow: var(--shadow-panel), var(--glow-amber);
-  backdrop-filter: blur(28px);
+  border-radius: 2rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 2.5rem;
 }
 
 .app-hero::before,
 .app-hero::after {
-  content: "";
-  position: absolute;
-  pointer-events: none;
-  border-radius: 999px;
-  filter: blur(50px);
+  display: none;
 }
 
-.app-hero::before {
-  top: -2rem;
-  right: -2rem;
-  width: 12rem;
-  height: 12rem;
-  background: rgba(255, 191, 0, 0.16);
-}
-
-.app-hero::after {
-  bottom: -2rem;
-  left: -2rem;
-  width: 13rem;
-  height: 13rem;
-  background: rgba(0, 251, 251, 0.08);
-}
+/* ============================================================
+APP MODAL
+============================================================ */
 
 .app-modal {
-  border-radius: var(--radius-panel);
-  border: 1px solid var(--line);
-  background:
-    radial-gradient(circle at top left, rgba(255, 191, 0, 0.1), transparent 34%),
-    linear-gradient(180deg, rgba(34, 42, 63, 0.96), rgba(11, 19, 38, 0.98)),
-    var(--panel-elevated);
-  box-shadow: var(--shadow-panel);
-  backdrop-filter: blur(30px);
+  border-radius: 2rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  box-shadow: 0 28px 80px rgba(0, 0, 0, 0.12);
+  padding: 2rem;
 }
 
 .app-modal-scroll {
   max-height: min(88vh, 52rem);
-  overflow: auto;
+  overflow-y: auto;
   overscroll-behavior: contain;
   -webkit-overflow-scrolling: touch;
 }
 
-.app-hud {
-  position: relative;
-  overflow: hidden;
-  border-radius: 1.25rem;
-  border: 1px solid rgba(80, 69, 50, 0.28);
-  background:
-    linear-gradient(180deg, rgba(45, 52, 73, 0.2), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.02);
-  padding: 1rem 1.1rem;
-}
-
-.app-hud::before {
-  content: "";
-  position: absolute;
-  inset: 0;
-  background:
-    linear-gradient(135deg, rgba(255, 243, 221, 0.05), transparent 36%),
-    linear-gradient(90deg, transparent 0, transparent calc(100% - 1rem), rgba(232, 206, 166, 0.06) calc(100% - 1rem), rgba(232, 206, 166, 0.06) 100%);
-  pointer-events: none;
-}
-
-.app-hud:hover {
-  border-color: rgba(214, 170, 103, 0.24);
-  box-shadow:
-    inset 0 1px 0 rgba(255, 243, 221, 0.05),
-    0 16px 40px rgba(2, 8, 23, 0.24);
-  transform: translateY(-2px);
-}
-
-.app-badge {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.35rem;
-  border-radius: 999px;
-  border: 1px solid rgba(214, 170, 103, 0.22);
-  background: rgba(214, 170, 103, 0.1);
-  color: #f1ddba;
-  padding: 0.45rem 0.8rem;
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
-
-.app-workspace {
-  position: relative;
-  overflow: hidden;
-  border-radius: var(--radius-panel);
-  border: 1px solid rgba(80, 69, 50, 0.26);
-  background:
-    linear-gradient(180deg, rgba(23, 31, 51, 0.9), rgba(11, 19, 38, 0.94)),
-    var(--bg-noise);
-  box-shadow:
-    0 20px 70px rgba(2, 8, 23, 0.34),
-    inset 0 1px 0 rgba(218, 226, 253, 0.04);
-  backdrop-filter: blur(24px);
-}
-
-.app-workspace::before,
-.app-workspace::after {
-  content: "";
-  position: absolute;
-  border-radius: 999px;
-  filter: blur(46px);
-  pointer-events: none;
-}
-
-.app-workspace::before {
-  top: -3rem;
-  right: -2rem;
-  width: 10rem;
-  height: 10rem;
-  background: rgba(255, 191, 0, 0.12);
-}
-
-.app-workspace::after {
-  bottom: -2rem;
-  left: -1rem;
-  width: 9rem;
-  height: 9rem;
-  background: rgba(0, 251, 251, 0.08);
-}
-
-.section-title {
-  font-family: var(--font-display);
-  letter-spacing: 0.02em;
-}
-
-.eyebrow {
-  display: inline-flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.45rem 0.8rem;
-  border-radius: 999px;
-  border: 1px solid rgba(80, 69, 50, 0.36);
-  background: rgba(0, 251, 251, 0.08);
-  color: #00fbfb;
-  font-size: 0.78rem;
-  font-weight: 700;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
+/* ============================================================
+APP BUTTONS
+============================================================ */
 
 .app-button {
   display: inline-flex;
   align-items: center;
   justify-content: center;
   gap: 0.65rem;
-  border-radius: 999px;
-  padding: 0.95rem 1.25rem;
+  border-radius: 30px;
+  padding: 0.75rem 1.25rem;
   min-height: 2.75rem;
   font-weight: 700;
   touch-action: manipulation;
   user-select: none;
-  transition:
-    transform 180ms ease,
-    background-color 180ms ease,
-    border-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease, transform 180ms ease;
 }
 
 .app-button:hover {
@@ -424,166 +147,106 @@ body {
 }
 
 .app-button:disabled {
-  opacity: 0.55;
+  opacity: 0.4;
   cursor: not-allowed;
   transform: none;
 }
 
-.app-button:focus-visible,
-.app-action-tile:focus-visible,
-.guild-tabs a:focus-visible,
-.app-topbar a:focus-visible {
-  box-shadow:
-    0 0 0 2px rgba(3, 7, 18, 0.88),
-    0 0 0 4px rgba(103, 232, 249, 0.3);
+.app-button-primary {
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
 }
 
-.app-button-primary {
-  background: linear-gradient(135deg, #ffbf00, #d18a00);
-  color: #261a00;
-  box-shadow: 0 12px 30px rgba(255, 191, 0, 0.28);
+.app-button-primary:hover {
+  background: #39393b;
+  border-color: #39393b;
 }
 
 .app-button-secondary {
-  border: 1px solid rgba(80, 69, 50, 0.32);
-  background: rgba(23, 31, 51, 0.82);
-  color: var(--text-strong);
+  background: #ffffff;
+  color: #111111;
+  border: 1px solid #cacacb;
 }
+
+.app-button-secondary:hover {
+  background: #f5f5f5;
+  border-color: #707072;
+}
+
+/* ============================================================
+APP ACTION TILE
+============================================================ */
 
 .app-action-tile {
-  position: relative;
-  overflow: hidden;
   border-radius: 1.35rem;
-  border: 1px solid rgba(80, 69, 50, 0.28);
-  background:
-    radial-gradient(circle at top right, rgba(0, 251, 251, 0.12), transparent 32%),
-    linear-gradient(180deg, rgba(45, 52, 73, 0.2), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.03);
-  transition:
-    transform 200ms ease,
-    border-color 200ms ease,
-    background-color 200ms ease,
-    box-shadow 200ms ease;
-}
-
-.app-action-tile::before {
-  content: "";
-  position: absolute;
-  inset: auto -20% -65% auto;
-  width: 7rem;
-  height: 7rem;
-  border-radius: 999px;
-  background: rgba(255, 191, 0, 0.08);
-  filter: blur(30px);
-  opacity: 0.7;
-  transition:
-    transform 220ms ease,
-    opacity 220ms ease;
-  pointer-events: none;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 1rem;
+  text-align: left;
+  cursor: pointer;
+  transition: transform 200ms ease, border-color 200ms ease, background 200ms ease;
 }
 
 .app-action-tile:hover {
   transform: translateY(-2px);
-  border-color: rgba(255, 191, 0, 0.24);
-  box-shadow: 0 20px 48px rgba(2, 8, 23, 0.28);
+  border-color: #707072;
+  background: #fafafa;
 }
 
-.app-action-tile:hover::before {
-  transform: scale(1.15);
-  opacity: 1;
+.app-action-tile::before {
+  display: none;
 }
 
-.app-rank-focus {
-  border-color: rgba(80, 69, 50, 0.32);
-  background:
-    radial-gradient(circle at top right, rgba(255, 191, 0, 0.14), transparent 35%),
-    linear-gradient(180deg, rgba(45, 52, 73, 0.22), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.03);
-}
-
-.app-rank-emblem {
-  min-width: 5.5rem;
-  border-radius: 1.15rem;
-  border: 1px solid rgba(214, 170, 103, 0.22);
-  background:
-    linear-gradient(180deg, rgba(214, 170, 103, 0.18), rgba(52, 33, 24, 0.35)),
-    rgba(25, 17, 13, 0.48);
-  padding: 0.9rem 0.8rem;
-  text-align: center;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 243, 221, 0.05),
-    0 12px 28px rgba(8, 5, 3, 0.26);
-}
-
-.app-rank-pill {
-  display: inline-flex;
-  align-items: center;
-  border-radius: 999px;
-  border: 1px solid rgba(255, 191, 0, 0.22);
-  background: rgba(255, 191, 0, 0.12);
-  color: #ffe2ab;
-  padding: 0.3rem 0.65rem;
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  text-transform: uppercase;
-}
+/* ============================================================
+APP LEDGER PANEL — generic inner panel (flat, no pseudo-elements)
+============================================================ */
 
 .app-ledger-panel {
-  position: relative;
-  overflow: hidden;
   border-radius: 1.5rem;
-  border: 1px solid rgba(80, 69, 50, 0.3);
-  background:
-    linear-gradient(180deg, rgba(49, 57, 77, 0.18), rgba(19, 27, 46, 0.06)),
-    rgba(23, 31, 51, 0.74);
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.08),
-    0 18px 42px rgba(2, 8, 23, 0.24);
+  border: 1px solid #cacacb;
+  background: #ffffff;
 }
 
-.app-ledger-panel::before {
-  content: "";
-  position: absolute;
-  inset: 1rem;
-  border: 1px dashed rgba(80, 69, 50, 0.3);
-  border-radius: 1.1rem;
-  pointer-events: none;
+.app-ledger-panel::before,
+.app-ledger-panel::after {
+  display: none;
 }
+
+/* ============================================================
+APP STITCH TAG
+============================================================ */
 
 .app-stitch-tag {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
+  gap: 0.3rem;
   border-radius: 999px;
-  border: 1px solid rgba(80, 69, 50, 0.34);
-  background: rgba(45, 52, 73, 0.56);
-  color: #dae2fd;
-  padding: 0.42rem 0.8rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+  padding: 0.3rem 0.7rem;
   font-size: 0.72rem;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
+/* ============================================================
+APP BRASS COIN / SEAL
+============================================================ */
+
 .app-brass-coin {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   justify-content: center;
+  width: 3rem;
+  height: 3rem;
   border-radius: 999px;
-  border: 1px solid rgba(80, 69, 50, 0.42);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 191, 0, 0.24), transparent 55%),
-    linear-gradient(180deg, rgba(49, 57, 77, 0.92), rgba(23, 31, 51, 0.96));
-  color: #ffbf00;
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.1),
-    0 10px 24px rgba(2, 8, 23, 0.24);
-}
-
-.app-ledger-lines {
-  background-image: linear-gradient(180deg, transparent, transparent 1.75rem, rgba(218, 226, 253, 0.04) 1.75rem, rgba(218, 226, 253, 0.04) calc(1.75rem + 1px));
-  background-size: 100% 1.9rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+  flex-shrink: 0;
 }
 
 .app-seal {
@@ -593,34 +256,15 @@ body {
   min-width: 3rem;
   height: 3rem;
   border-radius: 999px;
-  border: 1px solid rgba(80, 69, 50, 0.42);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 191, 0, 0.16), transparent 50%),
-    linear-gradient(180deg, rgba(49, 57, 77, 0.92), rgba(23, 31, 51, 0.98));
-  color: #dae2fd;
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.08),
-    0 12px 30px rgba(2, 8, 23, 0.24);
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+  flex-shrink: 0;
 }
 
-.app-command-button {
-  border-radius: 0.9rem;
-  border: 1px solid rgba(255, 191, 0, 0.28);
-  background:
-    linear-gradient(180deg, rgba(255, 191, 0, 0.98), rgba(214, 145, 0, 0.94)),
-    rgba(255, 191, 0, 0.2);
-  color: #1f140d;
-  font-weight: 900;
-  letter-spacing: 0.12em;
-  text-transform: uppercase;
-  box-shadow:
-    inset 0 1px 0 rgba(255, 255, 255, 0.28),
-    0 14px 30px rgba(255, 191, 0, 0.22);
-}
-
-.app-command-button:hover {
-  filter: brightness(1.04);
-}
+/* ============================================================
+APP COMMAND STRIP — left-accent label group
+============================================================ */
 
 .app-command-strip {
   position: relative;
@@ -635,255 +279,176 @@ body {
   bottom: 0.15rem;
   width: 0.28rem;
   border-radius: 999px;
-  background: linear-gradient(180deg, #00fbfb, #00c8c8);
-  box-shadow: 0 0 18px rgba(0, 251, 251, 0.22);
+  background: #111111;
 }
+
+/* ============================================================
+APP METAL STAT — stat boxes with left border accent
+============================================================ */
 
 .app-metal-stat {
   border-radius: 1.2rem;
-  border-left: 3px solid rgba(255, 191, 0, 0.78);
-  border-top: 1px solid rgba(80, 69, 50, 0.3);
-  border-right: 1px solid rgba(80, 69, 50, 0.24);
-  border-bottom: 1px solid rgba(80, 69, 50, 0.24);
-  background:
-    linear-gradient(180deg, rgba(49, 57, 77, 0.88), rgba(19, 27, 46, 0.96)),
-    rgba(255, 255, 255, 0.02);
+  border: 1px solid #cacacb;
+  border-left: 3px solid #111111;
+  background: #ffffff;
   padding: 1rem 1.1rem;
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.05),
-    0 14px 36px rgba(2, 8, 23, 0.22);
 }
 
-.app-metal-stat-cyan {
-  border-left-color: rgba(116, 189, 184, 0.72);
-}
+.app-metal-stat-cyan   { border-left-color: #1151ff; }
+.app-metal-stat-amber  { border-left-color: #d33918; }
+.app-metal-stat-rose   { border-left-color: #d30005; }
+.app-metal-stat-green  { border-left-color: #007d48; }
 
-.app-metal-stat-rose {
-  border-left-color: rgba(200, 143, 133, 0.72);
-}
+/* ============================================================
+APP RANK MEDAL
+============================================================ */
 
 .app-rank-medal {
-  position: relative;
   display: inline-flex;
   min-width: 5.8rem;
   align-items: center;
   justify-content: center;
-  overflow: hidden;
   border-radius: 1.35rem;
-  border: 1px solid rgba(80, 69, 50, 0.42);
-  background:
-    radial-gradient(circle at 30% 30%, rgba(255, 191, 0, 0.16), transparent 52%),
-    linear-gradient(180deg, rgba(49, 57, 77, 0.92), rgba(23, 31, 51, 0.98));
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
   padding: 1rem 0.85rem;
-  box-shadow:
-    inset 0 1px 0 rgba(218, 226, 253, 0.08),
-    0 16px 34px rgba(2, 8, 23, 0.28);
 }
 
 .app-rank-medal::after {
-  content: "";
-  position: absolute;
-  inset: 0.42rem;
-  border: 1px dashed rgba(236, 209, 162, 0.22);
-  border-radius: 1rem;
-  pointer-events: none;
+  display: none;
 }
 
-.app-log-card {
-  position: relative;
-  overflow: hidden;
-}
+/* ============================================================
+APP RANK PILL
+============================================================ */
 
-.app-log-card::before {
-  content: "";
-  position: absolute;
-  left: 0;
-  top: 0.9rem;
-  bottom: 0.9rem;
-  width: 0.28rem;
-  border-radius: 999px;
-  background: linear-gradient(180deg, rgba(214, 170, 103, 0.88), rgba(122, 78, 42, 0.82));
-  box-shadow: 0 0 18px rgba(214, 170, 103, 0.14);
-}
-
-.app-log-card-mission::before {
-  background: linear-gradient(180deg, rgba(116, 189, 184, 0.88), rgba(60, 113, 112, 0.82));
-}
-
-.app-log-card-grade::before {
-  background: linear-gradient(180deg, rgba(214, 170, 103, 0.88), rgba(122, 78, 42, 0.82));
-}
-
-.app-log-card-usage::before {
-  background: linear-gradient(180deg, rgba(200, 143, 133, 0.88), rgba(115, 68, 61, 0.82));
-}
-
-.app-log-pill {
+.app-rank-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
   border-radius: 999px;
-  padding: 0.42rem 0.8rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+  padding: 0.28rem 0.65rem;
   font-size: 0.72rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
 
-.app-log-pill-mission {
-  border: 1px solid rgba(116, 189, 184, 0.26);
-  background: rgba(116, 189, 184, 0.12);
-  color: #d7f2ee;
+/* ============================================================
+APP COMMAND BUTTON
+============================================================ */
+
+.app-command-button {
+  background: #111111;
+  color: #ffffff;
+  border-radius: 0.9rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  box-shadow: none;
 }
 
-.app-log-pill-grade {
-  border: 1px solid rgba(214, 170, 103, 0.26);
-  background: rgba(214, 170, 103, 0.12);
-  color: #f2dfba;
+.app-command-button:hover {
+  background: #39393b;
 }
 
-.app-log-pill-usage {
-  border: 1px solid rgba(200, 143, 133, 0.26);
-  background: rgba(200, 143, 133, 0.12);
-  color: #f1d2cc;
-}
+/* ============================================================
+EYEBROW
+============================================================ */
 
-.app-reading-copy {
-  max-width: 62ch;
-  text-wrap: pretty;
-}
-
-.app-dense-copy {
-  line-height: 1.6;
-  text-wrap: pretty;
-}
-
-.quest-card-active {
-  box-shadow:
-    0 20px 60px rgba(2, 8, 23, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.05);
-}
-
-.quest-card-active:hover {
-  box-shadow:
-    0 26px 80px rgba(2, 8, 23, 0.32),
-    0 0 0 1px rgba(34, 211, 238, 0.08);
-}
-
-.quest-card-done {
-  filter: grayscale(0.12);
-}
-
-.status-orb {
-  position: relative;
-}
-
-.status-orb::after {
-  content: "";
-  position: absolute;
-  inset: -0.4rem;
+.eyebrow {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.8rem;
   border-radius: 999px;
-  border: 1px solid rgba(34, 211, 238, 0.18);
-  animation: pulse-ring 2.4s ease-out infinite;
-  pointer-events: none;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #707072;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
-.float-gentle {
-  animation: float-gentle 4.8s ease-in-out infinite;
+/* ============================================================
+SECTION TITLE
+============================================================ */
+
+.section-title {
+  font-family: var(--font-display);
+  letter-spacing: 0.02em;
+  font-weight: 500;
+  text-transform: uppercase;
 }
 
-.pulse-amber {
-  animation: pulse-amber 2.2s ease-in-out infinite;
-}
+/* ============================================================
+APP INPUT / TEXTAREA / SELECT
+============================================================ */
 
 .app-input,
 .app-textarea,
 .app-select {
   width: 100%;
-  border-radius: 1rem;
-  border: 1px solid rgba(148, 163, 184, 0.22);
-  background: rgba(3, 7, 18, 0.5);
-  color: var(--text-strong);
-  padding: 0.95rem 1rem;
+  border-radius: 0.5rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+  padding: 0.875rem 1rem;
   font-size: 1rem;
   line-height: 1.4;
   outline: none;
   -webkit-appearance: none;
-  transition:
-    border-color 180ms ease,
-    box-shadow 180ms ease,
-    background-color 180ms ease;
-}
-
-.touch-grid-2 {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0.5rem;
-}
-
-.modal-action-row {
-  display: flex;
-  flex-wrap: wrap;
-}
-
-.modal-action-row > * {
-  min-height: 2.9rem;
+  transition: border-color 180ms ease, box-shadow 180ms ease, background 180ms ease;
 }
 
 .app-input::placeholder,
 .app-textarea::placeholder {
-  color: var(--text-muted);
+  color: #9e9ea0;
 }
 
 .app-input:focus,
 .app-textarea:focus,
 .app-select:focus {
-  border-color: rgba(251, 191, 36, 0.45);
-  box-shadow: 0 0 0 4px rgba(245, 158, 11, 0.12);
+  border-color: #111111;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(17, 17, 17, 0.08);
 }
 
-.app-input:focus-visible,
-.app-textarea:focus-visible,
-.app-select:focus-visible {
-  border-color: rgba(103, 232, 249, 0.44);
-  box-shadow:
-    0 0 0 2px rgba(3, 7, 18, 0.88),
-    0 0 0 5px rgba(103, 232, 249, 0.18);
+.app-input-error {
+  border-color: #d30005 !important;
 }
 
-.app-stat {
-  border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(255, 255, 255, 0.03);
-  padding: 1rem 1.1rem;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease;
+.app-input-error:focus {
+  box-shadow: 0 0 0 3px rgba(211, 0, 5, 0.1) !important;
 }
 
-.app-stat:hover {
-  transform: translateY(-1px);
-  border-color: rgba(148, 163, 184, 0.24);
-  background: rgba(255, 255, 255, 0.045);
+.app-textarea {
+  min-height: 96px;
 }
+
+/* ============================================================
+APP FILTER SHELL / CHIPS
+============================================================ */
 
 .app-filter-shell {
   display: flex;
   flex-direction: column;
   gap: 0.55rem;
   border-radius: 1.25rem;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  background: rgba(2, 6, 23, 0.34);
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
   padding: 0.9rem 1rem;
 }
 
 .app-filter-label {
   display: inline-flex;
   align-items: center;
-  gap: 0.45rem;
-  color: var(--text-muted);
-  font-size: 0.74rem;
+  gap: 0.35rem;
+  color: #707072;
+  font-size: 0.72rem;
   font-weight: 700;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -894,50 +459,35 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 999px;
-  border: 1px solid rgba(197, 158, 104, 0.18);
-  background:
-    linear-gradient(180deg, rgba(90, 58, 37, 0.22), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.03);
-  color: var(--text-body);
-  padding: 0.72rem 0.95rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #707072;
+  padding: 0.65rem 0.95rem;
   font-size: 0.82rem;
   font-weight: 700;
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease,
-    color 180ms ease;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
 }
 
 .app-filter-chip:hover {
-  transform: translateY(-1px);
-  border-color: rgba(214, 170, 103, 0.28);
-  color: var(--text-strong);
+  background: #e5e5e5;
+  border-color: #707072;
+  color: #111111;
 }
 
 .app-filter-chip-active {
-  border-color: rgba(245, 158, 11, 0.28);
-  background: rgba(245, 158, 11, 0.12);
-  color: #fde68a;
+  background: #111111;
+  border-color: #111111;
+  color: #ffffff;
 }
 
-.app-filter-chip-cyan.app-filter-chip-active {
-  border-color: rgba(34, 211, 238, 0.28);
-  background: rgba(34, 211, 238, 0.12);
-  color: #cffafe;
-}
+.app-filter-chip-cyan.app-filter-chip-active   { background: #1151ff; border-color: #1151ff; }
+.app-filter-chip-amber.app-filter-chip-active  { background: #d33918; border-color: #d33918; }
+.app-filter-chip-rose.app-filter-chip-active   { background: #d30005; border-color: #d30005; }
 
-.app-filter-chip-amber.app-filter-chip-active {
-  border-color: rgba(251, 191, 36, 0.28);
-  background: rgba(251, 191, 36, 0.12);
-  color: #fde68a;
-}
-
-.app-filter-chip-rose.app-filter-chip-active {
-  border-color: rgba(253, 164, 175, 0.28);
-  background: rgba(253, 164, 175, 0.12);
-  color: #fecdd3;
-}
+/* ============================================================
+APP CHART / TREND
+============================================================ */
 
 .app-chart-row {
   display: grid;
@@ -952,12 +502,10 @@ body {
 }
 
 .app-chart-track {
-  height: 0.8rem;
-  overflow: hidden;
+  height: 0.75rem;
+  background: #f5f5f5;
   border-radius: 999px;
-  background:
-    linear-gradient(180deg, rgba(255, 243, 221, 0.04), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.04);
+  overflow: hidden;
 }
 
 .app-chart-fill {
@@ -968,9 +516,9 @@ body {
 
 .app-chart-value {
   text-align: right;
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   font-weight: 700;
-  color: var(--text-strong);
+  color: #111111;
 }
 
 .app-trend-col {
@@ -984,7 +532,7 @@ body {
 .app-trend-value {
   font-size: 0.82rem;
   font-weight: 800;
-  color: var(--text-strong);
+  color: #111111;
 }
 
 .app-trend-track {
@@ -994,112 +542,140 @@ body {
   align-items: end;
   justify-content: center;
   border-radius: 1rem;
-  background:
-    linear-gradient(180deg, rgba(95, 62, 38, 0.24), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.02);
-  border: 1px solid rgba(197, 158, 104, 0.12);
+  background: #f5f5f5;
+  border: 1px solid #e5e5e5;
   padding: 0.6rem;
 }
 
 .app-trend-bar {
   width: 100%;
   border-radius: 999px;
-  background: linear-gradient(180deg, rgba(34, 211, 238, 0.9), rgba(245, 158, 11, 0.8));
-  box-shadow: 0 10px 22px rgba(34, 211, 238, 0.18);
+  background: linear-gradient(180deg, #111111, #39393b);
 }
 
 .app-trend-label {
   font-size: 0.75rem;
   font-weight: 700;
-  color: var(--text-muted);
+  color: #707072;
 }
+
+/* ============================================================
+APP CALENDAR
+============================================================ */
 
 .app-calendar-day {
   min-height: 5.8rem;
   border-radius: 1rem;
-  border: 1px solid rgba(197, 158, 104, 0.12);
-  background:
-    linear-gradient(180deg, rgba(90, 58, 37, 0.2), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.02);
+  border: 1px solid #cacacb;
+  background: #ffffff;
   padding: 0.75rem 0.45rem;
   text-align: center;
-  color: var(--text-strong);
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease,
-    box-shadow 180ms ease;
+  cursor: pointer;
+  transition: border-color 180ms ease, background 180ms ease;
 }
 
 .app-calendar-day:hover {
-  transform: translateY(-1px);
-  border-color: rgba(245, 158, 11, 0.24);
+  background: #f5f5f5;
+  border-color: #707072;
 }
 
 .app-calendar-day-muted {
-  opacity: 0.38;
+  opacity: 0.4;
 }
 
 .app-calendar-day-active {
-  border-color: rgba(116, 189, 184, 0.28);
-  background:
-    radial-gradient(circle at top right, rgba(116, 189, 184, 0.14), transparent 45%),
-    linear-gradient(180deg, rgba(90, 58, 37, 0.22), rgba(255, 255, 255, 0.015)),
-    rgba(255, 255, 255, 0.02);
-  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  background: #f5f5f5;
+  border-color: #1151ff;
 }
 
 .app-calendar-day-selected {
-  border-color: rgba(214, 170, 103, 0.4);
-  background:
-    radial-gradient(circle at top right, rgba(214, 170, 103, 0.16), transparent 45%),
-    linear-gradient(180deg, rgba(108, 70, 42, 0.28), rgba(255, 255, 255, 0.02)),
-    rgba(255, 255, 255, 0.03);
-  box-shadow:
-    0 0 0 1px rgba(214, 170, 103, 0.12),
-    0 18px 36px rgba(8, 5, 3, 0.24);
+  background: #111111;
+  color: #ffffff;
+  border-color: #111111;
 }
 
-.text-muted {
-  color: var(--text-muted);
+.app-calendar-day-selected .text-\[11px\] {
+  color: rgba(255, 255, 255, 0.6);
 }
 
-.text-body {
-  color: var(--text-body);
+/* ============================================================
+TOUCH GRID
+============================================================ */
+
+.touch-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.5rem;
 }
 
-.guild-tabs a {
+/* ============================================================
+MODAL ACTION ROW
+============================================================ */
+
+.modal-action-row {
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.modal-action-row > * {
+  min-height: 2.9rem;
+}
+
+/* ============================================================
+APP STAT (generic)
+============================================================ */
+
+.app-stat {
+  border-radius: 1.25rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 1rem 1.1rem;
+}
+
+.app-stat:hover {
+  background: #fafafa;
+}
+
+/* ============================================================
+APP LOG CARD / PILL (flat, left-border accent)
+============================================================ */
+
+.app-log-card {
   position: relative;
+}
+
+.app-log-card::before {
+  display: none;
+}
+
+/* ============================================================
+APP LOG PILL
+============================================================ */
+
+.app-log-pill {
   display: inline-flex;
   align-items: center;
-  gap: 0.55rem;
   border-radius: 999px;
-  border: 1px solid transparent;
-  padding: 0.82rem 1rem;
-  color: var(--text-muted);
-  transition:
-    transform 180ms ease,
-    border-color 180ms ease,
-    background-color 180ms ease,
-    color 180ms ease,
-    box-shadow 180ms ease;
+  padding: 0.28rem 0.8rem;
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
 }
 
-.guild-tabs a:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: rgba(255, 255, 255, 0.08);
-  color: var(--text-strong);
-  transform: translateY(-1px);
-}
+/* ============================================================
+TEXT UTILITIES
+============================================================ */
 
-.guild-tabs a.active {
-  background:
-    linear-gradient(180deg, rgba(245, 158, 11, 0.16), rgba(245, 158, 11, 0.1)),
-    rgba(245, 158, 11, 0.1);
-  color: #fde68a;
-  border: 1px solid rgba(245, 158, 11, 0.18);
-  box-shadow: 0 10px 24px rgba(245, 158, 11, 0.12);
-}
+.text-muted { color: #707072; }
+.text-body  { color: #111111; }
+
+/* ============================================================
+ANIMATIONS
+============================================================ */
 
 .reveal-rise {
   animation: reveal-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
@@ -1117,139 +693,162 @@ body {
 .stagger-grid > *:nth-child(6) { animation-delay: 340ms; }
 
 @keyframes reveal-rise {
-  from {
-    opacity: 0;
-    transform: translateY(18px);
-  }
+  from { opacity: 0; transform: translateY(18px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
 
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+/* ============================================================
+GUILD TABS
+============================================================ */
+
+.guild-tabs a {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.55rem;
+  border-radius: 999px;
+  border: 1px solid transparent;
+  padding: 0.82rem 1rem;
+  color: #707072;
+  transition: background 180ms ease, color 180ms ease, border-color 180ms ease;
+}
+
+.guild-tabs a:hover {
+  background: #f5f5f5;
+  color: #111111;
+}
+
+.guild-tabs a.active {
+  background: #111111;
+  color: #ffffff;
+  border: 1px solid #111111;
+}
+
+/* ============================================================
+APP READING COPY
+============================================================ */
+
+.app-reading-copy {
+  max-width: 62ch;
+  text-wrap: pretty;
+  color: #707072;
+}
+
+.app-dense-copy {
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+/* ============================================================
+APP WORKSPACE
+============================================================ */
+
+.app-workspace {
+  border-radius: 1.75rem;
+  border: 1px solid #cacacb;
+  background: #ffffff;
+  padding: 1.5rem;
+}
+
+.app-workspace::before,
+.app-workspace::after {
+  display: none;
+}
+
+/* ============================================================
+APP TOPBAR MARK (logo icon)
+============================================================ */
+
+.app-topbar-mark {
+  display: flex;
+  height: 3rem;
+  width: 3rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.6rem;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  color: #111111;
+}
+
+/* ============================================================
+APP USER CHIP
+============================================================ */
+
+.app-user-chip {
+  border-radius: 999px;
+  border: 1px solid #cacacb;
+  background: #f5f5f5;
+  padding: 0.6rem 0.9rem;
+}
+
+/* ============================================================
+FLOAT GENTLE
+============================================================ */
+
+.float-gentle {
+  animation: float-gentle 4.8s ease-in-out infinite;
 }
 
 @keyframes float-gentle {
-  0%, 100% {
-    transform: translateY(0);
-  }
-
-  50% {
-    transform: translateY(-6px);
-  }
+  0%, 100% { transform: translateY(0); }
+  50%       { transform: translateY(-6px); }
 }
 
-@keyframes pulse-amber {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(251, 191, 36, 0.18);
-  }
-
-  50% {
-    box-shadow: 0 0 0 6px rgba(251, 191, 36, 0);
-  }
-}
-
-@keyframes pulse-ring {
-  0% {
-    opacity: 0.5;
-    transform: scale(0.94);
-  }
-
-  70% {
-    opacity: 0;
-    transform: scale(1.18);
-  }
-
-  100% {
-    opacity: 0;
-    transform: scale(1.18);
-  }
-}
+/* ============================================================
+RESPONSIVE
+============================================================ */
 
 @media (max-width: 768px) {
   .page-wrap {
-    width: min(100% - 1rem, 1200px);
-  }
-
-  .app-shell::before {
-    top: 4rem;
-    left: -6rem;
-    width: 12rem;
-    height: 12rem;
-  }
-
-  .app-shell::after {
-    top: 12rem;
-    right: -5rem;
-    width: 14rem;
-    height: 14rem;
-  }
-
-  .app-topbar-inner {
-    padding-left: 0.15rem;
-    padding-right: 0.15rem;
-  }
-
-  .app-topbar-inner::after {
-    left: 0.35rem;
-    right: 0.35rem;
-  }
-
-  .app-topbar-mark {
-    height: 2.6rem;
-    width: 2.6rem;
-    border-radius: 0.85rem;
+    width: min(100% - 2rem, 1200px);
   }
 
   .app-panel,
   .app-panel-strong,
   .app-card {
-    border-radius: 1.35rem;
+    border-radius: 1rem;
+    padding: 1.25rem;
   }
 
-  .app-button {
-    padding: 0.9rem 1rem;
-    min-height: 2.9rem;
-  }
-
-  .app-hero,
-  .app-workspace,
-  .app-panel-strong,
-  .app-panel,
-  .app-modal {
-    border-radius: 1.4rem;
-  }
-
-  .app-hero::before,
-  .app-workspace::before,
-  .app-hero::after,
-  .app-workspace::after {
-    filter: blur(42px);
+  .app-hero {
+    border-radius: 1rem;
+    padding: 1.25rem;
   }
 
   .app-modal {
-    padding: 1rem;
+    border-radius: 1.5rem;
+    padding: 1.25rem;
   }
 
   .app-modal-scroll {
     max-height: min(90vh, 100%);
-    padding-bottom: max(1rem, env(safe-area-inset-bottom));
   }
 
-  .app-hud,
+  .app-topbar-inner {
+    padding-left: 0;
+    padding-right: 0;
+  }
+
+  .app-topbar-mark {
+    height: 2.6rem;
+    width: 2.6rem;
+    border-radius: 0.5rem;
+  }
+
+  .app-ledger-panel {
+    border-radius: 1rem;
+  }
+
   .app-stat,
   .app-action-tile {
+    border-radius: 1rem;
     padding: 0.9rem 0.95rem;
   }
 
   .app-metal-stat,
-  .app-ledger-panel,
   .app-log-card {
     border-radius: 1rem;
-  }
-
-  .app-ledger-panel::before,
-  .app-card::after {
-    inset: 0.65rem;
   }
 
   .app-command-strip {
@@ -1263,11 +862,6 @@ body {
   .app-rank-medal {
     min-width: 4.8rem;
     padding: 0.8rem 0.65rem;
-  }
-
-  .app-rank-emblem {
-    min-width: 4.5rem;
-    padding: 0.75rem 0.7rem;
   }
 
   .app-rank-pill,
@@ -1305,16 +899,10 @@ body {
 
   .app-calendar-day .text-\[11px\] {
     font-size: 0.6rem;
-    line-height: 1.2;
   }
 
   .app-calendar-day .text-sm {
     font-size: 0.82rem;
-  }
-
-  .app-log-card::before {
-    top: 0.75rem;
-    bottom: 0.75rem;
   }
 
   .app-reading-copy {
@@ -1358,11 +946,6 @@ body {
     grid-template-columns: 1fr;
   }
 
-  .app-filter-chip {
-    flex: 1 1 calc(50% - 0.5rem);
-    min-width: 0;
-  }
-
   .guild-tabs {
     overflow-x: auto;
     flex-wrap: nowrap;
@@ -1378,11 +961,20 @@ body {
     white-space: nowrap;
     padding: 0.78rem 0.92rem;
   }
+
+  .shop-grid {
+    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+    gap: 0.75rem;
+  }
+
+  .app-calendar-day {
+    border-radius: 0.85rem;
+  }
 }
 
 @media (max-width: 430px) {
   .page-wrap {
-    width: min(100% - 0.75rem, 1200px);
+    width: min(100% - 1.5rem, 1200px);
   }
 
   .app-topbar-inner {
@@ -1395,25 +987,13 @@ body {
   }
 
   .app-button {
-    gap: 0.45rem;
-    padding: 0.82rem 0.9rem;
     font-size: 0.82rem;
+    padding: 0.82rem 0.9rem;
     min-height: 3rem;
   }
 
   .app-command-button {
     letter-spacing: 0.08em;
-  }
-
-  .app-metal-stat {
-    padding: 0.9rem 0.95rem;
-  }
-
-  .app-metal-stat .text-3xl,
-  .logs-summary-grid .text-3xl,
-  .guild-stat-grid .text-2xl {
-    font-size: 1.55rem;
-    line-height: 1.15;
   }
 
   .landing-hero-title {
@@ -1423,70 +1003,11 @@ body {
   .guild-hero-title,
   .logs-hero-title {
     font-size: 1.8rem;
-    line-height: 1.05;
   }
 
   .landing-code-input {
-    font-size: 1rem;
-    letter-spacing: 0.12em;
     padding-left: 0.7rem;
     padding-right: 0.7rem;
-  }
-
-  .guild-stat-grid,
-  .logs-summary-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .logs-title-row {
-    align-items: flex-start;
-  }
-
-  .logs-view-toggle {
-    grid-template-columns: 1fr;
-  }
-
-  .logs-week-grid,
-  .logs-calendar-head,
-  .logs-calendar-grid {
-    gap: 0.25rem;
-  }
-
-  .member-card-head {
-    flex-direction: column;
-    align-items: stretch;
-    gap: 0.9rem;
-  }
-
-  .member-card-stats {
-    grid-template-columns: 1fr;
-  }
-
-  .log-entry {
-    padding: 0.8rem 0.85rem;
-  }
-
-  .log-entry .app-stitch-tag {
-    align-self: stretch;
-    justify-content: center;
-  }
-
-  .day-detail-head {
-    flex-direction: column;
-    align-items: flex-start;
-  }
-
-  .modal-action-row {
-    flex-direction: column-reverse;
-  }
-
-  .modal-action-row > * {
-    width: 100%;
-  }
-
-  .guild-tabs a,
-  .app-filter-chip {
-    min-height: 2.75rem;
   }
 
   .shop-item-card {
@@ -1497,8 +1018,6 @@ body {
 
   .app-calendar-day {
     min-height: 4.15rem;
-    border-radius: 0.85rem;
-    padding: 0.45rem 0.1rem;
   }
 
   .app-trend-col {
@@ -1511,13 +1030,10 @@ body {
     padding: 0.3rem;
   }
 
-  .app-filter-shell {
-    padding: 0.8rem 0.85rem;
-  }
-
-  .app-filter-chip {
-    padding: 0.66rem 0.8rem;
-    font-size: 0.76rem;
+  .app-input,
+  .app-textarea,
+  .app-select {
+    font-size: 16px;
   }
 }
 
@@ -1532,12 +1048,6 @@ body {
     height: 2.45rem;
   }
 
-  .app-input,
-  .app-textarea,
-  .app-select {
-    padding: 0.9rem 0.9rem;
-  }
-
   .landing-hero-title {
     font-size: 1.82rem;
   }
@@ -1547,11 +1057,6 @@ body {
     font-size: 1.6rem;
   }
 
-  .landing-code-input {
-    font-size: 0.92rem;
-    letter-spacing: 0.08em;
-  }
-
   .app-stitch-tag,
   .app-rank-pill,
   .app-log-pill,
@@ -1559,48 +1064,16 @@ body {
     letter-spacing: 0.04em;
   }
 
-  .dashboard-action-grid .text-lg,
-  .logs-summary-grid .text-lg,
-  .guild-stat-grid .text-sm {
-    line-height: 1.3;
-  }
-
   .member-card {
     padding: 1rem 0.95rem;
   }
 
-  .member-card .text-2xl,
-  .shop-grid .text-2xl,
-  .calendar-panel .text-2xl,
-  .day-detail-panel .text-2xl {
-    font-size: 1.28rem;
-  }
-
-  .member-card .text-sm,
-  .log-entry .text-sm,
-  .settings-modal .text-sm,
-  .shop-modal .text-sm,
-  .member-edit-modal .text-sm {
-    line-height: 1.45;
-  }
-
   .app-calendar-day {
     min-height: 3.85rem;
-    padding: 0.38rem 0.05rem;
   }
 
   .app-calendar-day .text-\[11px\] {
     font-size: 0.55rem;
-  }
-
-  .logs-calendar-head {
-    font-size: 0.62rem;
-    letter-spacing: 0.02em;
-  }
-
-  .logs-week-grid .app-trend-value,
-  .logs-week-grid .app-trend-label {
-    font-size: 0.62rem;
   }
 }
 
@@ -1632,29 +1105,6 @@ body {
     font-size: 1.45rem;
   }
 
-  .landing-code-input {
-    font-size: 0.86rem;
-    letter-spacing: 0.04em;
-  }
-
-  .app-button {
-    padding: 0.78rem 0.82rem;
-    min-height: 2.85rem;
-  }
-
-  .member-card,
-  .settings-modal,
-  .member-edit-modal,
-  .shop-modal {
-    padding: 0.9rem;
-  }
-
-  .logs-week-grid,
-  .logs-calendar-head,
-  .logs-calendar-grid {
-    gap: 0.2rem;
-  }
-
   .app-trend-track {
     height: 4rem;
     padding: 0.25rem;
@@ -1664,6 +1114,10 @@ body {
     min-height: 3.55rem;
   }
 }
+
+/* ============================================================
+REDUCED MOTION
+============================================================ */
 
 @media (prefers-reduced-motion: reduce) {
   html {
@@ -1678,9 +1132,7 @@ body {
   .guild-tabs a,
   .reveal-rise,
   .stagger-grid > *,
-  .float-gentle,
-  .pulse-amber,
-  .status-orb::after {
+  .float-gentle {
     animation: none !important;
     transition: none !important;
   }

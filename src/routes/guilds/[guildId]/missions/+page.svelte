@@ -185,12 +185,12 @@
 </script>
 
 <div class="space-y-5 pb-20">
-  <section class="app-panel-strong app-ledger-panel reveal-rise rounded-[2rem] px-5 py-6 md:px-8 md:py-8">
+  <section class="app-panel reveal-rise px-5 py-6 md:px-8 md:py-8">
     <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
       <div class="app-command-strip">
         <div class="eyebrow">Mission Board</div>
-        <h1 class="section-title mt-4 text-3xl text-white md:text-4xl">퀘스트 게시판</h1>
-        <p class="mt-3 max-w-2xl text-sm leading-6 text-slate-400 md:text-base">
+        <h1 class="section-title mt-4 text-3xl md:text-4xl">퀘스트 게시판</h1>
+        <p class="mt-3 max-w-2xl text-sm leading-6 md:text-base">
           활성 미션, 오늘 완료 상태, 이벤트 퀘스트를 같은 보드 언어로 관리합니다.
         </p>
       </div>
@@ -200,7 +200,7 @@
           isCreating = !isCreating;
           if (!isCreating) resetForm();
         }}
-        class="app-button app-command-button px-5 py-3 text-sm"
+        class="app-button app-button-primary px-5 py-3 text-sm"
       >
         <Plus size={18} />
         {isCreating ? "작성 닫기" : "새 퀘스트"}
@@ -209,54 +209,50 @@
 
     <div class="mt-6 grid gap-3 md:grid-cols-3">
       <div class="app-metal-stat">
-        <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Active</div>
-        <div class="mt-2 text-3xl font-bold text-white">{activeCount}</div>
-        <div class="mt-1 text-sm text-slate-400">오늘 아직 남은 퀘스트</div>
+        <div class="app-label">Active</div>
+        <div class="mt-2 text-3xl font-bold">{activeCount}</div>
+        <div class="mt-1 text-sm">오늘 아직 남은 퀘스트</div>
       </div>
       <div class="app-metal-stat app-metal-stat-cyan">
-        <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Completed</div>
-        <div class="mt-2 text-3xl font-bold text-white">{completedCount}</div>
-        <div class="mt-1 text-sm text-slate-400">오늘 완료 처리된 퀘스트</div>
+        <div class="app-label">Completed</div>
+        <div class="mt-2 text-3xl font-bold">{completedCount}</div>
+        <div class="mt-1 text-sm">오늘 완료 처리된 퀘스트</div>
       </div>
       <div class="app-metal-stat app-metal-stat-rose">
-        <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Roster</div>
-        <div class="mt-2 text-3xl font-bold text-white">{characters.length}</div>
-        <div class="mt-1 text-sm text-slate-400">완료 처리 가능한 캐릭터 수</div>
+        <div class="app-label">Roster</div>
+        <div class="mt-2 text-3xl font-bold">{characters.length}</div>
+        <div class="mt-1 text-sm">완료 처리 가능한 캐릭터 수</div>
       </div>
     </div>
 
-    <div class="mt-5 flex flex-col items-start justify-between gap-1 rounded-[1rem] border border-cyan-300/18 bg-cyan-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-cyan-100 sm:flex-row sm:items-center">
-      <span>Available Missions</span>
+    <div class="mt-5 app-info-strip">
+      <span class="font-semibold">Available Missions</span>
       <span>{sortedMissions.length} Entries</span>
     </div>
   </section>
 
   {#if isCreating}
-    <section class="app-card app-ledger-panel reveal-rise p-5 md:p-7" style="animation-delay: 120ms">
+    <section class="app-card reveal-rise p-5 md:p-7" style="animation-delay: 120ms">
       <div class="mb-5 flex items-center justify-between gap-4">
         <div>
-          <div class="app-stitch-tag">
-            {editingMissionId ? "Edit Quest" : "Create Quest"}
-          </div>
-          <h2 class="mt-2 text-2xl font-semibold text-white">
+          <div class="app-stitch-tag">{editingMissionId ? "Edit Quest" : "Create Quest"}</div>
+          <h2 class="mt-2 text-2xl font-semibold">
             {editingMissionId ? "퀘스트 수정" : "새 퀘스트 등록"}
           </h2>
         </div>
         {#if editingMissionId}
-          <div class="app-stitch-tag text-cyan-100">
-            수정 모드
-          </div>
+          <div class="app-stitch-tag">수정 모드</div>
         {/if}
       </div>
 
       <div class="grid gap-4 md:grid-cols-2">
         <div class="md:col-span-2">
-          <label for="mission-title" class="mb-2 block text-sm font-medium text-slate-300">퀘스트명</label>
+          <label for="mission-title" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">퀘스트명</label>
           <input id="mission-title" bind:value={newMission.title} class="app-input" placeholder="예: 아침 회의 참석" />
         </div>
 
         <div>
-          <label for="mission-description" class="mb-2 block text-sm font-medium text-slate-300">설명</label>
+          <label for="mission-description" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">설명</label>
           <textarea
             id="mission-description"
             bind:value={newMission.description}
@@ -267,17 +263,18 @@
 
         <div class="space-y-4">
           <div>
-            <label for="mission-cost" class="mb-2 block text-sm font-medium text-slate-300">보상 (1인당)</label>
+            <label for="mission-cost" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">보상 (1인당)</label>
             <input id="mission-cost" bind:value={newMission.cost} type="number" min="0" class="app-input" />
           </div>
 
           <div>
-            <span class="mb-2 block text-sm font-medium text-slate-300">유형</span>
+            <span class="mb-2 block text-sm font-medium text-[var(--text-primary)]">유형</span>
             <div class="grid gap-2 sm:grid-cols-3">
               <button
                 type="button"
                 on:click={() => handleMissionTypeChange("solo")}
-                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "solo" ? "border-cyan-300/30 bg-cyan-300/10 text-cyan-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class="mission-type-btn"
+                class:active={newMission.type === "solo"}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <Swords size={16} />
@@ -289,7 +286,8 @@
               <button
                 type="button"
                 on:click={() => handleMissionTypeChange("assigned")}
-                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "assigned" ? "border-amber-300/30 bg-amber-300/10 text-amber-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class="mission-type-btn"
+                class:active={newMission.type === "assigned"}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <UserRoundCheck size={16} />
@@ -304,7 +302,8 @@
                   handleMissionTypeChange("party");
                   if (newMission.maxParticipants < 2) newMission.maxParticipants = 2;
                 }}
-                class={`app-ledger-panel rounded-2xl border px-3 py-3 text-left transition md:px-4 md:py-4 ${newMission.type === "party" ? "border-fuchsia-300/30 bg-fuchsia-300/10 text-fuchsia-100" : "border-white/10 bg-white/4 text-slate-400"}`}
+                class="mission-type-btn"
+                class:active={newMission.type === "party"}
               >
                 <div class="flex items-center gap-2 font-semibold">
                   <Users size={16} />
@@ -314,37 +313,37 @@
               </button>
             </div>
           </div>
-
-          {#if newMission.type === "assigned"}
-            <div>
-              <label for="assigned-character" class="mb-2 block text-sm font-medium text-slate-300">배정 멤버</label>
-              <select
-                id="assigned-character"
-                bind:value={newMission.assignedCharacterId}
-                class="app-select"
-                on:change={(event) => handleAssignedCharacterChange((event.currentTarget as HTMLSelectElement).value)}
-              >
-                <option value="">멤버를 선택하세요</option>
-                {#each characters as char}
-                  <option value={char.id}>{JOB_ICONS[char.jobClass]} {char.name}</option>
-                {/each}
-              </select>
-            </div>
-          {/if}
-
-          {#if newMission.type === "party"}
-            <div>
-              <label for="max-participants" class="mb-2 block text-sm font-medium text-slate-300">최대 참여 인원</label>
-              <input id="max-participants" bind:value={newMission.maxParticipants} type="number" min="2" class="app-input" />
-            </div>
-          {/if}
         </div>
 
-        <label class="app-ledger-panel md:col-span-2 flex cursor-pointer items-start gap-3 p-4">
-          <input type="checkbox" bind:checked={newMission.isOneTime} class="mt-1 h-4 w-4 accent-amber-400" />
+        {#if newMission.type === "assigned"}
           <div>
-            <div class="font-semibold text-white">일회성 퀘스트</div>
-            <p class="mt-1 text-sm leading-6 text-slate-400">
+            <label for="assigned-character" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">배정 멤버</label>
+            <select
+              id="assigned-character"
+              bind:value={newMission.assignedCharacterId}
+              class="app-select"
+              on:change={(event) => handleAssignedCharacterChange((event.currentTarget as HTMLSelectElement).value)}
+            >
+              <option value="">멤버를 선택하세요</option>
+              {#each characters as char}
+                <option value={char.id}>{JOB_ICONS[char.jobClass]} {char.name}</option>
+              {/each}
+            </select>
+          </div>
+        {/if}
+
+        {#if newMission.type === "party"}
+          <div>
+            <label for="max-participants" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">최대 참여 인원</label>
+            <input id="max-participants" bind:value={newMission.maxParticipants} type="number" min="2" class="app-input" />
+          </div>
+        {/if}
+
+        <label class="md:col-span-2 flex cursor-pointer items-start gap-3 rounded-[1rem] border border-[var(--grey-300)] p-4">
+          <input type="checkbox" bind:checked={newMission.isOneTime} class="mt-1 h-4 w-4" />
+          <div>
+            <div class="font-semibold">일회성 퀘스트</div>
+            <p class="mt-1 text-sm leading-6">
               완료 시 목록에서 자동으로 사라지는 이벤트성 퀘스트입니다.
             </p>
           </div>
@@ -369,73 +368,69 @@
   {/if}
 
   {#if sortedMissions.length === 0}
-    <section class="app-card app-ledger-panel px-6 py-14 text-center">
-      <ScrollText size={28} class="mx-auto text-slate-500" />
-      <h2 class="mt-4 text-2xl font-semibold text-white">등록된 퀘스트가 없습니다</h2>
-      <p class="mt-3 text-sm text-slate-400">새 퀘스트를 만들어 길드 운영 루프를 시작하세요.</p>
+    <section class="app-card px-6 py-14 text-center">
+      <ScrollText size={28} class="mx-auto" />
+      <h2 class="mt-4 text-2xl font-semibold">등록된 퀘스트가 없습니다</h2>
+      <p class="mt-3 text-sm">새 퀘스트를 만들어 길드 운영 루프를 시작하세요.</p>
     </section>
   {:else}
     <section class="stagger-grid grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {#each sortedMissions as mission (mission.id)}
         {@const isSoldOut = $completedIds.has(mission.id || "")}
-        <article class={`app-card app-ledger-panel app-ledger-lines app-command-strip flex flex-col p-5 md:p-6 transition ${isSoldOut ? "quest-card-done opacity-60 grayscale" : "quest-card-active hover:-translate-y-1"}`}>
+        <article class={`quest-card app-card flex flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
-              <span class={`app-stitch-tag ${mission.type === "party" ? "bg-fuchsia-300/12 text-fuchsia-200" : mission.type === "assigned" ? "bg-amber-300/12 text-amber-200" : "bg-cyan-300/12 text-cyan-200"}`}>
+              <span class={`app-stitch-tag ${mission.type === "party" ? "" : mission.type === "assigned" ? "" : ""}`}>
                 {mission.type === "party" ? "PARTY" : mission.type === "assigned" ? "ASSIGNED" : "SOLO"}
               </span>
               {#if mission.isOneTime}
-                <span class="app-stitch-tag bg-rose-300/12 text-rose-200">
-                  1회 한정
-                </span>
+                <span class="app-stitch-tag">1회 한정</span>
               {/if}
               {#if isSoldOut}
-                <span class="app-stitch-tag bg-white/8 text-slate-400">오늘 완료</span>
+                <span class="app-stitch-tag">오늘 완료</span>
               {/if}
             </div>
 
             <div class="flex gap-1">
-              <button on:click={() => startEdit(mission)} class="app-seal h-9 w-9 text-slate-400 transition hover:text-cyan-200" title="수정">
+              <button on:click={() => startEdit(mission)} class="app-icon-btn" title="수정">
                 <Pencil size={15} />
               </button>
-              <button on:click={() => handleDelete(mission)} class="app-seal h-9 w-9 text-slate-400 transition hover:text-rose-200" title="삭제">
+              <button on:click={() => handleDelete(mission)} class="app-icon-btn" title="삭제">
                 <Trash2 size={15} />
               </button>
             </div>
           </div>
 
           <div class="flex flex-col items-start justify-between gap-3 sm:flex-row">
-            <h3 class={`text-xl font-semibold ${isSoldOut ? "text-slate-400 line-through" : "text-white"}`}>{mission.title}</h3>
+            <h3 class="text-xl font-semibold">{mission.title}</h3>
             <div class="shrink-0 text-left sm:text-right">
-              <div class="text-[10px] uppercase tracking-[0.18em] text-slate-500">Reward</div>
-              <div class="mt-1 text-sm font-bold text-amber-300">{mission.cost} G</div>
+              <div class="app-label">Reward</div>
+              <div class="mt-1 text-sm font-bold">{mission.cost} G</div>
             </div>
           </div>
-          <p class="mt-3 min-h-[56px] text-sm leading-6 text-slate-400 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
+          <p class="mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
 
           {#if mission.type === "assigned" && mission.assignedCharacterName}
-            <div class="mt-3 rounded-[1rem] border border-amber-300/14 bg-amber-300/8 px-3 py-2 text-sm text-amber-100">
+            <div class="mt-3 app-info-strip text-sm">
               배정 멤버: {mission.assignedCharacterName}
             </div>
           {/if}
 
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
-            <div class="app-ledger-panel px-4 py-3">
-              <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Reward</div>
-              <div class="mt-2 text-2xl font-bold text-amber-200">{mission.cost} G</div>
+            <div class="app-stat-card">
+              <div class="app-label">Reward</div>
+              <div class="mt-2 text-2xl font-bold">{mission.cost} G</div>
             </div>
-            <div class="app-ledger-panel px-4 py-3">
-              <div class="text-xs uppercase tracking-[0.18em] text-slate-500">Party Size</div>
-              <div class="mt-2 text-2xl font-bold text-white">
-                {mission.type === "party" ? mission.maxParticipants : 1}
-              </div>
+            <div class="app-stat-card">
+              <div class="app-label">Party Size</div>
+              <div class="mt-2 text-2xl font-bold">{mission.type === "party" ? mission.maxParticipants : 1}</div>
             </div>
           </div>
 
           <button
             on:click={() => !isSoldOut && openCompleteModal(mission)}
             disabled={isSoldOut}
-            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut ? "border border-white/10 bg-white/5 text-slate-500" : "app-command-button pulse-amber"}`}
+            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut ? "app-button-secondary" : "app-button-primary"}`}
           >
             <CheckCircle2 size={17} />
             {isSoldOut ? "오늘 마감됨" : "수행 완료 보고"}
@@ -446,29 +441,31 @@
   {/if}
 
   {#if selectedMission}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/75 p-3 md:p-4 backdrop-blur-md">
-      <div class="app-modal app-ledger-panel app-modal-scroll w-full max-w-2xl p-5 md:p-7">
-        <div class="flex items-start justify-between gap-4 border-b border-white/8 pb-5">
+    <div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--black)]/40 p-3 md:p-4">
+      <div class="app-modal app-modal-scroll w-full max-w-2xl bg-white">
+        <div class="flex items-start justify-between gap-4 border-b border-[var(--grey-300)] px-5 py-5 md:px-7">
           <div>
             <div class="app-stitch-tag">Pending Distribution</div>
-            <h3 class="mt-2 text-2xl font-semibold text-white">{selectedMission.title}</h3>
-            <p class="mt-2 text-sm text-slate-400">보상을 받을 캐릭터를 선택하세요.</p>
+            <h3 class="mt-2 text-2xl font-semibold">{selectedMission.title}</h3>
+            <p class="mt-2 text-sm">보상을 받을 캐릭터를 선택하세요.</p>
           </div>
-          <button on:click={() => (selectedMission = null)} class="app-brass-coin p-2 text-slate-400 transition hover:text-white">✕</button>
+          <button on:click={() => (selectedMission = null)} class="app-icon-btn">
+            ✕
+          </button>
         </div>
 
-        <div class="mt-5 max-h-[58vh] space-y-3 overflow-y-auto pr-1">
+        <div class="mt-5 max-h-[58vh] space-y-3 overflow-y-auto px-5 md:px-7">
           {#if isLoadingLogs}
-            <div class="py-14 text-center text-slate-400">
-              <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-cyan-300 border-t-transparent"></div>
+            <div class="py-14 text-center">
+              <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[var(--grey-300)] border-t-[var(--black)]"></div>
               <p class="mt-3 text-sm">오늘 기록을 확인하는 중입니다.</p>
             </div>
           {:else if selectableCharacters.length === 0}
-            <div class="rounded-[1.5rem] border border-dashed border-white/10 px-4 py-12 text-center text-slate-400">
+            <div class="rounded-[1.5rem] border border-dashed border-[var(--grey-300)] px-4 py-12 text-center">
               선택 가능한 캐릭터가 없습니다.
             </div>
           {:else}
-            <div class="rounded-[1rem] border border-amber-300/18 bg-amber-300/8 px-4 py-3 text-xs uppercase tracking-[0.2em] text-amber-100">
+            <div class="app-info-strip text-sm">
               Select Party Members for Reward Split
             </div>
 
@@ -479,43 +476,45 @@
               <button
                 on:click={() => toggleCharacter(char.id!)}
                 disabled={isDone}
-                class={`app-ledger-panel flex w-full items-center justify-between rounded-[1.25rem] border p-3.5 text-left transition md:p-4 ${isDone ? "border-white/8 bg-white/4 opacity-50" : isSelected ? "border-cyan-300/30 bg-cyan-300/10" : "border-white/10 bg-white/4 hover:bg-white/6"}`}
+                class="char-select-btn"
+                class:selected={isSelected}
+                class:done={isDone}
               >
                 <div class="flex items-center gap-3">
-                  <div class="app-seal h-11 w-11 text-xl md:h-12 md:w-12">
+                  <div class="app-seal text-xl">
                     {JOB_ICONS[char.jobClass] || "😐"}
                   </div>
                   <div>
-                    <div class="flex items-center gap-2 font-semibold text-white">
+                    <div class="flex items-center gap-2 font-semibold">
                       {#if char.grade}
                         <span title={getGradeInfo(char.grade).label}>{getGradeInfo(char.grade).icon}</span>
                       {/if}
                       {char.name}
                     </div>
-                    <div class="mt-1 text-xs text-slate-400">
+                    <div class="mt-1 text-xs">
                       {isDone ? "오늘 이미 완료 처리됨" : `${char.jobClass} · Lv.${char.level || 1}`}
                     </div>
                   </div>
                 </div>
 
                 {#if isSelected}
-                  <span class="app-stitch-tag text-cyan-100">선택됨</span>
+                  <span class="app-stitch-tag">선택됨</span>
                 {:else if isDone}
-                  <span class="app-stitch-tag text-slate-300">완료</span>
+                  <span class="app-stitch-tag">완료</span>
                 {/if}
               </button>
             {/each}
           {/if}
         </div>
 
-        <div class="modal-action-row mt-5 flex flex-col gap-2 border-t border-white/8 pt-5 sm:flex-row">
+        <div class="modal-action-row mt-5 flex flex-col gap-2 border-t border-[var(--grey-300)] px-5 py-5 md:px-7 sm:flex-row">
           <button on:click={() => (selectedMission = null)} class="app-button app-button-secondary flex-1 px-4 py-3 text-sm">
             취소
           </button>
           <button
             on:click={handleComplete}
             disabled={selectedCharIds.length === 0}
-            class="app-button app-command-button flex-1 px-4 py-3 text-sm"
+            class="app-button app-button-primary flex-1 px-4 py-3 text-sm"
           >
             완료 처리
           </button>
@@ -525,27 +524,26 @@
   {/if}
 
   {#if showChestModal}
-    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-slate-950/85 p-3 md:p-4 overflow-hidden" transition:fade={{ duration: 300 }}>
+    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--black)]/40 p-3 md:p-4 overflow-hidden" transition:fade={{ duration: 300 }}>
       <div class="relative w-full max-w-md text-center">
-        <div class="absolute inset-0 -z-10 rounded-full bg-amber-400/15 blur-3xl"></div>
-        <div class="app-panel-strong app-ledger-panel rounded-[2rem] px-5 py-8 md:px-6 md:py-10">
+        <div class="app-card rounded-[2rem] px-5 py-8 md:px-6 md:py-10">
           {#if !chestOpened}
             <button
               type="button"
-              class="shake-animation select-none bg-transparent pulse-amber"
+              class="shake-animation select-none bg-transparent"
               on:click={() => (chestOpened = true)}
               in:scale={{ duration: 500, start: 0, easing: quintOut }}
             >
               🎁
             </button>
-            <p class="mt-5 text-lg font-semibold text-white">Secure Vault Opened</p>
-            <p class="mt-2 text-sm text-slate-400">잠시 후 자동으로 열리며, 직접 클릭해도 됩니다.</p>
+            <p class="mt-5 text-lg font-semibold">Secure Vault Opened</p>
+            <p class="mt-2 text-sm">잠시 후 자동으로 열리며, 직접 클릭해도 됩니다.</p>
           {:else}
             <div class="flex flex-col items-center" in:scale={{ duration: 300, start: 0.8, easing: quintOut }}>
               <div class="text-[7rem] animate-bounce-short">💰</div>
-              <h2 class="pop-in-text mt-2 text-3xl font-black text-amber-300">BONUS</h2>
-              <div class="pop-in-text-delayed mt-3 text-5xl font-black text-white">
-                +{chestBonus}<span class="ml-2 text-2xl text-amber-300">G</span>
+              <h2 class="pop-in-text mt-2 text-3xl font-black">BONUS</h2>
+              <div class="pop-in-text-delayed mt-3 text-5xl font-black">
+                +{chestBonus}<span class="ml-2 text-2xl text-[var(--orange-badge)]">G</span>
               </div>
               <button on:click={closeChestModal} class="app-button app-button-primary mt-8 px-8 py-3">
                 확인
@@ -570,7 +568,7 @@
     70% { transform: translate(3px, 1px) rotate(-1deg); }
     80% { transform: translate(-1px, -1px) rotate(1deg); }
     90% { transform: translate(1px, 2px) rotate(0deg); }
-    100% { transform: translate(1px, -2px) rotate(-1deg); }
+    100% { transform: translate(1px, -2px) rotate(0deg); }
   }
 
   .shake-animation {

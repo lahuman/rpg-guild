@@ -32,13 +32,13 @@
     <div class="flex flex-col gap-5 md:flex-row md:items-center md:justify-between">
       <div>
         <div class="eyebrow">Guild Command</div>
-        <h2 class="section-title mt-3 text-2xl text-white md:text-3xl">길드 운영 대시보드</h2>
-        <p class="mt-2 text-sm text-slate-400 md:text-base">
+        <h2 class="section-title mt-3 text-2xl md:text-3xl">길드 운영 대시보드</h2>
+        <p class="mt-2 text-sm text-[var(--text-secondary)] md:text-base">
           길드 정보, 멤버 운영, 미션 흐름을 전술형 커맨드 워크스페이스로 정리했습니다.
         </p>
       </div>
 
-      <nav class="guild-tabs -mx-1 flex flex-nowrap gap-2 px-1 md:mx-0 md:flex-wrap md:px-0" aria-label="Guild sections">
+      <nav class="guild-tabs flex flex-wrap gap-2 px-1 md:mx-0 md:px-0" aria-label="Guild sections">
         {#each navItems as item}
           <a
             href={`/guilds/${guildId}${item.href}`}
@@ -51,8 +51,8 @@
       </nav>
     </div>
 
-    <div class="mt-5 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-slate-500">
-      <Shield size={14} class="text-cyan-300" />
+    <div class="mt-5 flex items-center gap-2 text-xs uppercase tracking-[0.18em] text-[var(--text-secondary)]">
+      <Shield size={14} class="text-[var(--blue)]" />
       Tactical workspace ready
     </div>
   </section>

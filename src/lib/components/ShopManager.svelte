@@ -81,14 +81,14 @@
 </script>
 
 <div class="overflow-hidden">
-  <div class="flex flex-col gap-4 border-b border-white/8 pb-5 sm:flex-row sm:items-center sm:justify-between">
+  <div class="flex flex-col gap-4 border-b border-[var(--grey-300)] pb-5 sm:flex-row sm:items-center sm:justify-between">
     <div class="flex items-center gap-3">
-      <div class="app-brass-coin h-11 w-11 text-amber-200">
+      <div class="app-coin-icon">
         <Store size={18} />
       </div>
       <div>
-        <h3 class="text-lg font-semibold text-white">상점 관리</h3>
-        <p class="text-xs text-slate-400">길드 보상 아이템을 등록하고 수정합니다.</p>
+        <h3 class="text-lg font-semibold">상점 관리</h3>
+        <p class="text-xs text-[var(--text-secondary)]">길드 보상 아이템을 등록하고 수정합니다.</p>
       </div>
     </div>
 
@@ -109,34 +109,34 @@
   </div>
 
   {#if isFormOpen}
-    <div class="border-b border-white/8 py-5" transition:slide>
+    <div class="border-b border-[var(--grey-300)] py-5" transition:slide>
       <div class="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div class="app-stitch-tag text-cyan-100">{editingItemId ? "상품 수정" : "새 상품 등록"}</div>
+        <div class="app-stitch-tag">{editingItemId ? "상품 수정" : "새 상품 등록"}</div>
         {#if editingItemId}
           <button
             on:click={() => {
               resetForm();
               isFormOpen = false;
             }}
-            class="text-sm text-slate-400 transition hover:text-white"
+            class="text-sm text-[var(--text-secondary)] transition hover:text-[var(--black)]"
           >
             취소
           </button>
         {/if}
       </div>
 
-    <div class="space-y-4">
-      <div class="app-ledger-panel p-4">
-          <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-slate-500">아이콘 선택</p>
+      <div class="space-y-4">
+        <div class="app-stat-card p-4">
+          <p class="mb-3 text-xs font-bold uppercase tracking-[0.18em] text-[var(--text-secondary)]">아이콘 선택</p>
           <div class="space-y-3">
             {#each SHOP_EMOJI_CATEGORIES as category}
               <div>
-                <div class="mb-2 text-xs text-slate-500">{category.name}</div>
+                <div class="mb-2 text-xs">{category.name}</div>
                 <div class="flex flex-wrap gap-2">
                   {#each category.icons as icon}
                     <button
                       type="button"
-                      class={`flex h-10 w-10 items-center justify-center rounded-xl border text-lg transition ${formData.icon === icon ? "border-cyan-300/30 bg-cyan-300/10" : "border-white/10 bg-slate-950/40 hover:bg-white/6"}`}
+                      class={`shop-icon-btn ${formData.icon === icon ? "shop-icon-btn-active" : ""}`}
                       on:click={() => (formData.icon = icon)}
                     >
                       {icon}
@@ -158,11 +158,11 @@
           <input bind:value={formData.description} class="app-input" placeholder="설명 (선택 사항)" />
         </div>
 
-        <label class="app-ledger-panel flex items-start gap-3 p-4">
-          <input type="checkbox" bind:checked={formData.isOneTime} class="mt-1 h-4 w-4 accent-amber-400" />
+        <label class="flex items-start gap-3 rounded-[1rem] border border-[var(--grey-300)] p-4">
+          <input type="checkbox" bind:checked={formData.isOneTime} class="mt-1 h-4 w-4" />
           <div>
-            <span class="font-semibold text-white">일회성 아이템</span>
-            <p class="mt-1 text-sm text-slate-400">구매 시 인벤토리에 남지 않고 즉시 소모되는 아이템입니다.</p>
+            <span class="font-semibold">일회성 아이템</span>
+            <p class="mt-1 text-sm text-[var(--text-secondary)]">구매 시 인벤토리에 남지 않고 즉시 소모되는 아이템입니다.</p>
           </div>
         </label>
 
@@ -175,27 +175,27 @@
 
   <div class="mt-5 space-y-3">
     {#if $itemStore.length === 0}
-      <div class="rounded-[1.25rem] border border-dashed border-white/10 px-4 py-12 text-center text-sm text-slate-400">
+      <div class="rounded-[1.25rem] border border-dashed border-[var(--grey-300)] px-4 py-12 text-center">
         등록된 상품이 없습니다.
       </div>
     {:else}
       {#each $itemStore as item (item.id)}
-        <div class="app-ledger-panel app-ledger-lines group flex flex-col gap-4 p-4 transition hover:bg-white/6 sm:flex-row sm:items-center sm:justify-between">
+        <div class="app-stat-card group flex flex-col gap-4 p-4 transition sm:flex-row sm:items-center sm:justify-between">
           <div class="flex min-w-0 items-center gap-3">
-            <div class="app-seal h-12 w-12 text-2xl">
+            <div class="app-seal text-2xl">
               {item.icon}
             </div>
             <div class="min-w-0">
-              <div class="flex flex-wrap items-center gap-2 font-semibold text-white">
+              <div class="flex flex-wrap items-center gap-2 font-semibold">
                 {item.name}
                 {#if item.isOneTime}
-                  <span class="app-stitch-tag text-[11px] text-rose-200">1회용</span>
+                  <span class="app-stitch-tag text-[11px] text-[var(--red)]">1회용</span>
                 {/if}
               </div>
-              <div class="mt-1 text-sm text-slate-400">
+              <div class="mt-1 text-sm text-[var(--text-secondary)]">
                 {item.cost} G
                 {#if item.description}
-                  <span class="mx-2 text-slate-600">|</span>
+                  <span class="mx-2">·</span>
                   {item.description}
                 {/if}
               </div>
@@ -203,10 +203,10 @@
           </div>
 
           <div class="flex shrink-0 gap-2 self-end sm:self-auto">
-            <button on:click={() => openForm(item)} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-cyan-200" title="수정">
+            <button on:click={() => openForm(item)} class="app-icon-btn" title="수정">
               <Pencil size={15} />
             </button>
-            <button on:click={() => handleDelete(item)} class="rounded-full border border-white/10 bg-white/5 p-2 text-slate-400 transition hover:text-rose-200" title="삭제">
+            <button on:click={() => handleDelete(item)} class="app-icon-btn" title="삭제">
               <Trash2 size={15} />
             </button>
           </div>
@@ -215,3 +215,29 @@
     {/if}
   </div>
 </div>
+
+<style>
+  .shop-icon-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 2.5rem;
+    height: 2.5rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--border-secondary);
+    background: var(--white);
+    font-size: 1rem;
+    cursor: pointer;
+    transition: border-color 0.15s, background 0.15s;
+  }
+
+  .shop-icon-btn:hover {
+    background: var(--grey-100);
+    border-color: var(--grey-500);
+  }
+
+  .shop-icon-btn-active {
+    border-color: var(--black);
+    background: var(--grey-100);
+  }
+</style>
