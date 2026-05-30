@@ -1,10 +1,12 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { onDestroy, tick } from "svelte";
+  import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
+  import CharacterCustomizerModal from "$lib/components/CharacterCustomizerModal.svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
   import PointTransferModal from "$lib/components/PointTransferModal.svelte";
-  import { JOB_ICONS, createCharacterForm, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
+  import { JOB_ICONS, createCharacterForm, formatGold, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     checkInCharacterAction,
     createCharacterAction,
@@ -19,6 +21,7 @@
     Coins,
     Crown,
     Pencil,
+    Palette,
     Send,
     ShoppingBag,
     Sparkles,
@@ -42,6 +45,7 @@
   let editingChar: GuildCharacter | null = null;
   let selectedCharForGame: GuildCharacter | null = null;
   let selectedCharForTransfer: GuildCharacter | null = null;
+  let customizingChar: GuildCharacter | null = null;
   let shoppingChar: GuildCharacter | null = null;
   let showShopManager = false;
   let newChar: Partial<GuildCharacter> = createCharacterForm();
@@ -209,20 +213,26 @@
         {@const hasCheckedInToday = char.lastCheckInDate === today}
         {@const gradeInfo = getGradeInfo(char.grade)}
         {@const accentClass = gradeInfo.accent}
-        <article class="character-card app-card flex flex-col p-5 md:p-6 {accentClass}">
+        <article class="character-card app-card flex flex-col p-5 md:p-6">
           <div class="flex items-start justify-between gap-4">
-            <div>
-              <div class="app-stitch-tag">
-                {JOB_ICONS[char.jobClass] || "❓"} {char.jobClass}
+            <div class="flex min-w-0 items-start gap-4">
+              <CharacterAvatar character={char} size="md" />
+              <div class="min-w-0">
+                <div class="app-stitch-tag">
+                  {JOB_ICONS[char.jobClass] || "?"} {char.jobClass}
+                </div>
+                <div class="mt-3 flex items-center gap-2 text-sm">
+                  <span title={gradeInfo.label}>{gradeInfo.icon}</span>
+                  <span>{gradeInfo.label}</span>
+                </div>
+                <div class="mt-2 text-xs">{gradeInfo.title}</div>
               </div>
-              <div class="mt-3 flex items-center gap-2 text-sm">
-                <span title={gradeInfo.label}>{gradeInfo.icon}</span>
-                <span>{gradeInfo.label}</span>
-              </div>
-              <div class="mt-2 text-xs">{gradeInfo.title}</div>
             </div>
 
             <div class="flex gap-1">
+              <button on:click={() => (customizingChar = char)} class="app-icon-btn" title="꾸미기">
+                <Palette size={15} />
+              </button>
               <button on:click={() => (editingChar = { ...char })} class="app-icon-btn" title="수정">
                 <Pencil size={15} />
               </button>
@@ -250,14 +260,14 @@
           <div class="mt-5 grid grid-cols-2 gap-3">
             <div class="app-stat-box">
               <div class="app-label">Gold</div>
-              <div class="mt-2 flex items-center gap-2 text-2xl font-bold">
+              <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
                 <Coins size={18} />
-                {char.currentGold?.toLocaleString() || 0}
+                <span class="app-metric-value">{formatGold(char.currentGold)}</span>
               </div>
             </div>
             <div class="app-stat-box">
               <div class="app-label">Level</div>
-              <div class="mt-2 text-2xl font-bold {accentClass}">Lv.{char.level || 1}</div>
+              <div class="app-rank-text mt-2 text-2xl font-bold {accentClass}">Lv.{char.level || 1}</div>
               {#if (char.consecutiveDays || 0) > 1}
                 <div class="mt-1 text-xs text-[var(--green)]">연속 출석 {char.consecutiveDays}일</div>
               {/if}
@@ -288,6 +298,14 @@
               >
                 <Send size={16} />
                 양도
+              </button>
+
+              <button
+                on:click={() => (customizingChar = char)}
+                class="app-button app-button-secondary px-4 py-3 text-sm"
+              >
+                <Palette size={16} />
+                꾸미기
               </button>
             </div>
 
@@ -377,7 +395,7 @@
             <div class="app-label">Gold Shop</div>
             <h3 class="mt-2 text-2xl font-semibold">{shoppingChar.name}의 상점</h3>
             <p class="mt-2 text-sm">
-              현재 보유 골드 <span class="font-semibold">{shoppingChar.currentGold?.toLocaleString() || 0} G</span>
+              현재 보유 골드 <span class="font-semibold">{formatGold(shoppingChar.currentGold)}</span>
             </p>
             <p class="mt-2 text-xs uppercase tracking-[0.16em]">
               {showShopManager ? "현재 모드: 상품 관리" : "현재 모드: 구매 목록"}
@@ -454,6 +472,15 @@
       fromCharacter={selectedCharForTransfer}
       allCharacters={characters}
       on:close={() => (selectedCharForTransfer = null)}
+    />
+  {/if}
+
+  {#if customizingChar}
+    <CharacterCustomizerModal
+      guildId={guildId}
+      character={customizingChar}
+      on:close={() => (customizingChar = null)}
+      on:saved={() => (customizingChar = null)}
     />
   {/if}
 </div>

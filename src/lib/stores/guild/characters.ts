@@ -12,7 +12,8 @@ import {
     getGradeRewardGold,
     normalizeGrade
 } from './constants';
-import type { GuildCharacter } from './types';
+import { getDefaultCharacterAppearance, sanitizeCharacterAppearance } from './appearance';
+import type { CharacterAppearance, GuildCharacter } from './types';
 
 function requireSignedInUser() {
     const currentUser = get(userStore);
@@ -37,6 +38,25 @@ export function createCharacterActions() {
 
         async updateCharacter(guildId: string, charId: string, updates: Partial<GuildCharacter>) {
             await updateDoc(doc(db, `guilds/${guildId}/characters`, charId), updates);
+        },
+
+        async updateCharacterAppearance(guildId: string, charId: string, appearance: Partial<CharacterAppearance>) {
+            const charRef = doc(db, `guilds/${guildId}/characters`, charId);
+
+            await runTransaction(db, async (transaction) => {
+                const charDoc = await transaction.get(charRef);
+                if (!charDoc.exists()) throw new Error('캐릭터가 존재하지 않습니다.');
+
+                const character = {
+                    id: charDoc.id,
+                    ...charDoc.data()
+                } as GuildCharacter;
+                const fallback = getDefaultCharacterAppearance(character);
+
+                transaction.update(charRef, {
+                    appearance: sanitizeCharacterAppearance(appearance, fallback)
+                });
+            });
         },
 
         async deleteCharacter(guildId: string, charId: string) {

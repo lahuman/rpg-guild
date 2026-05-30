@@ -1,5 +1,6 @@
 <script lang="ts">
   import { createEventDispatcher } from 'svelte';
+  import { onDestroy } from 'svelte';
   import { X } from 'lucide-svelte';
   import { lockBodyScroll } from '$lib';
 
@@ -20,12 +21,18 @@
 
   let releaseBodyScrollLock: (() => void) | null = null;
 
-  $: if (open) {
-    releaseBodyScrollLock = lockBodyScroll();
-  } else {
-    releaseBodyScrollLock?.();
-    releaseBodyScrollLock = null;
+  $: {
+    if (open && !releaseBodyScrollLock) {
+      releaseBodyScrollLock = lockBodyScroll();
+    } else if (!open && releaseBodyScrollLock) {
+      releaseBodyScrollLock();
+      releaseBodyScrollLock = null;
+    }
   }
+
+  onDestroy(() => {
+    releaseBodyScrollLock?.();
+  });
 
   function handleClose() {
     dispatch('close');

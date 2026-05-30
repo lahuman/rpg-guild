@@ -3,7 +3,8 @@
   import { onDestroy } from "svelte";
   import { quintOut } from "svelte/easing";
   import { fade, scale } from "svelte/transition";
-  import { JOB_ICONS, createMissionForm, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
+  import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
+  import { JOB_ICONS, createMissionForm, formatGold, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     completeMissionAction,
     deleteMissionAction,
@@ -442,7 +443,7 @@
 
   {#if selectedMission}
     <div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--black)]/40 p-3 md:p-4">
-      <div class="app-modal app-modal-scroll w-full max-w-2xl bg-white">
+      <div class="app-modal mission-complete-modal w-full max-w-2xl bg-white">
         <div class="flex items-start justify-between gap-4 border-b border-[var(--grey-300)] px-5 py-5 md:px-7">
           <div>
             <div class="app-stitch-tag">Pending Distribution</div>
@@ -454,7 +455,7 @@
           </button>
         </div>
 
-        <div class="mt-5 max-h-[58vh] space-y-3 overflow-y-auto px-5 md:px-7">
+        <div class="mission-complete-body space-y-4 px-5 md:px-7">
           {#if isLoadingLogs}
             <div class="py-14 text-center">
               <div class="mx-auto h-8 w-8 animate-spin rounded-full border-2 border-[var(--grey-300)] border-t-[var(--black)]"></div>
@@ -466,44 +467,48 @@
             </div>
           {:else}
             <div class="app-info-strip text-sm">
-              Select Party Members for Reward Split
+              <span class="font-semibold">Reward Targets</span>
+              <span>
+                {selectedMission.type === "party"
+                  ? `최대 ${selectedMission.maxParticipants}명 선택`
+                  : "한 명만 선택"}
+              </span>
             </div>
 
-            {#each selectableCharacters as char}
-              {@const isDone = completedCharIds.includes(char.id || "")}
-              {@const isSelected = selectedCharIds.includes(char.id || "")}
+            <div class="mission-character-grid">
+              {#each selectableCharacters as char}
+                {@const isDone = completedCharIds.includes(char.id || "")}
+                {@const isSelected = selectedCharIds.includes(char.id || "")}
 
-              <button
-                on:click={() => toggleCharacter(char.id!)}
-                disabled={isDone}
-                class="char-select-btn"
-                class:selected={isSelected}
-                class:done={isDone}
-              >
-                <div class="flex items-center gap-3">
-                  <div class="app-seal text-xl">
-                    {JOB_ICONS[char.jobClass] || "😐"}
-                  </div>
-                  <div>
-                    <div class="flex items-center gap-2 font-semibold">
-                      {#if char.grade}
-                        <span title={getGradeInfo(char.grade).label}>{getGradeInfo(char.grade).icon}</span>
-                      {/if}
-                      {char.name}
-                    </div>
-                    <div class="mt-1 text-xs">
-                      {isDone ? "오늘 이미 완료 처리됨" : `${char.jobClass} · Lv.${char.level || 1}`}
-                    </div>
-                  </div>
-                </div>
+                <button
+                  on:click={() => toggleCharacter(char.id!)}
+                  disabled={isDone}
+                  class="char-select-btn"
+                  class:selected={isSelected}
+                  class:done={isDone}
+                >
+                  <CharacterAvatar character={char} size="sm" showTitle={false} />
 
-                {#if isSelected}
-                  <span class="app-stitch-tag">선택됨</span>
-                {:else if isDone}
-                  <span class="app-stitch-tag">완료</span>
-                {/if}
-              </button>
-            {/each}
+                  <div class="char-select-main">
+                    <div class="char-select-name">{char.name}</div>
+                    <div class="char-select-meta">{formatGold(char.currentGold)} 보유</div>
+                    {#if isDone}
+                      <div class="char-select-note">오늘 이미 완료 처리됨</div>
+                    {/if}
+                  </div>
+
+                  <div class="char-select-state">
+                    {#if isSelected}
+                      <span class="char-state-pill char-state-selected">선택됨</span>
+                    {:else if isDone}
+                      <span class="char-state-pill char-state-done">완료</span>
+                    {:else}
+                      <span class="char-state-pill">선택</span>
+                    {/if}
+                  </div>
+                </button>
+              {/each}
+            </div>
           {/if}
         </div>
 

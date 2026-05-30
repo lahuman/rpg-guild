@@ -7,15 +7,68 @@ Ralph's RPG Guild  ·  Monochromatic Minimal Retail
 
 :root {
   /* Typography */
-  --font-display: "Oswald", "Helvetica Neue", Arial, sans-serif;
-  --font-body: "Inter", "Helvetica Neue", Helvetica, Arial, sans-serif;
+  --font-display: "Google Sans", "Google Sans Display", -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text", Roboto, sans-serif;
+  --font-body: -apple-system, BlinkMacSystemFont, "SF Pro Text", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  /* Google Calendar inspired core */
+  --gc-canvas: #ffffff;
+  --gc-surface: #f1f3f4;
+  --gc-surface-2: #f8f9fa;
+  --gc-divider: #dadce0;
+  --gc-ink: #202124;
+  --gc-secondary: #5f6368;
+  --gc-tertiary: #80868b;
+  --gc-blue: #1a73e8;
+  --gc-blue-pressed: #1557b0;
+  --gc-blue-tint: #e8f0fe;
+  --gc-red: #d93025;
+  --gc-yellow: #f9ab00;
+  --gc-green: #188038;
+  --gc-shadow-1: rgba(60, 64, 67, 0.10) 0 1px 2px, rgba(60, 64, 67, 0.15) 0 1px 3px;
+  --gc-shadow-4: rgba(60, 64, 67, 0.10) 0 4px 8px, rgba(60, 64, 67, 0.15) 0 5px 10px;
+  --gc-shadow-6: rgba(60, 64, 67, 0.15) 0 4px 8px, rgba(60, 64, 67, 0.30) 0 1px 2px;
+
+  /* RPG HUD accents */
+  --gold: #f9ab00;
+  --arcane: #8e24aa;
+  --aura: rgba(26, 115, 232, 0.18);
+  --rank-frame: #3f51b5;
+
+  /* Legacy aliases used by existing screens */
+  --black: var(--gc-ink);
+  --white: #ffffff;
+  --snow: #fafafa;
+  --grey-100: var(--gc-surface);
+  --grey-200: #e8eaed;
+  --grey-300: var(--gc-divider);
+  --grey-500: var(--gc-secondary);
+  --grey-700: #3c4043;
+  --grey-800: #2d2e30;
+  --grey-900: var(--gc-ink);
+  --text-primary: var(--gc-ink);
+  --text-secondary: var(--gc-secondary);
+  --text-disabled: var(--gc-tertiary);
+  --border-primary: var(--gc-secondary);
+  --border-secondary: var(--gc-divider);
+  --border-active: var(--gc-blue);
+  --red: var(--gc-red);
+  --green: var(--gc-green);
+  --blue: var(--gc-blue);
+  --orange-badge: #f4511e;
+  --radius-sm: 0.5rem;
+  --radius-md: 0.75rem;
+  --radius-lg: 1rem;
+  --radius-pill: 999px;
+  --duration-fast: 160ms;
+  --duration-base: 240ms;
+  --ease-out-quint: cubic-bezier(0.22, 1, 0.36, 1);
 }
 
 /* Nike White base — no dark backgrounds */
 html {
   scroll-behavior: smooth;
-  background: #ffffff;
-  color: #111111;
+  background: var(--gc-canvas);
+  color: var(--gc-ink);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -23,8 +76,8 @@ html {
 
 body {
   min-height: 100vh;
-  color: #111111;
-  background: transparent;
+  color: var(--gc-ink);
+  background: var(--gc-canvas);
   -webkit-tap-highlight-color: transparent;
   overflow-x: clip;
   overscroll-behavior-y: contain;
@@ -40,7 +93,31 @@ body {
 
 :focus-visible {
   outline: none;
-  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #111111;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px var(--gc-blue);
+}
+
+.app-shell {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+}
+
+.page-wrap {
+  width: min(1200px, calc(100% - 3rem));
+  margin: 0 auto;
+}
+
+.app-topbar {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  border-bottom: 1px solid var(--gc-divider);
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(14px);
+}
+
+.app-topbar-inner {
+  min-height: 60px;
 }
 
 /* ============================================================
@@ -153,25 +230,25 @@ APP BUTTONS
 }
 
 .app-button-primary {
-  background: #111111;
+  background: var(--gc-blue);
   color: #ffffff;
-  border-color: #111111;
+  border-color: var(--gc-blue);
 }
 
 .app-button-primary:hover {
-  background: #39393b;
-  border-color: #39393b;
+  background: var(--gc-blue-pressed);
+  border-color: var(--gc-blue-pressed);
 }
 
 .app-button-secondary {
   background: #ffffff;
-  color: #111111;
-  border: 1px solid #cacacb;
+  color: var(--gc-ink);
+  border: 1px solid var(--gc-divider);
 }
 
 .app-button-secondary:hover {
-  background: #f5f5f5;
-  border-color: #707072;
+  background: var(--gc-surface);
+  border-color: var(--gc-secondary);
 }
 
 /* ============================================================
@@ -179,6 +256,8 @@ APP ACTION TILE
 ============================================================ */
 
 .app-action-tile {
+  min-width: 0;
+  overflow: hidden;
   border-radius: 1.35rem;
   border: 1px solid #cacacb;
   background: #ffffff;
@@ -287,6 +366,8 @@ APP METAL STAT — stat boxes with left border accent
 ============================================================ */
 
 .app-metal-stat {
+  min-width: 0;
+  overflow: hidden;
   border-radius: 1.2rem;
   border: 1px solid #cacacb;
   border-left: 3px solid #111111;
@@ -295,9 +376,116 @@ APP METAL STAT — stat boxes with left border accent
 }
 
 .app-metal-stat-cyan   { border-left-color: #1151ff; }
+.app-metal-stat-blue   { border-left-color: var(--gc-blue); }
 .app-metal-stat-amber  { border-left-color: #d33918; }
 .app-metal-stat-rose   { border-left-color: #d30005; }
 .app-metal-stat-green  { border-left-color: #007d48; }
+
+.app-label {
+  color: var(--gc-secondary);
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  line-height: 1;
+  text-transform: uppercase;
+}
+
+.app-stat-card,
+.app-stat-box {
+  min-width: 0;
+  overflow: hidden;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gc-divider);
+  background: var(--gc-surface-2);
+  color: var(--gc-ink);
+  padding: 1rem;
+}
+
+.app-metric-row {
+  min-width: 0;
+  max-width: 100%;
+}
+
+.app-metric-row svg,
+.app-metric-row > span:first-child:not(.app-metric-value) {
+  flex-shrink: 0;
+}
+
+.app-metric-value {
+  display: block;
+  min-width: 0;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+.app-icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  border: 1px solid var(--gc-divider);
+  background: var(--gc-surface-2);
+  color: var(--gc-secondary);
+  transition: background var(--duration-fast) ease, color var(--duration-fast) ease, border-color var(--duration-fast) ease, transform var(--duration-fast) ease;
+}
+
+.app-icon-btn:hover {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue-tint);
+  color: var(--gc-blue);
+  transform: translateY(-1px);
+}
+
+.app-coin-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 2.75rem;
+  height: 2.75rem;
+  flex-shrink: 0;
+  border-radius: 999px;
+  background: var(--gc-blue-tint);
+  color: var(--gc-blue);
+}
+
+.rank-accent-red      { background: var(--gc-red); color: #fff; }
+.rank-accent-orange   { background: #f4511e; color: #fff; }
+.rank-accent-yellow   { background: var(--gc-yellow); color: var(--gc-ink); }
+.rank-accent-green    { background: var(--gc-green); color: #fff; }
+.rank-accent-teal     { background: #039be5; color: #fff; }
+.rank-accent-blue     { background: var(--gc-blue); color: #fff; }
+.rank-accent-purple   { background: #8e24aa; color: #fff; }
+.rank-accent-pink     { background: #d81b60; color: #fff; }
+
+.app-rank-text.rank-accent-red,
+.app-rank-text.rank-accent-orange,
+.app-rank-text.rank-accent-yellow,
+.app-rank-text.rank-accent-green,
+.app-rank-text.rank-accent-teal,
+.app-rank-text.rank-accent-blue,
+.app-rank-text.rank-accent-purple,
+.app-rank-text.rank-accent-pink {
+  background: transparent;
+}
+
+.app-rank-text.rank-accent-red      { color: var(--gc-red); }
+.app-rank-text.rank-accent-orange   { color: #f4511e; }
+.app-rank-text.rank-accent-yellow   { color: #b06000; }
+.app-rank-text.rank-accent-green    { color: var(--gc-green); }
+.app-rank-text.rank-accent-teal     { color: #0277bd; }
+.app-rank-text.rank-accent-blue     { color: var(--gc-blue); }
+.app-rank-text.rank-accent-purple   { color: #8e24aa; }
+.app-rank-text.rank-accent-pink     { color: #d81b60; }
+
+.character-card {
+  border-left: 4px solid var(--gc-blue-tint);
+  color: var(--gc-ink);
+}
 
 /* ============================================================
 APP RANK MEDAL
@@ -599,6 +787,193 @@ APP CALENDAR
 }
 
 /* ============================================================
+MISSION PAGE
+============================================================ */
+
+.app-info-strip {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gc-divider);
+  background: var(--gc-surface-2);
+  color: var(--gc-secondary);
+  padding: 0.9rem 1rem;
+}
+
+.mission-type-btn {
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gc-divider);
+  background: var(--white);
+  color: var(--gc-ink);
+  padding: 1rem;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, color 160ms ease;
+}
+
+.mission-type-btn:hover {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue-tint);
+}
+
+.mission-type-btn.active {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue-tint);
+  color: var(--gc-blue);
+}
+
+.quest-card {
+  transition: transform 200ms ease, border-color 200ms ease;
+}
+
+.quest-card:hover {
+  transform: translateY(-2px);
+}
+
+.quest-card-done {
+  opacity: 0.58;
+  filter: grayscale(0.3);
+}
+
+.mission-character-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+  overflow-x: hidden;
+}
+
+.mission-complete-modal {
+  display: flex;
+  max-height: min(88vh, 46rem);
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.mission-complete-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-x: hidden;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  -webkit-overflow-scrolling: touch;
+}
+
+.char-select-btn {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  min-width: 0;
+  min-height: 4.25rem;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--gc-divider);
+  background: var(--white);
+  color: var(--gc-ink);
+  padding: 0.65rem 0.75rem;
+  text-align: left;
+  transition: border-color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.char-select-btn:hover:not(:disabled) {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue-tint);
+  transform: translateY(-1px);
+}
+
+.char-select-btn.selected {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue-tint);
+  box-shadow: 0 0 0 2px rgba(26, 115, 232, 0.12);
+}
+
+.char-select-btn.done {
+  background: var(--gc-surface);
+  color: var(--gc-tertiary);
+  cursor: default;
+  opacity: 0.72;
+}
+
+.char-select-main {
+  min-width: 0;
+}
+
+.char-select-name {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 700;
+}
+
+.char-select-meta {
+  margin-top: 0.35rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  color: var(--gc-secondary);
+  font-size: 0.8rem;
+  line-height: 1.35;
+  white-space: nowrap;
+}
+
+.char-select-note {
+  margin-top: 0.35rem;
+  color: var(--gc-red);
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+
+.char-select-state {
+  display: flex;
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.char-state-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 3rem;
+  border-radius: 999px;
+  border: 1px solid var(--gc-divider);
+  background: var(--gc-surface-2);
+  color: var(--gc-secondary);
+  padding: 0.35rem 0.65rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+}
+
+.char-state-selected {
+  border-color: var(--gc-blue);
+  background: var(--gc-blue);
+  color: var(--white);
+}
+
+.char-state-done {
+  background: var(--gc-surface);
+  color: var(--gc-tertiary);
+}
+
+@media (min-width: 900px) {
+  .mission-character-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 430px) {
+  .char-select-btn {
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    gap: 0.55rem;
+    padding: 0.6rem;
+  }
+
+  .char-state-pill {
+    min-width: 2.75rem;
+    padding-inline: 0.5rem;
+  }
+}
+
+/* ============================================================
 TOUCH GRID
 ============================================================ */
 
@@ -681,6 +1056,36 @@ ANIMATIONS
   animation: reveal-rise 520ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
 
+.sheet-pop {
+  animation: sheet-pop 220ms var(--ease-out-quint) both;
+}
+
+.save-flash {
+  animation: save-flash 700ms ease-out both;
+}
+
+.fab-ripple {
+  position: relative;
+  overflow: hidden;
+}
+
+.fab-ripple::after {
+  content: "";
+  position: absolute;
+  inset: 50%;
+  width: 0;
+  height: 0;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.35);
+  transform: translate(-50%, -50%);
+  transition: width 300ms ease, height 300ms ease;
+}
+
+.fab-ripple:active::after {
+  width: 5rem;
+  height: 5rem;
+}
+
 .stagger-grid > * {
   animation: reveal-rise 560ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
 }
@@ -695,6 +1100,93 @@ ANIMATIONS
 @keyframes reveal-rise {
   from { opacity: 0; transform: translateY(18px); }
   to   { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes sheet-pop {
+  from { opacity: 0; transform: translateY(10px) scale(0.98); }
+  to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes save-flash {
+  0%   { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.0); }
+  35%  { box-shadow: 0 0 0 4px rgba(26, 115, 232, 0.14); }
+  100% { box-shadow: 0 0 0 0 rgba(26, 115, 232, 0.0); }
+}
+
+@keyframes aura-pulse {
+  0%, 100% { filter: saturate(1); }
+  50%      { filter: saturate(1.18) brightness(1.03); }
+}
+
+.lobby-hero {
+  background:
+    linear-gradient(135deg, #ffffff 0%, #f8f9fa 58%, #e8f0fe 100%);
+}
+
+.party-slot {
+  min-width: 0;
+  overflow: hidden;
+  min-height: 19rem;
+}
+
+.lobby-fab-wrap {
+  position: fixed;
+  right: max(1rem, env(safe-area-inset-right));
+  bottom: max(1rem, env(safe-area-inset-bottom));
+  z-index: 35;
+  display: grid;
+  justify-items: end;
+  gap: 0.75rem;
+}
+
+.lobby-fab {
+  display: grid;
+  place-items: center;
+  width: 3.5rem;
+  height: 3.5rem;
+  border-radius: 999px;
+  border: 0;
+  background: var(--gc-blue);
+  color: #fff;
+  box-shadow: var(--gc-shadow-6);
+  font-size: 2rem;
+  line-height: 1;
+  transition: background 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+}
+
+.lobby-fab:hover {
+  background: var(--gc-blue-pressed);
+  box-shadow: rgba(60, 64, 67, 0.30) 0 6px 12px, rgba(60, 64, 67, 0.40) 0 2px 4px;
+}
+
+.lobby-fab:active {
+  transform: scale(0.96);
+}
+
+.lobby-fab-sheet {
+  display: grid;
+  min-width: 13rem;
+  overflow: hidden;
+  border-radius: 1rem;
+  border: 1px solid var(--gc-divider);
+  background: #fff;
+  box-shadow: var(--gc-shadow-4);
+}
+
+.lobby-fab-sheet button {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-height: 3rem;
+  padding: 0.8rem 1rem;
+  color: var(--gc-ink);
+  text-align: left;
+  font-weight: 600;
+}
+
+.lobby-fab-sheet button:hover {
+  background: var(--gc-blue-tint);
+  color: var(--gc-blue);
 }
 
 /* ============================================================
@@ -1005,6 +1497,14 @@ RESPONSIVE
     font-size: 1.8rem;
   }
 
+  .app-metric-row {
+    gap: 0.45rem;
+  }
+
+  .app-metric-value {
+    font-size: clamp(1rem, 5.8vw, 1.5rem);
+  }
+
   .landing-code-input {
     padding-left: 0.7rem;
     padding-right: 0.7rem;
@@ -1129,8 +1629,12 @@ REDUCED MOTION
   .app-stat,
   .app-hud,
   .app-action-tile,
+  .lobby-fab,
+  .lobby-fab-sheet,
   .guild-tabs a,
   .reveal-rise,
+  .sheet-pop,
+  .save-flash,
   .stagger-grid > *,
   .float-gentle {
     animation: none !important;
