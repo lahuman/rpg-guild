@@ -12,11 +12,38 @@ import {
     normalizeGrade,
     isMaxGrade
 } from './guild/constants';
+import type { GradeChallengeConfig, GradeChallengeType } from './guild/constants';
 import { createGuildManagementActions } from './guild/management';
 import { createGuildSubscriptions } from './guild/subscriptions';
-import type { CharacterGrade, Guild, GuildCharacter, JobClass, LegacyCharacterGrade, UsageLog } from './guild/types';
+import type {
+    CharacterAppearance,
+    CharacterAura,
+    CharacterBackdrop,
+    CharacterFrame,
+    CharacterGrade,
+    CharacterPortrait,
+    Guild,
+    GuildCharacter,
+    JobClass,
+    LegacyCharacterGrade,
+    UsageLog
+} from './guild/types';
 
-export type { CharacterGrade, Guild, GuildCharacter, JobClass, LegacyCharacterGrade, UsageLog };
+export type {
+    CharacterAppearance,
+    CharacterAura,
+    CharacterBackdrop,
+    CharacterFrame,
+    CharacterGrade,
+    CharacterPortrait,
+    Guild,
+    GuildCharacter,
+    JobClass,
+    LegacyCharacterGrade,
+    UsageLog,
+    GradeChallengeConfig,
+    GradeChallengeType
+};
 export {
     GRADE_INFO,
     GRADE_ORDER,

@@ -1,4 +1,8 @@
 export type JobClass = '검사' | '마법사' | '힐러' | '사냥꾼' | '도적' | '탱커';
+export type CharacterPortrait = 'knight' | 'mage' | 'healer' | 'ranger' | 'rogue' | 'tank';
+export type CharacterFrame = 'plain' | 'bronze' | 'silver' | 'gold' | 'arcane';
+export type CharacterBackdrop = 'blueprint' | 'forest' | 'citadel' | 'sky' | 'void';
+export type CharacterAura = 'none' | 'blue' | 'green' | 'amber' | 'rose' | 'violet';
 export type CharacterGrade =
     | 'Rank01'
     | 'Rank02'
@@ -36,6 +40,15 @@ export type FirestoreTimestampLike = {
     nanoseconds?: number;
 };
 
+export interface CharacterAppearance {
+    portrait: CharacterPortrait;
+    frame: CharacterFrame;
+    backdrop: CharacterBackdrop;
+    aura: CharacterAura;
+    color: string;
+    title: string;
+}
+
 export interface GuildCharacter {
     id?: string;
     name: string;
@@ -50,6 +63,7 @@ export interface GuildCharacter {
     lastCheckInDate?: string;
     consecutiveDays?: number;
     lastMiniGameDate?: string;
+    appearance?: CharacterAppearance;
 }
 
 export interface UsageLog {

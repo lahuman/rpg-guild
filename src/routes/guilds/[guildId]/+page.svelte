@@ -2,20 +2,35 @@
   import { goto } from "$app/navigation";
   import { page } from "$app/stores";
   import { onDestroy } from "svelte";
+  import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
-  import { confirmAction, lockBodyScroll, notify, notifyError, requireRouteParam, toDateOrNull } from "$lib";
+  import {
+    confirmAction,
+    formatAverageLevel,
+    formatCompactNumber,
+    formatGold,
+    lockBodyScroll,
+    notify,
+    notifyError,
+    requireRouteParam,
+    resolveCharacterAppearance,
+    toDateOrNull
+  } from "$lib";
   import { getGradeInfo, guildStore, isMaxGrade, type GuildCharacter } from "$lib/stores/guildStore";
   import { userStore } from "$lib/stores/userStore";
   import {
     Coins,
+    ClipboardList,
     Copy,
     DoorOpen,
     Gem,
+    LayoutGrid,
     Pencil,
     Settings2,
     Store,
-    Users
+    Users,
+    UserRound
   } from "lucide-svelte";
 
   const guildId = requireRouteParam($page.params.guildId, "guildId");
@@ -27,8 +42,8 @@
   $: createdDate = toDateOrNull(guild?.createdAt)?.toLocaleDateString() ?? "-";
   $: totalGold = characters.reduce((sum, character) => sum + (character.currentGold || 0), 0);
   $: averageLevel = characters.length
-    ? (characters.reduce((sum, character) => sum + (character.level || 1), 0) / characters.length).toFixed(1)
-    : "0.0";
+    ? characters.reduce((sum, character) => sum + (character.level || 1), 0) / characters.length
+    : 0;
   $: rankedCharacters = [...characters].sort((a, b) => {
     const gradeDiff = getGradeInfo(b.grade).level - getGradeInfo(a.grade).level;
     if (gradeDiff !== 0) return gradeDiff;
@@ -40,6 +55,7 @@
 
   let selectedCharForGame: GuildCharacter | null = null;
   let showShopManager = false;
+  let showQuickActions = false;
 
   let isEditingName = false;
   let newName = "";
@@ -67,6 +83,12 @@
 
   function toggleShopManagerPanel() {
     showShopManager = !showShopManager;
+    showQuickActions = false;
+  }
+
+  function goToGuildRoute(path: string) {
+    showQuickActions = false;
+    goto(`/guilds/${guildId}${path}`);
   }
 
   function startEditingName() {
@@ -170,10 +192,13 @@
 </script>
 
 <div class="space-y-5 pb-20 md:space-y-6">
-  <section class="app-hero reveal-rise overflow-hidden px-4 py-5 sm:px-6 sm:py-8 md:px-8 md:py-9">
+  <section class="app-hero lobby-hero reveal-rise overflow-hidden px-4 py-5 sm:px-6 sm:py-8 md:px-8 md:py-9">
     <div class="grid gap-6 lg:grid-cols-[1fr_22rem] lg:items-start">
       <div>
-        <div class="eyebrow">Sector Alpha-9</div>
+        <div class="eyebrow">
+          <LayoutGrid size={14} />
+          Guild Lobby
+        </div>
 
         <div class="mt-5 flex flex-wrap items-start gap-3">
           {#if isEditingName}
@@ -197,7 +222,7 @@
             </div>
           {:else}
             <div class="flex flex-wrap items-center gap-3">
-              <h1 class="guild-hero-title section-title text-3xl font-black sm:text-4xl md:text-5xl">
+              <h1 class="guild-hero-title section-title text-3xl font-semibold sm:text-4xl md:text-5xl">
                 {guild?.name || "길드 정보를 불러오는 중"}
               </h1>
               {#if guild && currentUser}
@@ -250,36 +275,36 @@
         </div>
 
         <div class="guild-stat-grid mt-8 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div class="app-metal-stat">
+          <div class="app-metal-stat save-flash">
             <div class="app-label">Members</div>
-            <div class="mt-2 flex items-center gap-2 text-2xl font-bold">
+            <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
               <Users size={18} />
-              {characters.length}
+              <span class="app-metric-value">{formatCompactNumber(characters.length)}</span>
             </div>
             <div class="mt-2 text-sm">등록된 모험가 수</div>
           </div>
-          <div class="app-metal-stat app-metal-stat-cyan">
+          <div class="app-metal-stat app-metal-stat-blue">
             <div class="app-label">Economy</div>
-            <div class="mt-2 flex items-center gap-2 text-2xl font-bold">
+            <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
               <Coins size={18} />
-              {totalGold.toLocaleString()}
+              <span class="app-metric-value">{formatCompactNumber(totalGold)}</span>
             </div>
             <div class="mt-2 text-sm">길드 전체 보유 골드</div>
           </div>
-          <div class="app-metal-stat app-metal-stat-rose">
+          <div class="app-metal-stat app-metal-stat-green">
             <div class="app-label">Average Lv</div>
-            <div class="mt-2 flex items-center gap-2 text-2xl font-bold">
+            <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
               <Gem size={18} />
-              {averageLevel}
+              <span class="app-metric-value">{formatAverageLevel(averageLevel)}</span>
             </div>
             <div class="mt-2 text-sm">파티 레벨</div>
           </div>
           <div class="app-metal-stat">
             <div class="app-label">Top Rank</div>
             {#if topRankCharacter && topRankInfo}
-              <div class="mt-2 flex items-center gap-2 text-2xl font-bold">
+              <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
                 <span>{topRankInfo.icon}</span>
-                {topRankInfo.label}
+                <span class="app-metric-value">{topRankInfo.label}</span>
               </div>
               <div class="mt-2 text-sm">{topRankCharacter.name} · {topRankInfo.title}</div>
             {:else}
@@ -334,11 +359,11 @@
     </div>
   </section>
 
-  <section class="grid gap-5 lg:grid-cols-[1.2fr_0.8fr]">
+  <section class="grid gap-5 lg:grid-cols-[0.85fr_1.15fr]">
     <article class="app-card reveal-rise p-5 sm:p-6" style="animation-delay: 120ms">
       <div class="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center sm:gap-4">
         <div class="app-command-strip">
-          <div class="app-label">Global Standing</div>
+          <div class="app-label">Lobby Ledger</div>
           <h2 class="mt-2 text-2xl font-semibold">길드 운영 정보</h2>
         </div>
         <div class="app-stitch-tag">Active Status</div>
@@ -360,10 +385,10 @@
       </div>
     </article>
 
-    <article class="app-card reveal-rise p-5 sm:p-6" style="animation-delay: 180ms">
+    <article class="app-card party-lobby reveal-rise p-5 sm:p-6" style="animation-delay: 180ms">
       <div class="app-command-strip">
-        <div class="app-label">Top Operatives</div>
-        <h2 class="mt-2 text-2xl font-semibold">핵심 멤버</h2>
+        <div class="app-label">Party Slots</div>
+        <h2 class="mt-2 text-2xl font-semibold">핵심 파티</h2>
       </div>
 
       {#if featuredCharacters.length === 0}
@@ -371,37 +396,27 @@
           등록된 캐릭터가 없습니다.
         </div>
       {:else}
-        <div class="mt-5 space-y-3">
+        <div class="stagger-grid mt-5 grid gap-3 md:grid-cols-3">
           {#each featuredCharacters as character}
             {@const gradeInfo = getGradeInfo(character.grade)}
             {@const accentClass = gradeInfo.accent}
+            {@const appearance = resolveCharacterAppearance(character)}
             <button
               on:click={() => (selectedCharForGame = character)}
-              class="app-action-tile flex w-full flex-col items-start justify-between gap-4 px-4 py-4 text-left sm:flex-row sm:items-center"
+              class="party-slot app-action-tile flex w-full flex-col items-center justify-between gap-4 px-4 py-5 text-center"
             >
-              <div class="min-w-0 flex-1">
-                <div class="flex items-start gap-3">
-                  <div class="app-rank-medal shrink-0">
-                    <div class="text-2xl font-black">{gradeInfo.icon}</div>
-                    <div class="mt-1 text-[10px] font-bold uppercase tracking-[0.24em] text-[var(--text-secondary)]">
-                      Stage {gradeInfo.level}
-                    </div>
-                  </div>
-                  <div class="min-w-0">
-                    <div class="flex flex-wrap items-center gap-2">
-                      <div class="font-semibold">{character.name}</div>
-                      <div class={`app-rank-pill ${accentClass}`}>{gradeInfo.label}</div>
-                    </div>
-                    <div class="mt-2 text-sm font-medium {accentClass}">{gradeInfo.title}</div>
-                    <div class="app-dense-copy mt-1 text-sm">Lv.{character.level || 1} · {character.jobClass}</div>
-                  </div>
-                </div>
+              <CharacterAvatar character={character} size="lg" />
+              <div class="min-w-0">
+                <div class="font-semibold">{character.name}</div>
+                <div class={`app-rank-pill mt-2 ${accentClass}`}>{gradeInfo.label}</div>
+                <div class="app-rank-text mt-2 text-sm font-medium {accentClass}">{appearance.title || gradeInfo.title}</div>
+                <div class="app-dense-copy mt-1 text-sm">Lv.{character.level || 1} · {character.jobClass}</div>
               </div>
 
-              <div class="w-full shrink-0 text-left sm:w-auto sm:min-w-[5.5rem] sm:text-right">
-                <div class="app-label">Status</div>
-                <div class="mt-2 text-sm font-semibold">{character.currentGold || 0} G</div>
-                <div class="app-stitch-tag mt-2 text-[11px]">
+              <div class="w-full shrink-0">
+                <div class="app-label">Gold</div>
+                <div class="app-metric-value mt-2 text-sm font-semibold">{formatGold(character.currentGold)}</div>
+                <div class="app-stitch-tag mt-3 justify-center text-[11px]">
                   {isMaxGrade(character.grade) ? "최고 등급" : "등급전 진입"}
                 </div>
               </div>
@@ -473,4 +488,36 @@
       on:close={() => (selectedCharForGame = null)}
     />
   {/if}
+
+  <div class="lobby-fab-wrap">
+    {#if showQuickActions}
+      <div class="lobby-fab-sheet sheet-pop">
+        <button type="button" on:click={() => goToGuildRoute('/members')}>
+          <UserRound size={17} />
+          멤버 보기
+        </button>
+        <button type="button" on:click={() => goToGuildRoute('/missions')}>
+          <ClipboardList size={17} />
+          미션 보기
+        </button>
+        <button type="button" on:click={toggleShopManagerPanel}>
+          <Store size={17} />
+          상점 관리
+        </button>
+        <button type="button" on:click={startEditingSettings}>
+          <Settings2 size={17} />
+          보상 설정
+        </button>
+      </div>
+    {/if}
+    <button
+      type="button"
+      class="lobby-fab fab-ripple"
+      aria-expanded={showQuickActions}
+      aria-label="로비 빠른 액션"
+      on:click={() => (showQuickActions = !showQuickActions)}
+    >
+      +
+    </button>
+  </div>
 </div>

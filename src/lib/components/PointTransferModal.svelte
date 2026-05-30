@@ -1,6 +1,7 @@
 <script lang="ts">
   import { createEventDispatcher } from "svelte";
   import { Coins, Send, X } from "lucide-svelte";
+  import { formatGold } from "$lib";
   import { transferGoldAction } from "$lib/features/members/actions";
   import type { GuildCharacter } from "$lib/stores/guildStore";
 
@@ -60,11 +61,11 @@
     <div class="space-y-5 px-5 py-5 md:px-6">
       <div class="app-stat-card">
         <div class="app-label">보내는 이</div>
-        <div class="mt-1 flex items-center justify-between">
-          <span class="font-semibold">{fromCharacter.name}</span>
-          <span class="flex items-center gap-1.5 text-sm font-bold">
+        <div class="mt-1 flex min-w-0 items-center justify-between gap-3">
+          <span class="min-w-0 truncate font-semibold">{fromCharacter.name}</span>
+          <span class="app-metric-row flex min-w-0 items-center gap-1.5 text-sm font-bold">
             <Coins size={14} />
-            {fromCharacter.currentGold.toLocaleString()} G
+            <span class="app-metric-value">{formatGold(fromCharacter.currentGold)}</span>
           </span>
         </div>
       </div>

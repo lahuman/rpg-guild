@@ -1,7 +1,7 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { onMount } from "svelte";
-  import { requireRouteParam } from "$lib";
+  import { formatGold, requireRouteParam } from "$lib";
   import { logStore } from "$lib/stores/logStore";
   import { ArrowLeft, CalendarDays, ChevronLeft, ChevronRight, Coins, ScrollText, Send, ShoppingBag, Shield, Sparkles, Users } from "lucide-svelte";
 
@@ -329,7 +329,7 @@
                     </div>
                     <div class={`app-stitch-tag self-start md:self-center ${logAccentClass(log.type)}`}>
                       <Coins size={15} />
-                      {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
+                      {log.type === "usage" ? "-" : "+"}{formatGold(log.amount)}
                     </div>
                   </div>
                 </div>
@@ -478,7 +478,7 @@
                   </div>
                   <div class={`app-stitch-tag self-start md:self-center ${logAccentClass(log.type)}`}>
                     <Coins size={15} />
-                    {log.type === "usage" ? "-" : "+"}{log.amount.toLocaleString()} G
+                    {log.type === "usage" ? "-" : "+"}{formatGold(log.amount)}
                   </div>
                 </div>
               </div>
