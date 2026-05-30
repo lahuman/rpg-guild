@@ -92,12 +92,37 @@ npm run dev
 
 이 프로젝트는 `adapter-node`와 `Multi-stage build`를 사용하여 최적화된 Docker 이미지를 제공합니다.
 
-### 1. Build Image
+### Docker Compose로 실행
+루트의 `.env` 파일이 자동으로 컨테이너에 주입됩니다.
+
+```bash
+docker compose up --build -d
+```
+
+실행 후 `http://localhost:3000`에서 운영 버전을 확인할 수 있습니다.
+
+이미 3000번 포트를 사용하는 컨테이너나 개발 서버가 있다면 먼저 중지한 뒤 실행하세요.
+
+```bash
+# 로그 확인
+docker compose logs -f
+
+# 컨테이너 중지
+docker compose down
+
+# 이미 빌드된 이미지로 다시 시작
+docker compose up -d
+```
+
+### 수동 Docker 실행
+Compose를 사용하지 않는 경우 아래 명령으로 직접 빌드하고 실행할 수 있습니다.
+
+#### 1. Build Image
 ```bash
 docker build -t rpg-guild-app .
 ```
 
-### 2. Run Container
+#### 2. Run Container
 환경 변수 파일(`.env`)을 함께 주입하여 실행하는 것을 권장합니다.
 
 ```bash
