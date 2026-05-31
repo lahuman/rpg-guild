@@ -3,7 +3,7 @@
   import CharacterAvatar from './CharacterAvatar.svelte';
   import { JOB_ICONS, formatGold, getGradeInfo } from '$lib';
   import { isMaxGrade } from '$lib/stores/guildStore';
-  import { Coins, Pencil, Trash2, ShoppingBag, Send, Gamepad2, Crown, Palette } from 'lucide-svelte';
+  import { Coins, Pencil, Trash2, ShoppingBag, ScrollText, Gamepad2, Crown, Palette } from 'lucide-svelte';
   import type { GuildCharacter } from '$lib/stores/guildStore';
 
   export let character: GuildCharacter;
@@ -15,7 +15,7 @@
     delete: { character: GuildCharacter };
     checkIn: { characterId: string };
     shop: { character: GuildCharacter };
-    transfer: { character: GuildCharacter };
+    fundedMission: { character: GuildCharacter };
     miniGame: { character: GuildCharacter };
     customize: { character: GuildCharacter };
   }>();
@@ -105,11 +105,11 @@
         상점
       </button>
       <button
-        on:click={() => dispatch('transfer', { character })}
+        on:click={() => dispatch('fundedMission', { character })}
         class="app-button app-button-secondary px-4 py-3 text-sm"
       >
-        <Send size={16} />
-        양도
+        <ScrollText size={16} />
+        지정 미션
       </button>
       <button
         on:click={() => dispatch('customize', { character })}

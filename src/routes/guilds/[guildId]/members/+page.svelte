@@ -3,9 +3,9 @@
   import { onDestroy, tick } from "svelte";
   import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
   import CharacterCustomizerModal from "$lib/components/CharacterCustomizerModal.svelte";
+  import FundedMissionModal from "$lib/components/FundedMissionModal.svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
-  import PointTransferModal from "$lib/components/PointTransferModal.svelte";
   import { JOB_ICONS, createCharacterForm, formatGold, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
     checkInCharacterAction,
@@ -22,7 +22,7 @@
     Crown,
     Pencil,
     Palette,
-    Send,
+    ScrollText,
     ShoppingBag,
     Sparkles,
     Trash2,
@@ -44,7 +44,7 @@
   let isCreating = false;
   let editingChar: GuildCharacter | null = null;
   let selectedCharForGame: GuildCharacter | null = null;
-  let selectedCharForTransfer: GuildCharacter | null = null;
+  let selectedCharForFundedMission: GuildCharacter | null = null;
   let customizingChar: GuildCharacter | null = null;
   let shoppingChar: GuildCharacter | null = null;
   let showShopManager = false;
@@ -52,7 +52,7 @@
   let shopModalBody: HTMLDivElement | null = null;
   let releaseBodyScrollLock: (() => void) | null = null;
 
-  $: hasOpenModal = Boolean(editingChar || shoppingChar || selectedCharForGame || selectedCharForTransfer);
+  $: hasOpenModal = Boolean(editingChar || shoppingChar || selectedCharForGame || selectedCharForFundedMission);
   $: {
     if (hasOpenModal && !releaseBodyScrollLock) {
       releaseBodyScrollLock = lockBodyScroll();
@@ -293,11 +293,11 @@
               </button>
 
               <button
-                on:click={() => (selectedCharForTransfer = char)}
+                on:click={() => (selectedCharForFundedMission = char)}
                 class="app-button app-button-secondary px-4 py-3 text-sm"
               >
-                <Send size={16} />
-                양도
+                <ScrollText size={16} />
+                지정 미션
               </button>
 
               <button
@@ -466,12 +466,12 @@
     />
   {/if}
 
-  {#if selectedCharForTransfer}
-    <PointTransferModal
+  {#if selectedCharForFundedMission}
+    <FundedMissionModal
       guildId={guildId}
-      fromCharacter={selectedCharForTransfer}
+      sponsorCharacter={selectedCharForFundedMission}
       allCharacters={characters}
-      on:close={() => (selectedCharForTransfer = null)}
+      on:close={() => (selectedCharForFundedMission = null)}
     />
   {/if}
 

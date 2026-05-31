@@ -1,10 +1,11 @@
 <script lang="ts">
   import { page } from "$app/stores";
-  import { onDestroy } from "svelte";
+  import { onDestroy, onMount } from "svelte";
   import { quintOut } from "svelte/easing";
   import { fade, scale } from "svelte/transition";
   import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
-  import { JOB_ICONS, createMissionForm, formatGold, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
+  import { JOB_ICONS, createMissionForm, formatGold, lockBodyScroll, notifyError, requireRouteParam, toDateOrNull } from "$lib";
+  import { formatBountyTimeRemaining, isBountyExpired } from "$lib/features/missions/bounty";
   import {
     completeMissionAction,
     deleteMissionAction,
@@ -37,12 +38,19 @@
   $: missions = $missionStore;
   $: characters = $guildStore?.characters || [];
   $: sortedMissions = sortMissionsAction(missions, $completedIds);
-  $: activeCount = sortedMissions.filter((mission) => !$completedIds.has(mission.id || "")).length;
-  $: completedCount = sortedMissions.length - activeCount;
+  $: activeCount = sortedMissions.filter((mission) => !$completedIds.has(mission.id || "") && !isFundedMissionExpired(mission)).length;
+  $: completedCount = sortedMissions.filter((mission) => $completedIds.has(mission.id || "")).length;
   $: selectableCharacters =
     selectedMission?.type === "assigned" && selectedMission?.assignedCharacterId
       ? characters.filter((char) => char.id === selectedMission?.assignedCharacterId)
       : characters;
+  $: {
+    for (const mission of missions) {
+      if (isFundedMissionExpired(mission)) {
+        void expireFundedMission(mission);
+      }
+    }
+  }
 
   let isCreating = false;
   let editingMissionId: string | null = null;
@@ -56,6 +64,8 @@
   let showChestModal = false;
   let chestOpened = false;
   let chestBonus = 0;
+  let now = Date.now();
+  let expiringMissionIds = new Set<string>();
   let releaseBodyScrollLock: (() => void) | null = null;
 
   $: hasOpenModal = Boolean(selectedMission || showChestModal);
@@ -93,6 +103,37 @@
     newMission.assignedCharacterName = assignedCharacter?.name || "";
   }
 
+  function getBountyExpiryDate(mission: Mission) {
+    return toDateOrNull(mission.bountyExpiresAt);
+  }
+
+  function isFundedMissionExpired(mission: Mission) {
+    const expiresAt = getBountyExpiryDate(mission);
+    return mission.fundingType === "character" && Boolean(expiresAt && isBountyExpired(expiresAt, new Date(now)));
+  }
+
+  function formatMissionBountyRemaining(mission: Mission) {
+    const expiresAt = getBountyExpiryDate(mission);
+    if (!expiresAt) return "시간 없음";
+
+    return formatBountyTimeRemaining(expiresAt.getTime() - now);
+  }
+
+  async function expireFundedMission(mission: Mission) {
+    if (!mission.id || expiringMissionIds.has(mission.id)) return;
+
+    expiringMissionIds = new Set(expiringMissionIds).add(mission.id);
+    try {
+      await missionStore.expireFundedMission(guildId, mission.id);
+    } catch (error) {
+      notifyError(error, "지정 미션 만료 처리에 실패했습니다.");
+      setTimeout(() => {
+        expiringMissionIds.delete(mission.id!);
+        expiringMissionIds = new Set(expiringMissionIds);
+      }, 30000);
+    }
+  }
+
   async function handleSave() {
     try {
       const result = await saveMissionAction(guildId, editingMissionId, newMission);
@@ -111,6 +152,8 @@
   }
 
   function startEdit(mission: Mission) {
+    if (mission.fundingType === "character") return;
+
     const nextState = startEditMissionAction(mission);
     newMission = nextState.newMission;
     editingMissionId = nextState.editingMissionId;
@@ -127,6 +170,11 @@
   }
 
   async function openCompleteModal(mission: Mission) {
+    if (isFundedMissionExpired(mission)) {
+      await expireFundedMission(mission);
+      return;
+    }
+
     isLoadingLogs = true;
 
     try {
@@ -182,6 +230,14 @@
     unsubMissions();
     unsubStatus();
     unsubGuild();
+  });
+
+  onMount(() => {
+    const timer = setInterval(() => {
+      now = Date.now();
+    }, 30000);
+
+    return () => clearInterval(timer);
   });
 </script>
 
@@ -378,12 +434,17 @@
     <section class="stagger-grid grid gap-5 md:grid-cols-2 xl:grid-cols-3">
       {#each sortedMissions as mission (mission.id)}
         {@const isSoldOut = $completedIds.has(mission.id || "")}
+        {@const isBountyMission = mission.fundingType === "character"}
+        {@const isExpiredBounty = isFundedMissionExpired(mission)}
         <article class={`quest-card app-card flex flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
               <span class={`app-stitch-tag ${mission.type === "party" ? "" : mission.type === "assigned" ? "" : ""}`}>
                 {mission.type === "party" ? "PARTY" : mission.type === "assigned" ? "ASSIGNED" : "SOLO"}
               </span>
+              {#if isBountyMission}
+                <span class="app-stitch-tag">지정</span>
+              {/if}
               {#if mission.isOneTime}
                 <span class="app-stitch-tag">1회 한정</span>
               {/if}
@@ -392,13 +453,23 @@
               {/if}
             </div>
 
-            <div class="flex gap-1">
-              <button on:click={() => startEdit(mission)} class="app-icon-btn" title="수정">
-                <Pencil size={15} />
-              </button>
-              <button on:click={() => handleDelete(mission)} class="app-icon-btn" title="삭제">
-                <Trash2 size={15} />
-              </button>
+            <div class="flex flex-col items-end gap-2">
+              {#if isBountyMission}
+                <span class={`app-stitch-tag ${isExpiredBounty ? "text-[var(--red)]" : ""}`}>
+                  {isExpiredBounty ? "만료 처리 중" : formatMissionBountyRemaining(mission)}
+                </span>
+              {/if}
+
+              <div class="flex gap-1">
+                {#if !isBountyMission}
+                  <button on:click={() => startEdit(mission)} class="app-icon-btn" title="수정">
+                    <Pencil size={15} />
+                  </button>
+                {/if}
+                <button on:click={() => handleDelete(mission)} class="app-icon-btn" title="삭제">
+                  <Trash2 size={15} />
+                </button>
+              </div>
             </div>
           </div>
 
@@ -417,6 +488,12 @@
             </div>
           {/if}
 
+          {#if isBountyMission && mission.sponsorCharacterName}
+            <div class="mt-3 app-info-strip text-sm">
+              의뢰자: {mission.sponsorCharacterName}
+            </div>
+          {/if}
+
           <div class="mt-5 grid gap-3 sm:grid-cols-2">
             <div class="app-stat-card">
               <div class="app-label">Reward</div>
@@ -429,12 +506,12 @@
           </div>
 
           <button
-            on:click={() => !isSoldOut && openCompleteModal(mission)}
-            disabled={isSoldOut}
-            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut ? "app-button-secondary" : "app-button-primary"}`}
+            on:click={() => !isSoldOut && !isExpiredBounty && openCompleteModal(mission)}
+            disabled={isSoldOut || isExpiredBounty}
+            class={`app-button mt-5 w-full px-4 py-3 text-sm ${isSoldOut || isExpiredBounty ? "app-button-secondary" : "app-button-primary"}`}
           >
             <CheckCircle2 size={17} />
-            {isSoldOut ? "오늘 마감됨" : "수행 완료 보고"}
+            {isExpiredBounty ? "만료 처리 중" : isSoldOut ? "오늘 마감됨" : "수행 완료 보고"}
           </button>
         </article>
       {/each}
