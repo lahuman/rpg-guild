@@ -1,4 +1,4 @@
-import { confirmAction, createCharacterForm, createShopItemForm, notify, notifyError } from '$lib';
+import { confirmAction, createCharacterForm, createShopItemForm, notify } from '$lib';
 import { guildStore, type GuildCharacter } from '$lib/stores/guildStore';
 import { itemStore, type ShopItem } from '$lib/stores/itemStore';
 
@@ -115,36 +115,6 @@ export async function purchaseShopItemAction(guildId: string, shoppingChar: Guil
 
     if (item.isOneTime && item.id) {
         await itemStore.deleteItem(guildId, item.id);
-    }
-}
-
-export async function transferGoldAction(
-    guildId: string,
-    fromId: string,
-    toId: string,
-    amount: number,
-    reason: string
-) {
-    if (!toId) {
-        notify('받는 캐릭터를 선택해주세요.');
-        return false;
-    }
-    if (amount <= 0) {
-        notify('양도할 금액을 입력해주세요.');
-        return false;
-    }
-    if (!reason.trim()) {
-        notify('양도 사유를 입력해주세요.');
-        return false;
-    }
-
-    try {
-        await guildStore.transferGold(guildId, fromId, toId, amount, reason);
-        notify('골드 양도가 완료되었습니다!');
-        return true;
-    } catch (e: any) {
-        notifyError(e.message || '양도 중 오류가 발생했습니다.');
-        return false;
     }
 }
 

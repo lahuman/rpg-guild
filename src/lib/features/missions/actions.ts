@@ -2,6 +2,7 @@ import type { Mission } from '$lib/stores/missionStore';
 import type { Guild, GuildCharacter } from '$lib/stores/guildStore';
 import { missionStore } from '$lib/stores/missionStore';
 import { confirmAction, createMissionForm, notify } from '$lib';
+import { calculateBountyTotalGold } from './bounty';
 
 export function sortMissionsAction(missions: Mission[], completedIds: Set<string>) {
     const missionTypeOrder: Record<Mission['type'], number> = {
@@ -81,6 +82,51 @@ export async function saveMissionAction(
         ...resetMissionFormAction(),
         preservedMission: null as ReturnType<typeof createMissionForm> | null
     };
+}
+
+export async function saveFundedMissionAction(
+    guildId: string,
+    sponsorCharacter: GuildCharacter,
+    newMission: ReturnType<typeof createMissionForm>
+) {
+    if (!newMission.title) {
+        notify('퀘스트명을 입력해주세요.');
+        return false;
+    }
+
+    if (newMission.type === 'assigned' && !newMission.assignedCharacterId) {
+        notify('배정할 멤버를 선택해주세요.');
+        return false;
+    }
+
+    const normalizedCost = Math.max(0, Number(newMission.cost) || 0);
+    const normalizedMaxParticipants =
+        newMission.type === 'party' ? Math.max(2, Number(newMission.maxParticipants) || 2) : 1;
+    const bountyTotalGold = calculateBountyTotalGold(
+        normalizedCost,
+        newMission.type,
+        normalizedMaxParticipants
+    );
+
+    if ((sponsorCharacter.currentGold || 0) < bountyTotalGold) {
+        notify(`골드가 부족합니다! (보유: ${sponsorCharacter.currentGold || 0} G / 필요: ${bountyTotalGold} G)`);
+        return false;
+    }
+
+    await missionStore.addFundedMission(guildId, {
+        ...newMission,
+        cost: normalizedCost,
+        minParticipants: 1,
+        maxParticipants: normalizedMaxParticipants,
+        assignedCharacterId: newMission.type === 'assigned' ? newMission.assignedCharacterId : '',
+        assignedCharacterName: newMission.type === 'assigned' ? newMission.assignedCharacterName : '',
+        isOneTime: true,
+        sponsorCharacterId: sponsorCharacter.id!,
+        sponsorCharacterName: sponsorCharacter.name
+    });
+
+    notify('지정 미션이 등록되었습니다.');
+    return true;
 }
 
 export function startEditMissionAction(mission: Mission) {
