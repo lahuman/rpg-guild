@@ -10,7 +10,7 @@
   $: isGuildRoute = $page.url.pathname.startsWith("/guilds/");
 </script>
 
-<div class="app-shell" style="margin-left: 10px">
+<div class="app-shell">
   <!-- Nike Sticky Navigation Bar -->
   <header class="app-topbar">
     <div class="page-wrap app-topbar-inner flex justify-between items-center w-full">
