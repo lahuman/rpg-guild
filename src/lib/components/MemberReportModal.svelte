@@ -58,10 +58,11 @@
   on:close={close}
 >
   <div class="space-y-5">
-    <div class="app-tabs-bar grid grid-cols-3 gap-2 p-2">
+    <div class="app-tabs-bar grid grid-cols-3 gap-2 p-2" role="group" aria-label="보고서 기간 선택">
       {#each periodOptions as option}
         <button
           type="button"
+          aria-pressed={activePeriod === option.key}
           class={`app-button px-3 py-3 text-sm ${activePeriod === option.key ? "app-button-primary" : "app-button-secondary"}`}
           on:click={() => (activePeriod = option.key)}
         >
@@ -131,11 +132,11 @@
               {#each report.missions as mission}
                 <div class="rounded-[var(--radius-md)] border border-[var(--border-secondary)] bg-[var(--white)] p-4">
                   <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0">
-                      <div class="font-semibold">{mission.title}</div>
+                    <div class="min-w-0 break-words">
+                      <div class="break-words font-semibold">{mission.title}</div>
                       <div class="mt-1 text-sm text-[var(--text-secondary)]">{formatEntryDate(mission.date)}</div>
                       {#if mission.performerNames.length > 1}
-                        <div class="mt-1 text-xs text-[var(--text-secondary)]">함께 수행: {mission.performerNames.join(", ")}</div>
+                        <div class="mt-1 break-words text-xs text-[var(--text-secondary)]">함께 수행: {mission.performerNames.join(", ")}</div>
                       {/if}
                     </div>
                     <div class="app-stitch-tag shrink-0 text-[var(--blue)]">
@@ -163,8 +164,8 @@
               {#each report.purchases as purchase}
                 <div class="rounded-[var(--radius-md)] border border-[var(--border-secondary)] bg-[var(--white)] p-4">
                   <div class="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0">
-                      <div class="font-semibold">{purchase.itemName}</div>
+                    <div class="min-w-0 break-words">
+                      <div class="break-words font-semibold">{purchase.itemName}</div>
                       <div class="mt-1 text-sm text-[var(--text-secondary)]">{formatEntryDate(purchase.date)}</div>
                     </div>
                     <div class="app-stitch-tag shrink-0 text-[var(--red)]">
