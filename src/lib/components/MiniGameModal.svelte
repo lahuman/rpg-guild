@@ -94,8 +94,6 @@
   $: rewardGold = isFinalGrade ? 0 : getGradeRewardGold(nextGrade);
   $: failPenalty = getGradePenaltySteps(characterGrade);
   $: countdownLabel = countdownMs > 0 ? `${Math.ceil(countdownMs / 1000)}초` : "";
-  $: stageTone = `Stage ${challenge.stage} · 난이도 ${challenge.difficulty}/10`;
-
   $: if (isFinalGrade && gameStep === "intro") {
     gameStep = "max";
   }
@@ -659,26 +657,26 @@
 </script>
 
 <div class="fixed inset-0 z-50 overflow-y-auto bg-[var(--black)]/40 p-3 sm:p-4">
-  <div class="flex min-h-full items-start justify-center py-3 sm:items-center sm:py-4">
-    <div class="app-modal app-modal-scroll w-full max-w-2xl overflow-x-hidden overflow-y-auto bg-white">
-      <div class="flex items-center justify-between border-b border-[var(--grey-300)] px-5 py-5 md:px-6">
-        <div>
-          <div class="app-stitch-tag">Grade Match</div>
-          <h3 class="mt-2 text-2xl font-semibold">{characterName}의 등급전</h3>
-          <p class="mt-2 text-sm text-[var(--text-secondary)]">
+  <div class="flex min-h-full items-start justify-center sm:items-center">
+    <div class="grade-match-modal app-modal w-full max-w-2xl overflow-hidden bg-white">
+      <div class="grade-match-header flex items-center justify-between border-b border-[var(--grey-300)] px-5 py-5 md:px-6">
+        <div class="min-w-0">
+          <div class="grade-match-eyebrow app-stitch-tag">Grade Match</div>
+          <h3 class="grade-match-title mt-2 text-2xl font-semibold">{characterName}의 등급전</h3>
+          <p class="grade-match-route mt-2 text-sm text-[var(--text-secondary)]">
             현재 등급 {gradeInfo.icon} {gradeInfo.label}
             {#if !isFinalGrade}
-              <span class="mx-2 text-[var(--grey-500)]">→</span>
+              <span class="grade-route-arrow text-[var(--grey-500)]">→</span>
               목표 {nextGradeInfo.icon} {nextGradeInfo.label}
             {/if}
           </p>
         </div>
-        <button on:click={() => dispatch("close")} class="app-icon-btn">
+        <button on:click={() => dispatch("close")} class="app-icon-btn shrink-0">
           <X size={16} />
         </button>
       </div>
 
-      <div class="px-5 py-5 md:px-6">
+      <div class="grade-match-body px-5 py-5 md:px-6">
         {#if gameStep === "max"}
           <div class="py-10 text-center">
             <div class="mx-auto mb-5 grid h-16 w-16 place-items-center rounded-full bg-[var(--gc-blue-tint)] text-2xl font-bold text-[var(--gc-blue)]">
@@ -694,39 +692,39 @@
           </div>
 
         {:else if gameStep === "intro"}
-          <div class="app-stat-card mb-5 px-4 py-4">
-            <div class="flex items-center gap-2 font-semibold">
+          <div class="grade-intro-card">
+            <div class="flex min-w-0 items-center gap-3">
               <div class="app-coin-icon">
                 <Trophy size={18} />
               </div>
-              <span>{challenge.title}</span>
-            </div>
-            <p class="mt-2 text-sm">{challenge.subtitle}</p>
-            <p class="mt-2 text-sm leading-6 text-[var(--text-secondary)]">{challenge.instructions}</p>
-          </div>
-
-          <div class="app-stat-card px-4 py-4">
-            <div class="app-label">{stageTone}</div>
-            <div class="mt-2 text-lg font-semibold">{gradeInfo.icon} {gradeInfo.label}</div>
-            <div class="mt-1 text-sm text-[var(--text-secondary)]">{gradeInfo.title}</div>
-          </div>
-
-          <div class="mt-4 grid gap-3 sm:grid-cols-2">
-            <div class="app-stat-card px-4 py-4">
-              <div class="app-label">Promotion Reward</div>
-              <div class="mt-2 text-xl font-bold">+{formatGold(rewardGold)}</div>
-              <div class="mt-1 text-sm text-[var(--text-secondary)]">승급 시 즉시 지급</div>
-            </div>
-            <div class="app-stat-card px-4 py-4">
-              <div class="app-label">Failure Penalty</div>
-              <div class="mt-2 text-xl font-bold">
-                {failPenalty === 0 ? "유지" : `${failPenalty}단계 강등`}
+              <div class="min-w-0">
+                <div class="grade-intro-title font-semibold">{challenge.title}</div>
+                <p class="grade-intro-subtitle mt-1 text-sm text-[var(--text-secondary)]">{challenge.subtitle}</p>
               </div>
-              <div class="mt-1 text-sm text-[var(--text-secondary)]">현재 등급 기준 패널티</div>
             </div>
           </div>
 
-          <button on:click={startChallenge} class="app-button app-button-primary mt-6 w-full px-4 py-4">
+          <div class="grade-intro-details mt-3">
+            <div class="grade-intro-stat">
+              <div class="app-label">단계</div>
+              <strong>Stage {challenge.stage}</strong>
+              <span>난이도 {challenge.difficulty}/10</span>
+            </div>
+            <div class="grade-intro-stat">
+              <div class="app-label">보상</div>
+              <strong>+{formatGold(rewardGold)}</strong>
+              <span>승급 시 지급</span>
+            </div>
+            <div class="grade-intro-stat">
+              <div class="app-label">실패</div>
+              <strong>
+                {failPenalty === 0 ? "유지" : `${failPenalty}단계 강등`}
+              </strong>
+              <span>현재 등급 기준</span>
+            </div>
+          </div>
+
+          <button on:click={startChallenge} class="grade-start-button app-button app-button-primary mt-4 w-full px-4 py-3 sm:mt-5 sm:py-4">
             <Sparkles size={16} />
             시험 시작
           </button>
@@ -878,6 +876,168 @@
 </div>
 
 <style>
+  .grade-match-modal {
+    display: flex;
+    max-height: min(88vh, 52rem);
+    flex-direction: column;
+    padding: 0;
+  }
+
+  .grade-match-header {
+    flex: 0 0 auto;
+  }
+
+  .grade-match-title {
+    line-height: 1.2;
+  }
+
+  .grade-match-route {
+    display: flex;
+    min-width: 0;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.25rem;
+    line-height: 1.35;
+  }
+
+  .grade-route-arrow {
+    margin: 0 0.25rem;
+  }
+
+  .grade-match-body {
+    flex: 1 1 auto;
+    overflow-y: auto;
+    overscroll-behavior: contain;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .grade-intro-card {
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gc-divider);
+    background: var(--gc-surface-2);
+    color: var(--gc-ink);
+    padding: 1rem;
+  }
+
+  .grade-intro-title,
+  .grade-intro-subtitle {
+    overflow-wrap: anywhere;
+  }
+
+  .grade-intro-details {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 0.55rem;
+  }
+
+  .grade-intro-stat {
+    min-width: 0;
+    overflow: hidden;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gc-divider);
+    background: var(--gc-surface-2);
+    padding: 0.85rem 0.75rem;
+  }
+
+  .grade-intro-stat strong,
+  .grade-intro-stat span {
+    display: block;
+    min-width: 0;
+    overflow-wrap: anywhere;
+  }
+
+  .grade-intro-stat strong {
+    margin-top: 0.45rem;
+    color: var(--gc-ink);
+    font-size: clamp(0.95rem, 3.4vw, 1.15rem);
+    line-height: 1.2;
+  }
+
+  .grade-intro-stat span {
+    margin-top: 0.3rem;
+    color: var(--text-secondary);
+    font-size: 0.78rem;
+    line-height: 1.3;
+  }
+
+  @media (max-width: 480px) {
+    .grade-match-modal {
+      max-height: calc(100dvh - 1.5rem);
+    }
+
+    .grade-match-header {
+      align-items: flex-start;
+      gap: 0.75rem;
+      padding: 0.9rem 0.95rem 0.8rem;
+    }
+
+    .grade-match-eyebrow {
+      display: none;
+    }
+
+    .grade-match-title {
+      margin-top: 0;
+      font-size: 1.18rem;
+    }
+
+    .grade-match-route {
+      margin-top: 0.35rem;
+      font-size: 0.78rem;
+    }
+
+    .grade-match-body {
+      padding: 0.85rem 0.95rem max(0.95rem, env(safe-area-inset-bottom));
+    }
+
+    .grade-intro-card {
+      padding: 0.75rem;
+    }
+
+    .grade-intro-card :global(.app-coin-icon) {
+      height: 2.15rem;
+      width: 2.15rem;
+      flex: 0 0 auto;
+    }
+
+    .grade-intro-subtitle {
+      font-size: 0.82rem;
+      line-height: 1.35;
+    }
+
+    .grade-intro-details {
+      margin-top: 0.6rem;
+      gap: 0.45rem;
+    }
+
+    .grade-intro-stat {
+      border-radius: 0.85rem;
+      padding: 0.65rem 0.55rem;
+    }
+
+    .grade-intro-stat :global(.app-label) {
+      font-size: 0.62rem;
+      letter-spacing: 0.08em;
+    }
+
+    .grade-intro-stat strong {
+      margin-top: 0.35rem;
+      font-size: 0.86rem;
+    }
+
+    .grade-intro-stat span {
+      display: none;
+    }
+
+    .grade-start-button {
+      margin-top: 0.75rem;
+      min-height: 2.75rem;
+      padding-top: 0.7rem;
+      padding-bottom: 0.7rem;
+    }
+  }
+
   .mini-grid,
   .color-grid,
   .puzzle-grid {

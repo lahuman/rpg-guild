@@ -7,12 +7,14 @@
   import ShopManager from "$lib/components/ShopManager.svelte";
   import {
     confirmAction,
+    chanceRatioToPercentInput,
     formatAverageLevel,
     formatCompactNumber,
     formatGold,
     lockBodyScroll,
     notify,
     notifyError,
+    percentInputToChanceRatio,
     requireRouteParam,
     resolveCharacterAppearance,
     toDateOrNull
@@ -67,7 +69,7 @@
 
   let isEditingSettings = false;
   let isSavingSettings = false;
-  let newBoxChance = 0.2;
+  let newBoxChancePercent = 20;
   let newMaxBonusGold = 36;
   let releaseBodyScrollLock: (() => void) | null = null;
 
@@ -138,7 +140,7 @@
   }
 
   function startEditingSettings() {
-    newBoxChance = guild?.boxChance ?? 0.2;
+    newBoxChancePercent = chanceRatioToPercentInput(guild?.boxChance ?? 0.2);
     newMaxBonusGold = guild?.maxBonusGold ?? 36;
     isEditingSettings = true;
   }
@@ -146,7 +148,11 @@
   async function saveGuildSettings() {
     try {
       isSavingSettings = true;
-      await guildStore.updateGuildRewardSettings(guildId, newBoxChance, newMaxBonusGold);
+      await guildStore.updateGuildRewardSettings(
+        guildId,
+        percentInputToChanceRatio(newBoxChancePercent),
+        newMaxBonusGold
+      );
       isEditingSettings = false;
       notify("보상 설정이 저장되었습니다.");
     } catch (error) {
@@ -378,7 +384,7 @@
         <div class="app-stat-card">
           <div class="app-label">Reward Chest</div>
           <div class="mt-2 text-lg font-semibold">
-            {(guild?.boxChance ?? 0.2) * 100}% / 최대 {guild?.maxBonusGold ?? 36}G
+            {chanceRatioToPercentInput(guild?.boxChance ?? 0.2)}% / 최대 {guild?.maxBonusGold ?? 36}G
           </div>
           <p class="mt-2 text-sm">미션 완료 시 랜덤 보너스</p>
         </div>
@@ -458,8 +464,8 @@
           <div class="space-y-4">
             <div>
               <label for="box-chance" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">보너스 상자 확률</label>
-              <input id="box-chance" bind:value={newBoxChance} type="number" min="0" max="1" step="0.05" class="app-input" />
-              <p class="mt-2 text-sm text-[var(--text-secondary)]">`0`에서 `1` 사이의 값. 예: `0.2` = 20%</p>
+              <input id="box-chance" bind:value={newBoxChancePercent} type="number" min="1" max="100" step="1" class="app-input" />
+              <p class="mt-2 text-sm text-[var(--text-secondary)]">`1`에서 `100` 사이의 값. 예: `20` = 20%</p>
             </div>
             <div>
               <label for="max-bonus-gold" class="mb-2 block text-sm font-medium text-[var(--text-primary)]">최대 보너스 골드</label>

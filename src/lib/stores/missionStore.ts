@@ -9,6 +9,7 @@ import { userStore } from './userStore';
 import type { Guild } from './guildStore';
 import { getTodayDateKey, toDateOrNull } from '$lib';
 import { calculateBountyTotalGold, getBountyExpiresAt, isBountyExpired } from '$lib/features/missions/bounty';
+import { rollRewardChest, type RewardChestResult } from '$lib/features/missions/rewardChest';
 import type { FirestoreTimestampLike } from './guild/types';
 
 type MissionFundingType = 'guild' | 'character';
@@ -55,6 +56,11 @@ export type FundedMissionInput = MissionInput & {
 export interface MissionCompletionCharacter {
     id: string;
     name: string;
+}
+
+export interface MissionCompletionResult {
+    isChestFound: boolean;
+    rewardChest: RewardChestResult | null;
 }
 
 function createMissionStore() {
@@ -274,6 +280,7 @@ function createMissionStore() {
             }
 
             // 길드 설정에 따른 확률 로직으로 변경
+            let rewardChest: RewardChestResult | null = null;
             let bonusGold = 0;
             let isChestFound = false;
             
@@ -282,7 +289,8 @@ function createMissionStore() {
 
             if (!isFundedMission && Math.random() < boxChance) {
                 isChestFound = true;
-                bonusGold = Math.floor(Math.random() * (maxBonusGold + 1));
+                rewardChest = rollRewardChest(maxBonusGold);
+                bonusGold = rewardChest.bonusGold;
             }
 
             const logRef = doc(collection(db, `guilds/${guildId}/mission_logs`));
@@ -342,6 +350,15 @@ function createMissionStore() {
                     totalReward,
                     isChestFound: isLiveFundedMission ? false : isChestFound,
                     bonusGold: isLiveFundedMission ? 0 : bonusGold,
+                    rewardChestTierKey: rewardChest?.tier.key || '',
+                    rewardChestTierLabel: rewardChest?.tier.label || '',
+                    rewardChestTierLevel: rewardChest?.tier.level || 0,
+                    rewardChestTaps: rewardChest?.taps.map((tap) => ({
+                        tapNumber: tap.tapNumber,
+                        fromTierKey: tap.fromTier.key,
+                        toTierKey: tap.toTier.key,
+                        upgraded: tap.upgraded
+                    })) || [],
                     fundingType: liveMission.fundingType || 'guild',
                     sponsorCharacterId: liveMission.sponsorCharacterId || '',
                     sponsorCharacterName: liveMission.sponsorCharacterName || '',
@@ -390,8 +407,8 @@ function createMissionStore() {
             // [중요] UI에서 이펙트를 보여주기 위해 결과 반환
             return {
                 isChestFound: isFundedMission ? false : isChestFound,
-                bonusGold: isFundedMission ? 0 : bonusGold
-            };
+                rewardChest: isFundedMission ? null : rewardChest
+            } satisfies MissionCompletionResult;
         }
     };
 }

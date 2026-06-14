@@ -9,7 +9,6 @@ let previousBodyLeft = '';
 let previousBodyRight = '';
 let previousBodyWidth = '';
 let previousBodyPaddingRight = '';
-let previousBodyTouchAction = '';
 let previousHtmlOverflow = '';
 let previousHtmlOverscrollBehavior = '';
 
@@ -48,7 +47,6 @@ export function lockBodyScroll() {
         previousBodyRight = body.style.right;
         previousBodyWidth = body.style.width;
         previousBodyPaddingRight = body.style.paddingRight;
-        previousBodyTouchAction = body.style.touchAction;
         previousHtmlOverflow = documentElement.style.overflow;
         previousHtmlOverscrollBehavior = documentElement.style.overscrollBehavior;
 
@@ -58,7 +56,6 @@ export function lockBodyScroll() {
         body.style.left = '0';
         body.style.right = '0';
         body.style.width = '100%';
-        body.style.touchAction = 'none';
 
         if (scrollbarWidth > 0) {
             body.style.paddingRight = `${scrollbarWidth}px`;
@@ -91,7 +88,6 @@ export function lockBodyScroll() {
         body.style.right = previousBodyRight;
         body.style.width = previousBodyWidth;
         body.style.paddingRight = previousBodyPaddingRight;
-        body.style.touchAction = previousBodyTouchAction;
         documentElement.style.overflow = previousHtmlOverflow;
         documentElement.style.overscrollBehavior = previousHtmlOverscrollBehavior;
 

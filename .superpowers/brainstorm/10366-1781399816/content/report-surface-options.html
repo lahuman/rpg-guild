@@ -1,0 +1,45 @@
+<h2>How should the report open?</h2>
+<p class="subtitle">Both options start from a Report button on each member card.</p>
+
+<div class="cards">
+  <div class="card" data-choice="a" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Members page + report modal</div>
+        <div class="mockup-body">
+          <div class="placeholder" style="height:72px">Member card with Report button</div>
+          <div style="margin:12px auto 0;max-width:78%;border:2px solid #111827;border-radius:10px;background:#fff;padding:12px">
+            <div style="font-weight:700;margin-bottom:8px">Rin's Report</div>
+            <div class="mock-nav">Week | Month | Year</div>
+            <div class="placeholder" style="height:62px;margin-top:10px">Summary + mission/purchase list</div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>A. Modal on the members page</h3>
+      <p>Fast to open and keeps the user in roster management. Best for compact summaries and recent details.</p>
+    </div>
+  </div>
+
+  <div class="card" data-choice="b" onclick="toggleSelect(this)">
+    <div class="card-image">
+      <div class="mockup">
+        <div class="mockup-header">Dedicated report page</div>
+        <div class="mockup-body">
+          <div class="mock-nav">Back | Rin's Report | Week | Month | Year</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-top:12px">
+            <div class="placeholder" style="height:48px">Missions</div>
+            <div class="placeholder" style="height:48px">Gold Earned</div>
+            <div class="placeholder" style="height:48px">Spent</div>
+          </div>
+          <div class="placeholder" style="height:92px;margin-top:12px">Detailed report timeline</div>
+        </div>
+      </div>
+    </div>
+    <div class="card-body">
+      <h3>B. Dedicated member report page</h3>
+      <p>More room for yearly reports, deep details, and shareable URLs, but adds a new route and navigation surface.</p>
+    </div>
+  </div>
+</div>

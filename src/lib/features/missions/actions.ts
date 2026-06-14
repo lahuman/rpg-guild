@@ -3,6 +3,7 @@ import type { Guild, GuildCharacter } from '$lib/stores/guildStore';
 import { missionStore } from '$lib/stores/missionStore';
 import { confirmAction, createMissionForm, notify } from '$lib';
 import { calculateBountyTotalGold } from './bounty';
+import type { RewardChestResult } from './rewardChest';
 
 export function sortMissionsAction(missions: Mission[], completedIds: Set<string>) {
     const missionTypeOrder: Record<Mission['type'], number> = {
@@ -232,13 +233,12 @@ export async function completeMissionAction(
 
     const result = await missionStore.completeMission(guildId, selectedMission, targets, guild);
 
-    if (result?.isChestFound) {
+    if (result?.isChestFound && result.rewardChest) {
         return {
             selectedMission: null,
             selectedCharIds: [],
             showChestModal: true,
-            chestOpened: false,
-            chestBonus: result.bonusGold
+            rewardChest: result.rewardChest
         };
     }
 
@@ -248,7 +248,6 @@ export async function completeMissionAction(
         selectedMission: null,
         selectedCharIds: [],
         showChestModal: false,
-        chestOpened: false,
-        chestBonus: 0
+        rewardChest: null as RewardChestResult | null
     };
 }
