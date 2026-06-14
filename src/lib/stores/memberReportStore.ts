@@ -20,11 +20,14 @@ const initialState: MemberReportStoreState = {
 
 function createMemberReportStore() {
 	const { subscribe, set, update } = writable<MemberReportStoreState>(initialState);
+	let requestId = 0;
 
 	return {
 		subscribe,
 
 		async fetchLogs(guildId: string) {
+			const currentRequestId = ++requestId;
+
 			update((state) => ({
 				...state,
 				isLoading: true,
@@ -36,6 +39,10 @@ function createMemberReportStore() {
 					getDocs(collection(db, `guilds/${guildId}/mission_logs`)),
 					getDocs(collection(db, `guilds/${guildId}/usage_logs`))
 				]);
+
+				if (currentRequestId !== requestId) {
+					return;
+				}
 
 				set({
 					missionLogs: missionSnapshot.docs.map((missionDoc) => ({
@@ -50,6 +57,10 @@ function createMemberReportStore() {
 					error: ''
 				});
 			} catch (error) {
+				if (currentRequestId !== requestId) {
+					return;
+				}
+
 				set({
 					...initialState,
 					error: getErrorMessage(error, '멤버 보고서를 불러오지 못했습니다.')
@@ -58,6 +69,7 @@ function createMemberReportStore() {
 		},
 
 		reset() {
+			requestId += 1;
 			set(initialState);
 		}
 	};
