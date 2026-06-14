@@ -1,11 +1,15 @@
 <script lang="ts">
   import { page } from "$app/stores";
   import { onDestroy, onMount } from "svelte";
-  import { quintOut } from "svelte/easing";
-  import { fade, scale } from "svelte/transition";
   import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
+  import MobileActionSheet, {
+    type MobileActionSheetAction,
+    type MobileActionSheetSelectDetail
+  } from "$lib/components/MobileActionSheet.svelte";
+  import RewardChestModal from "$lib/components/RewardChestModal.svelte";
   import { JOB_ICONS, createMissionForm, formatGold, lockBodyScroll, notifyError, requireRouteParam, toDateOrNull } from "$lib";
   import { formatBountyTimeRemaining, isBountyExpired } from "$lib/features/missions/bounty";
+  import type { RewardChestResult } from "$lib/features/missions/rewardChest";
   import {
     completeMissionAction,
     deleteMissionAction,
@@ -20,6 +24,7 @@
   import { missionStore, type Mission } from "$lib/stores/missionStore";
   import {
     CheckCircle2,
+    MoreHorizontal,
     Pencil,
     Plus,
     ScrollText,
@@ -62,8 +67,8 @@
   let isLoadingLogs = false;
 
   let showChestModal = false;
-  let chestOpened = false;
-  let chestBonus = 0;
+  let rewardChest: RewardChestResult | null = null;
+  let actionSheetMission: Mission | null = null;
   let now = Date.now();
   let expiringMissionIds = new Set<string>();
   let releaseBodyScrollLock: (() => void) | null = null;
@@ -169,6 +174,39 @@
     }
   }
 
+  function getMissionSheetActions(mission: Mission): MobileActionSheetAction[] {
+    const isBountyMission = mission.fundingType === "character";
+
+    return [
+      {
+        id: "edit",
+        label: isBountyMission ? "지정 미션은 수정할 수 없음" : "수정",
+        disabled: isBountyMission
+      },
+      { id: "delete", label: "삭제", tone: "danger" }
+    ];
+  }
+
+  function closeMissionActionSheet() {
+    actionSheetMission = null;
+  }
+
+  async function handleMissionActionSelect(event: CustomEvent<MobileActionSheetSelectDetail>) {
+    const mission = actionSheetMission;
+    if (!mission) return;
+
+    actionSheetMission = null;
+
+    if (event.detail.id === "edit") {
+      startEdit(mission);
+      return;
+    }
+
+    if (event.detail.id === "delete") {
+      await handleDelete(mission);
+    }
+  }
+
   async function openCompleteModal(mission: Mission) {
     if (isFundedMissionExpired(mission)) {
       await expireFundedMission(mission);
@@ -207,15 +245,8 @@
 
       selectedMission = result.selectedMission;
       selectedCharIds = result.selectedCharIds;
-      showChestModal = result.showChestModal;
-      chestOpened = result.chestOpened;
-      chestBonus = result.chestBonus;
-
-      if (showChestModal) {
-        setTimeout(() => {
-          chestOpened = true;
-        }, 1500);
-      }
+      rewardChest = result.rewardChest;
+      showChestModal = result.showChestModal && Boolean(result.rewardChest);
     } catch (error) {
       notifyError(error, "퀘스트 완료 처리에 실패했습니다.");
     }
@@ -223,6 +254,7 @@
 
   function closeChestModal() {
     showChestModal = false;
+    rewardChest = null;
   }
 
   onDestroy(() => {
@@ -436,7 +468,7 @@
         {@const isSoldOut = $completedIds.has(mission.id || "")}
         {@const isBountyMission = mission.fundingType === "character"}
         {@const isExpiredBounty = isFundedMissionExpired(mission)}
-        <article class={`quest-card app-card flex flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
+        <article class={`quest-card app-card mobile-daily-card flex flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
           <div class="mb-4 flex items-start justify-between gap-3">
             <div class="flex flex-wrap gap-2">
               <span class={`app-stitch-tag ${mission.type === "party" ? "" : mission.type === "assigned" ? "" : ""}`}>
@@ -460,7 +492,7 @@
                 </span>
               {/if}
 
-              <div class="flex gap-1">
+              <div class="desktop-card-actions hidden gap-1 sm:flex">
                 {#if !isBountyMission}
                   <button on:click={() => startEdit(mission)} class="app-icon-btn" title="수정">
                     <Pencil size={15} />
@@ -470,6 +502,15 @@
                   <Trash2 size={15} />
                 </button>
               </div>
+
+              <button
+                on:click={() => (actionSheetMission = mission)}
+                class="app-icon-btn mobile-more-action"
+                aria-label={`${mission.title} 더보기`}
+                title="더보기"
+              >
+                <MoreHorizontal size={17} />
+              </button>
             </div>
           </div>
 
@@ -477,10 +518,12 @@
             <h3 class="text-xl font-semibold">{mission.title}</h3>
             <div class="shrink-0 text-left sm:text-right">
               <div class="app-label">Reward</div>
-              <div class="mt-1 text-sm font-bold">{mission.cost} G</div>
+              <div class="mt-1 text-sm font-bold">
+                {mission.cost} G · {mission.type === "party" ? mission.maxParticipants : 1}명
+              </div>
             </div>
           </div>
-          <p class="mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
+          <p class="mobile-card-description mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
 
           {#if mission.type === "assigned" && mission.assignedCharacterName}
             <div class="mt-3 app-info-strip text-sm">
@@ -494,7 +537,7 @@
             </div>
           {/if}
 
-          <div class="mt-5 grid gap-3 sm:grid-cols-2">
+          <div class="mobile-card-secondary-stat mt-5 grid gap-3 sm:grid-cols-2">
             <div class="app-stat-card">
               <div class="app-label">Reward</div>
               <div class="mt-2 text-2xl font-bold">{mission.cost} G</div>
@@ -605,82 +648,16 @@
     </div>
   {/if}
 
-  {#if showChestModal}
-    <div class="fixed inset-0 z-[60] flex items-center justify-center bg-[var(--black)]/40 p-3 md:p-4 overflow-hidden" transition:fade={{ duration: 300 }}>
-      <div class="relative w-full max-w-md text-center">
-        <div class="app-card rounded-[2rem] px-5 py-8 md:px-6 md:py-10">
-          {#if !chestOpened}
-            <button
-              type="button"
-              class="shake-animation select-none bg-transparent"
-              on:click={() => (chestOpened = true)}
-              in:scale={{ duration: 500, start: 0, easing: quintOut }}
-            >
-              🎁
-            </button>
-            <p class="mt-5 text-lg font-semibold">Secure Vault Opened</p>
-            <p class="mt-2 text-sm">잠시 후 자동으로 열리며, 직접 클릭해도 됩니다.</p>
-          {:else}
-            <div class="flex flex-col items-center" in:scale={{ duration: 300, start: 0.8, easing: quintOut }}>
-              <div class="text-[7rem] animate-bounce-short">💰</div>
-              <h2 class="pop-in-text mt-2 text-3xl font-black">BONUS</h2>
-              <div class="pop-in-text-delayed mt-3 text-5xl font-black">
-                +{chestBonus}<span class="ml-2 text-2xl text-[var(--orange-badge)]">G</span>
-              </div>
-              <button on:click={closeChestModal} class="app-button app-button-primary mt-8 px-8 py-3">
-                확인
-              </button>
-            </div>
-          {/if}
-        </div>
-      </div>
-    </div>
+  {#if showChestModal && rewardChest}
+    <RewardChestModal result={rewardChest} on:close={closeChestModal} />
   {/if}
+
+  <MobileActionSheet
+    open={Boolean(actionSheetMission)}
+    title={actionSheetMission?.title || ""}
+    subtitle={actionSheetMission ? `${actionSheetMission.cost} G · ${actionSheetMission.type === "party" ? actionSheetMission.maxParticipants : 1}명` : undefined}
+    actions={actionSheetMission ? getMissionSheetActions(actionSheetMission) : []}
+    on:select={handleMissionActionSelect}
+    on:close={closeMissionActionSheet}
+  />
 </div>
-
-<style>
-  @keyframes shake {
-    0% { transform: translate(1px, 1px) rotate(0deg); }
-    10% { transform: translate(-1px, -2px) rotate(-1deg); }
-    20% { transform: translate(-3px, 0) rotate(1deg); }
-    30% { transform: translate(3px, 2px) rotate(0deg); }
-    40% { transform: translate(1px, -1px) rotate(1deg); }
-    50% { transform: translate(-1px, 2px) rotate(-1deg); }
-    60% { transform: translate(-3px, 1px) rotate(0deg); }
-    70% { transform: translate(3px, 1px) rotate(-1deg); }
-    80% { transform: translate(-1px, -1px) rotate(1deg); }
-    90% { transform: translate(1px, 2px) rotate(0deg); }
-    100% { transform: translate(1px, -2px) rotate(0deg); }
-  }
-
-  .shake-animation {
-    animation: shake 0.5s infinite;
-    cursor: pointer;
-    display: inline-block;
-    font-size: 7rem;
-  }
-
-  @keyframes bounce-short {
-    0%, 100% { transform: translateY(0); }
-    50% { transform: translateY(-20px); }
-  }
-
-  .animate-bounce-short {
-    animation: bounce-short 0.5s ease-out 1;
-  }
-
-  @keyframes pop-in {
-    0% { opacity: 0; transform: scale(0.5); }
-    70% { transform: scale(1.15); }
-    100% { opacity: 1; transform: scale(1); }
-  }
-
-  .pop-in-text {
-    animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
-  }
-
-  .pop-in-text-delayed {
-    opacity: 0;
-    animation: pop-in 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275) 0.18s forwards;
-  }
-</style>

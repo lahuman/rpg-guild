@@ -997,6 +997,144 @@ MODAL ACTION ROW
 }
 
 /* ============================================================
+MOBILE ACTION SHEET
+============================================================ */
+
+.mobile-action-sheet-root {
+  display: none;
+}
+
+.mobile-more-action {
+  display: none;
+}
+
+.desktop-card-actions,
+.desktop-card-action {
+  display: inline-flex;
+}
+
+.mobile-card-description {
+  overflow: hidden;
+}
+
+@media (max-width: 640px) {
+  .mobile-action-sheet-root {
+    position: fixed;
+    inset: 0;
+    z-index: 70;
+    display: block;
+  }
+
+  .mobile-action-sheet-backdrop {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    border: 0;
+    background: rgba(32, 33, 36, 0.42);
+  }
+
+  .mobile-action-sheet {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    max-height: min(82vh, 36rem);
+    overflow-y: auto;
+    border: 1px solid var(--gc-divider);
+    border-radius: 1.4rem 1.4rem 0 0;
+    background: var(--white);
+    box-shadow: var(--gc-shadow-6);
+    padding-bottom: max(1rem, env(safe-area-inset-bottom));
+    animation: mobile-sheet-rise 180ms var(--ease-out-quint) both;
+  }
+
+  .mobile-action-sheet-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 1rem;
+    border-bottom: 1px solid var(--gc-divider);
+    padding: 1rem 1rem 0.95rem;
+  }
+
+  .mobile-action-sheet-header h3 {
+    margin-top: 0.45rem;
+    overflow: hidden;
+    color: var(--gc-ink);
+    font-size: 1.15rem;
+    font-weight: 700;
+    line-height: 1.25;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .mobile-action-sheet-header p {
+    margin-top: 0.35rem;
+    color: var(--gc-secondary);
+    font-size: 0.85rem;
+    line-height: 1.45;
+  }
+
+  .mobile-action-sheet-list {
+    display: grid;
+    gap: 0.5rem;
+    padding: 0.85rem;
+  }
+
+  .mobile-action-sheet-list button {
+    min-height: 3rem;
+    border-radius: var(--radius-md);
+    border: 1px solid var(--gc-divider);
+    background: var(--gc-surface-2);
+    color: var(--gc-ink);
+    padding: 0.85rem 1rem;
+    text-align: left;
+    font-weight: 700;
+  }
+
+  .mobile-action-sheet-list button:disabled {
+    color: var(--gc-tertiary);
+    cursor: not-allowed;
+    opacity: 0.58;
+  }
+
+  .mobile-action-sheet-list button.danger {
+    border-color: rgba(217, 48, 37, 0.25);
+    background: rgba(217, 48, 37, 0.08);
+    color: var(--gc-red);
+  }
+
+  .mobile-more-action {
+    display: inline-flex;
+  }
+
+  .desktop-card-actions,
+  .desktop-card-action {
+    display: none !important;
+  }
+
+  .mobile-card-description {
+    display: -webkit-box;
+    min-height: 0 !important;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+  }
+
+  .mobile-card-secondary-stat {
+    display: none;
+  }
+
+  .mobile-card-primary-stat {
+    min-height: 3.25rem;
+    padding: 0.75rem 0.85rem;
+  }
+
+  .mobile-daily-card {
+    padding: 1rem !important;
+  }
+}
+
+/* ============================================================
 APP STAT (generic)
 ============================================================ */
 
@@ -1105,6 +1243,11 @@ ANIMATIONS
 @keyframes sheet-pop {
   from { opacity: 0; transform: translateY(10px) scale(0.98); }
   to   { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes mobile-sheet-rise {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
 }
 
 @keyframes save-flash {
@@ -1439,8 +1582,11 @@ RESPONSIVE
   }
 
   .guild-tabs {
-    overflow-x: auto;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 0.35rem;
+    width: 100%;
+    overflow-x: visible;
     padding-bottom: 0.25rem;
     scrollbar-width: none;
   }
@@ -1450,8 +1596,12 @@ RESPONSIVE
   }
 
   .guild-tabs a {
+    min-width: 0;
+    justify-content: center;
     white-space: nowrap;
-    padding: 0.78rem 0.92rem;
+    gap: 0.35rem;
+    padding: 0.72rem 0.25rem;
+    font-size: 0.82rem;
   }
 
   .shop-grid {
@@ -1631,6 +1781,7 @@ REDUCED MOTION
   .app-action-tile,
   .lobby-fab,
   .lobby-fab-sheet,
+  .mobile-action-sheet,
   .guild-tabs a,
   .reveal-rise,
   .sheet-pop,

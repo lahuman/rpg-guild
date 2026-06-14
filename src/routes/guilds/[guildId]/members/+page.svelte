@@ -4,7 +4,12 @@
   import CharacterAvatar from "$lib/components/CharacterAvatar.svelte";
   import CharacterCustomizerModal from "$lib/components/CharacterCustomizerModal.svelte";
   import FundedMissionModal from "$lib/components/FundedMissionModal.svelte";
+  import MemberReportModal from "$lib/components/MemberReportModal.svelte";
   import MiniGameModal from "$lib/components/MiniGameModal.svelte";
+  import MobileActionSheet, {
+    type MobileActionSheetAction,
+    type MobileActionSheetSelectDetail
+  } from "$lib/components/MobileActionSheet.svelte";
   import ShopManager from "$lib/components/ShopManager.svelte";
   import { JOB_ICONS, createCharacterForm, formatGold, lockBodyScroll, notifyError, requireRouteParam } from "$lib";
   import {
@@ -20,6 +25,8 @@
   import {
     Coins,
     Crown,
+    FileText,
+    MoreHorizontal,
     Pencil,
     Palette,
     ScrollText,
@@ -27,8 +34,7 @@
     Sparkles,
     Trash2,
     UserPlus,
-    Users,
-    X
+    Users
   } from "lucide-svelte";
 
   const guildId = requireRouteParam($page.params.guildId, "guildId");
@@ -45,8 +51,10 @@
   let editingChar: GuildCharacter | null = null;
   let selectedCharForGame: GuildCharacter | null = null;
   let selectedCharForFundedMission: GuildCharacter | null = null;
+  let selectedCharForReport: GuildCharacter | null = null;
   let customizingChar: GuildCharacter | null = null;
   let shoppingChar: GuildCharacter | null = null;
+  let actionSheetChar: GuildCharacter | null = null;
   let showShopManager = false;
   let newChar: Partial<GuildCharacter> = createCharacterForm();
   let shopModalBody: HTMLDivElement | null = null;
@@ -108,6 +116,78 @@
     showShopManager = !showShopManager;
     await tick();
     shopModalBody?.scrollTo({ top: 0, behavior: "smooth" });
+  }
+
+  function getMemberSheetActions(char: GuildCharacter): MobileActionSheetAction[] {
+    const hasCheckedInToday = char.lastCheckInDate === today;
+    const hasFinishedMiniGameToday = char.lastMiniGameDate === today;
+    const gradeLabel = isMaxGrade(char.grade)
+      ? "최고 등급 도달"
+      : hasCheckedInToday && !hasFinishedMiniGameToday
+        ? "등급 도전"
+        : hasFinishedMiniGameToday
+          ? "오늘 등급전 완료"
+          : "출석 후 등급 도전";
+
+    return [
+      { id: "shop", label: "상점" },
+      { id: "fundedMission", label: "지정 미션" },
+      { id: "report", label: "보고서" },
+      { id: "customize", label: "꾸미기" },
+      {
+        id: "miniGame",
+        label: gradeLabel,
+        disabled: isMaxGrade(char.grade) || !hasCheckedInToday || hasFinishedMiniGameToday
+      },
+      { id: "edit", label: "수정" },
+      { id: "delete", label: "삭제", tone: "danger" }
+    ];
+  }
+
+  function closeMemberActionSheet() {
+    actionSheetChar = null;
+  }
+
+  async function handleMemberActionSelect(event: CustomEvent<MobileActionSheetSelectDetail>) {
+    const char = actionSheetChar;
+    if (!char) return;
+
+    actionSheetChar = null;
+
+    if (event.detail.id === "shop") {
+      shoppingChar = char;
+      showShopManager = false;
+      return;
+    }
+
+    if (event.detail.id === "fundedMission") {
+      selectedCharForFundedMission = char;
+      return;
+    }
+
+    if (event.detail.id === "report") {
+      selectedCharForReport = char;
+      return;
+    }
+
+    if (event.detail.id === "customize") {
+      customizingChar = char;
+      return;
+    }
+
+    if (event.detail.id === "miniGame") {
+      selectedCharForGame = char;
+      return;
+    }
+
+    if (event.detail.id === "edit") {
+      editingChar = { ...char };
+      return;
+    }
+
+    if (event.detail.id === "delete") {
+      await handleDelete(char);
+    }
   }
 
   onDestroy(() => {
@@ -213,7 +293,7 @@
         {@const hasCheckedInToday = char.lastCheckInDate === today}
         {@const gradeInfo = getGradeInfo(char.grade)}
         {@const accentClass = gradeInfo.accent}
-        <article class="character-card app-card flex flex-col p-5 md:p-6">
+        <article class="character-card app-card mobile-daily-card flex flex-col p-5 md:p-6">
           <div class="flex items-start justify-between gap-4">
             <div class="flex min-w-0 items-start gap-4">
               <CharacterAvatar character={char} size="md" />
@@ -229,7 +309,7 @@
               </div>
             </div>
 
-            <div class="flex gap-1">
+            <div class="desktop-card-actions hidden gap-1 sm:flex">
               <button on:click={() => (customizingChar = char)} class="app-icon-btn" title="꾸미기">
                 <Palette size={15} />
               </button>
@@ -240,6 +320,15 @@
                 <Trash2 size={15} />
               </button>
             </div>
+
+            <button
+              on:click={() => (actionSheetChar = char)}
+              class="app-icon-btn mobile-more-action"
+              aria-label={`${char.name} 더보기`}
+              title="더보기"
+            >
+              <MoreHorizontal size={17} />
+            </button>
           </div>
 
           <div class="mt-5">
@@ -252,20 +341,20 @@
               {/if}
             </div>
 
-            <p class="mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">
+            <p class="mobile-card-description mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">
               {char.description || "설정이 없습니다."}
             </p>
           </div>
 
           <div class="mt-5 grid grid-cols-2 gap-3">
-            <div class="app-stat-box">
+            <div class="app-stat-box mobile-card-primary-stat">
               <div class="app-label">Gold</div>
               <div class="app-metric-row mt-2 flex items-center gap-2 text-2xl font-bold">
                 <Coins size={18} />
                 <span class="app-metric-value">{formatGold(char.currentGold)}</span>
               </div>
             </div>
-            <div class="app-stat-box">
+            <div class="app-stat-box mobile-card-primary-stat">
               <div class="app-label">Level</div>
               <div class="app-rank-text mt-2 text-2xl font-bold {accentClass}">Lv.{char.level || 1}</div>
               {#if (char.consecutiveDays || 0) > 1}
@@ -286,7 +375,7 @@
 
               <button
                 on:click={() => { shoppingChar = char; showShopManager = false; }}
-                class="app-button app-button-secondary px-4 py-3 text-sm"
+                class="app-button app-button-secondary desktop-card-action hidden px-4 py-3 text-sm sm:inline-flex"
               >
                 <ShoppingBag size={16} />
                 상점
@@ -294,15 +383,23 @@
 
               <button
                 on:click={() => (selectedCharForFundedMission = char)}
-                class="app-button app-button-secondary px-4 py-3 text-sm"
+                class="app-button app-button-secondary desktop-card-action hidden px-4 py-3 text-sm sm:inline-flex"
               >
                 <ScrollText size={16} />
                 지정 미션
               </button>
 
               <button
+                on:click={() => (selectedCharForReport = char)}
+                class="app-button app-button-secondary desktop-card-action hidden px-4 py-3 text-sm sm:inline-flex"
+              >
+                <FileText size={16} />
+                보고서
+              </button>
+
+              <button
                 on:click={() => (customizingChar = char)}
-                class="app-button app-button-secondary px-4 py-3 text-sm"
+                class="app-button app-button-secondary desktop-card-action hidden px-4 py-3 text-sm sm:inline-flex"
               >
                 <Palette size={16} />
                 꾸미기
@@ -310,19 +407,19 @@
             </div>
 
             {#if isMaxGrade(char.grade)}
-              <div class="app-stat-card text-center text-sm font-semibold text-[var(--black)]">
+              <div class="app-stat-card hidden text-center text-sm font-semibold text-[var(--black)] sm:block">
                 최고 등급 도달
               </div>
             {:else if hasCheckedInToday && char.lastMiniGameDate !== today}
               <button
                 on:click={() => (selectedCharForGame = char)}
-                class="app-button app-button-secondary px-4 py-3 text-sm"
+                class="app-button app-button-secondary desktop-card-action hidden px-4 py-3 text-sm sm:inline-flex"
               >
                 <Sparkles size={16} />
                 등급 도전
               </button>
             {:else if hasCheckedInToday && char.lastMiniGameDate === today}
-              <div class="app-stat-card text-center text-sm font-semibold text-[var(--text-secondary)]">
+              <div class="app-stat-card hidden text-center text-sm font-semibold text-[var(--text-secondary)] sm:block">
                 오늘 등급전 완료
               </div>
             {/if}
@@ -483,6 +580,23 @@
       on:saved={() => (customizingChar = null)}
     />
   {/if}
+
+  {#if selectedCharForReport}
+    <MemberReportModal
+      guildId={guildId}
+      character={selectedCharForReport}
+      on:close={() => (selectedCharForReport = null)}
+    />
+  {/if}
+
+  <MobileActionSheet
+    open={Boolean(actionSheetChar)}
+    title={actionSheetChar?.name || ""}
+    subtitle={actionSheetChar ? `${JOB_ICONS[actionSheetChar.jobClass] || "?"} ${actionSheetChar.jobClass} · ${formatGold(actionSheetChar.currentGold)}` : undefined}
+    actions={actionSheetChar ? getMemberSheetActions(actionSheetChar) : []}
+    on:select={handleMemberActionSelect}
+    on:close={closeMemberActionSheet}
+  />
 </div>
 
 <style>
