@@ -273,10 +273,10 @@
   });
 </script>
 
-<div class="space-y-5 pb-20">
+<div class="min-w-0 space-y-5 pb-20">
   <section class="app-panel reveal-rise px-5 py-6 md:px-8 md:py-8">
-    <div class="flex flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
-      <div class="app-command-strip">
+    <div class="flex min-w-0 flex-col gap-5 lg:flex-row lg:items-end lg:justify-between">
+      <div class="app-command-strip min-w-0">
         <div class="eyebrow">Mission Board</div>
         <h1 class="section-title mt-4 text-3xl md:text-4xl">퀘스트 게시판</h1>
         <p class="mt-3 max-w-2xl text-sm leading-6 md:text-base">
@@ -289,14 +289,14 @@
           isCreating = !isCreating;
           if (!isCreating) resetForm();
         }}
-        class="app-button app-button-primary px-5 py-3 text-sm"
+        class="app-button app-button-primary w-full px-5 py-3 text-sm sm:w-auto"
       >
         <Plus size={18} />
         {isCreating ? "작성 닫기" : "새 퀘스트"}
       </button>
     </div>
 
-    <div class="mt-6 grid gap-3 md:grid-cols-3">
+    <div class="mt-6 grid min-w-0 gap-3 md:grid-cols-3">
       <div class="app-metal-stat">
         <div class="app-label">Active</div>
         <div class="mt-2 text-3xl font-bold">{activeCount}</div>
@@ -322,8 +322,8 @@
 
   {#if isCreating}
     <section class="app-card reveal-rise p-5 md:p-7" style="animation-delay: 120ms">
-      <div class="mb-5 flex items-center justify-between gap-4">
-        <div>
+      <div class="mb-5 flex min-w-0 items-start justify-between gap-4">
+        <div class="min-w-0">
           <div class="app-stitch-tag">{editingMissionId ? "Edit Quest" : "Create Quest"}</div>
           <h2 class="mt-2 text-2xl font-semibold">
             {editingMissionId ? "퀘스트 수정" : "새 퀘스트 등록"}
@@ -463,14 +463,14 @@
       <p class="mt-3 text-sm">새 퀘스트를 만들어 길드 운영 루프를 시작하세요.</p>
     </section>
   {:else}
-    <section class="stagger-grid grid gap-5 md:grid-cols-2 xl:grid-cols-3">
+    <section class="stagger-grid grid min-w-0 gap-5 md:grid-cols-2 xl:grid-cols-3">
       {#each sortedMissions as mission (mission.id)}
         {@const isSoldOut = $completedIds.has(mission.id || "")}
         {@const isBountyMission = mission.fundingType === "character"}
         {@const isExpiredBounty = isFundedMissionExpired(mission)}
-        <article class={`quest-card app-card mobile-daily-card flex flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
-          <div class="mb-4 flex items-start justify-between gap-3">
-            <div class="flex flex-wrap gap-2">
+        <article class={`quest-card app-card mobile-daily-card flex min-w-0 flex-col p-5 md:p-6 ${isSoldOut ? "quest-card-done" : ""}`}>
+          <div class="mb-4 flex min-w-0 items-start justify-between gap-3">
+            <div class="flex min-w-0 flex-1 flex-wrap gap-2">
               <span class={`app-stitch-tag ${mission.type === "party" ? "" : mission.type === "assigned" ? "" : ""}`}>
                 {mission.type === "party" ? "PARTY" : mission.type === "assigned" ? "ASSIGNED" : "SOLO"}
               </span>
@@ -485,7 +485,7 @@
               {/if}
             </div>
 
-            <div class="flex flex-col items-end gap-2">
+            <div class="flex shrink-0 flex-col items-end gap-2">
               {#if isBountyMission}
                 <span class={`app-stitch-tag ${isExpiredBounty ? "text-[var(--red)]" : ""}`}>
                   {isExpiredBounty ? "만료 처리 중" : formatMissionBountyRemaining(mission)}
@@ -514,16 +514,16 @@
             </div>
           </div>
 
-          <div class="flex flex-col items-start justify-between gap-3 sm:flex-row">
-            <h3 class="text-xl font-semibold">{mission.title}</h3>
-            <div class="shrink-0 text-left sm:text-right">
+          <div class="flex min-w-0 flex-col items-start justify-between gap-3 sm:flex-row">
+            <h3 class="min-w-0 max-w-full break-words text-xl font-semibold">{mission.title}</h3>
+            <div class="w-full shrink-0 text-left sm:w-auto sm:text-right">
               <div class="app-label">Reward</div>
               <div class="mt-1 text-sm font-bold">
                 {mission.cost} G · {mission.type === "party" ? mission.maxParticipants : 1}명
               </div>
             </div>
           </div>
-          <p class="mobile-card-description mt-3 min-h-[56px] text-sm leading-6 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
+          <p class="mobile-card-description mt-3 min-h-[56px] break-words text-sm leading-6 md:min-h-[72px]">{mission.description || "설명이 없는 퀘스트입니다."}</p>
 
           {#if mission.type === "assigned" && mission.assignedCharacterName}
             <div class="mt-3 app-info-strip text-sm">
@@ -562,15 +562,15 @@
   {/if}
 
   {#if selectedMission}
-    <div class="fixed inset-0 z-50 flex items-center justify-center bg-[var(--black)]/40 p-3 md:p-4">
+    <div class="fixed inset-0 z-50 flex items-center justify-center overflow-x-hidden bg-[var(--black)]/40 p-3 md:p-4">
       <div class="app-modal mission-complete-modal w-full max-w-2xl bg-white">
-        <div class="flex items-start justify-between gap-4 border-b border-[var(--grey-300)] px-5 py-5 md:px-7">
-          <div>
+        <div class="flex min-w-0 items-start justify-between gap-4 border-b border-[var(--grey-300)] px-5 py-5 md:px-7">
+          <div class="min-w-0">
             <div class="app-stitch-tag">Pending Distribution</div>
-            <h3 class="mt-2 text-2xl font-semibold">{selectedMission.title}</h3>
+            <h3 class="mt-2 break-words text-2xl font-semibold">{selectedMission.title}</h3>
             <p class="mt-2 text-sm">보상을 받을 캐릭터를 선택하세요.</p>
           </div>
-          <button on:click={() => (selectedMission = null)} class="app-icon-btn">
+          <button on:click={() => (selectedMission = null)} class="app-icon-btn shrink-0">
             ✕
           </button>
         </div>
