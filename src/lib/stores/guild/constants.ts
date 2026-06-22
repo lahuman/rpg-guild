@@ -108,6 +108,7 @@ interface CatchDropChallengeConfig extends BaseGradeChallengeConfig {
 interface DodgeBlocksChallengeConfig extends BaseGradeChallengeConfig {
   type: 'dodge-blocks';
   durationMs: number;
+  startDelayMs: number;
   blockCount: number;
   blockSpeed: number;
   homing: boolean;
@@ -292,11 +293,12 @@ function createGradeChallenge(level: number): GradeChallengeConfig {
         title: '장애물 피하기',
         subtitle: '날아오는 블록을 피해 생존하세요.',
         instructions: '이동 버튼으로 캐릭터를 조작해 제한 시간 동안 살아남으면 승급합니다.',
-        durationMs: tier === 1 ? 10000 : 12000,
-        blockCount: tier === 1 ? 5 : 7,
-        blockSpeed: tier === 1 ? 1.8 : 2.4,
+        durationMs: tier === 1 ? 10000 : 11000,
+        startDelayMs: tier === 1 ? 1500 : 2000,
+        blockCount: tier === 1 ? 4 : 5,
+        blockSpeed: tier === 1 ? 1.4 : 1.7,
         homing: tier === 2,
-        safeZoneScale: tier === 1 ? 1 : 0.86
+        safeZoneScale: 1
       };
     default:
       return {

@@ -82,6 +82,7 @@
   let dodgeDirection = { x: 0, y: 0 };
   let dodgeObstacles: Obstacle[] = [];
   let dodgeStartTime = 0;
+  let dodgePreparing = false;
 
   let puzzleTiles: number[] = [];
 
@@ -93,7 +94,7 @@
   $: isFinalGrade = isMaxGrade(characterGrade);
   $: rewardGold = isFinalGrade ? 0 : getGradeRewardGold(nextGrade);
   $: failPenalty = getGradePenaltySteps(characterGrade);
-  $: countdownLabel = countdownMs > 0 ? `${Math.ceil(countdownMs / 1000)}초` : "";
+  $: countdownLabel = countdownMs > 0 ? `${dodgePreparing ? "준비 " : ""}${Math.ceil(countdownMs / 1000)}초` : "";
   $: if (isFinalGrade && gameStep === "intro") {
     gameStep = "max";
   }
@@ -181,6 +182,7 @@
     dodgeDirection = { x: 0, y: 0 };
     dodgeObstacles = [];
     dodgeStartTime = 0;
+    dodgePreparing = false;
     puzzleTiles = [];
   }
 
@@ -519,18 +521,48 @@
   }
 
   function startDodgeBlocks(config: Extract<GradeChallengeConfig, { type: "dodge-blocks" }>) {
-    dodgeStartTime = performance.now();
     const canvasWidth = dodgeCanvas?.width ?? 320;
     const canvasHeight = dodgeCanvas?.height ?? 220;
-    dodgeObstacles = Array.from({ length: config.blockCount }, () => ({
-      x: Math.random() * canvasWidth,
-      y: Math.random() * canvasHeight,
+    dodgeObstacles = Array.from({ length: config.blockCount }, () => createDodgeObstacle(config, canvasWidth, canvasHeight));
+    drawDodgeScene(config);
+
+    if (config.startDelayMs > 0) {
+      dodgePreparing = true;
+      startCountdown(config.startDelayMs, () => {
+        dodgePreparing = false;
+        dodgeStartTime = performance.now();
+        startCountdown(config.durationMs, () => resolveResult("up", "장애물 지대를 끝까지 버텼습니다."));
+        runDodgeFrame(config);
+      });
+      return;
+    }
+
+    dodgeStartTime = performance.now();
+    startCountdown(config.durationMs, () => resolveResult("up", "장애물 지대를 끝까지 버텼습니다."));
+    runDodgeFrame(config);
+  }
+
+  function createDodgeObstacle(
+    config: Extract<GradeChallengeConfig, { type: "dodge-blocks" }>,
+    canvasWidth: number,
+    canvasHeight: number
+  ): Obstacle {
+    const safeRadius = Math.min(canvasWidth, canvasHeight) * 0.28;
+    let x = Math.random() * canvasWidth;
+    let y = Math.random() * canvasHeight;
+
+    for (let attempt = 0; attempt < 20 && Math.hypot(x - dodgePlayer.x, y - dodgePlayer.y) < safeRadius; attempt += 1) {
+      x = Math.random() * canvasWidth;
+      y = Math.random() * canvasHeight;
+    }
+
+    return {
+      x,
+      y,
       vx: (Math.random() > 0.5 ? 1 : -1) * config.blockSpeed,
       vy: (Math.random() > 0.5 ? 1 : -1) * config.blockSpeed,
       size: 12 + Math.random() * 8
-    }));
-    startCountdown(config.durationMs, () => resolveResult("up", "장애물 지대를 끝까지 버텼습니다."));
-    runDodgeFrame(config);
+    };
   }
 
   function runDodgeFrame(config: Extract<GradeChallengeConfig, { type: "dodge-blocks" }>) {
@@ -566,6 +598,15 @@
       return;
     }
 
+    drawDodgeScene(config);
+    activeAnimationFrame = requestAnimationFrame(() => runDodgeFrame(config));
+  }
+
+  function drawDodgeScene(config: Extract<GradeChallengeConfig, { type: "dodge-blocks" }>) {
+    const canvas = dodgeCanvas;
+    const context = canvas?.getContext("2d");
+    if (!canvas || !context) return;
+
     context.clearRect(0, 0, canvas.width, canvas.height);
     context.fillStyle = "#f8f9fa";
     context.fillRect(0, 0, canvas.width, canvas.height);
@@ -582,8 +623,6 @@
     context.fill();
     context.fillStyle = "#202124";
     dodgeObstacles.forEach((block) => context.fillRect(block.x - block.size / 2, block.y - block.size / 2, block.size, block.size));
-
-    activeAnimationFrame = requestAnimationFrame(() => runDodgeFrame(config));
   }
 
   function startSlidingPuzzle(config: Extract<GradeChallengeConfig, { type: "sliding-puzzle" }>) {
